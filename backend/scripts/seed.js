@@ -1,5 +1,7 @@
 const path = require('path');
+// .env может быть в backend/ (локально) или в app/ (на сервере: backend/scripts -> ../../.env)
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const { query } = require('../db');
