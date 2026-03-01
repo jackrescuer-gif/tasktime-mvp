@@ -59,3 +59,75 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON audit_log(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_level ON audit_log(level);
+
+-- Projects
+CREATE TABLE IF NOT EXISTS projects (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  business_goal TEXT,
+  budget NUMERIC(15,2),
+  planned_revenue NUMERIC(15,2),
+  owner_id INTEGER REFERENCES users(id),
+  status VARCHAR(50) DEFAULT 'active',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Product teams
+CREATE TABLE IF NOT EXISTS product_teams (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  lead_id INTEGER REFERENCES users(id),
+  status VARCHAR(50) DEFAULT 'active',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS product_team_members (
+  team_id INTEGER REFERENCES product_teams(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  role VARCHAR(50) DEFAULT 'member',
+  PRIMARY KEY (team_id, user_id)
+);
+
+-- Business functions
+CREATE TABLE IF NOT EXISTS business_functions (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Hierarchical task items (epic → story → subtask)
+CREATE TABLE IF NOT EXISTS task_items (
+  id SERIAL PRIMARY KEY,
+  parent_id INTEGER REFERENCES task_items(id) ON DELETE CASCADE,
+  level VARCHAR(20) NOT NULL CHECK (level IN ('epic','story','subtask')),
+  order_index INTEGER DEFAULT 0,
+  title VARCHAR(500) NOT NULL,
+  description TEXT,
+  acceptance_criteria TEXT,
+  context_type VARCHAR(30) CHECK (context_type IN ('project','quick','product_team')),
+  context_id INTEGER,
+  type VARCHAR(50) DEFAULT 'task',
+  priority VARCHAR(20) DEFAULT 'medium'
+    CHECK (priority IN ('critical','high','medium','low')),
+  status VARCHAR(30) DEFAULT 'open'
+    CHECK (status IN ('open','in_progress','in_review','done','cancelled')),
+  story_points INTEGER,
+  estimated_hours NUMERIC(6,2),
+  assignee_id INTEGER REFERENCES users(id),
+  creator_id INTEGER REFERENCES users(id) NOT NULL,
+  reviewer_id INTEGER REFERENCES users(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_items_parent ON task_items(parent_id);
+CREATE INDEX IF NOT EXISTS idx_task_items_context ON task_items(context_type, context_id);
+CREATE INDEX IF NOT EXISTS idx_task_items_assignee ON task_items(assignee_id);
+CREATE INDEX IF NOT EXISTS idx_task_items_status ON task_items(status);
+
+-- Link time_logs to task_items (in addition to legacy tasks)
+ALTER TABLE time_logs ADD COLUMN IF NOT EXISTS task_item_id INTEGER REFERENCES task_items(id);

@@ -6,7 +6,7 @@
   <title>TaskTime — Таск-трекер</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #ffffff;
@@ -25,13 +25,10 @@
       --radius-lg: 12px;
       --shadow: 0 1px 3px rgba(0,0,0,.08);
       --shadow-lg: 0 4px 12px rgba(0,0,0,.1);
+      --sidebar-w: 220px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -41,7 +38,7 @@
       line-height: 1.5;
     }
 
-    /* Login */
+    /* ——— Login ——— */
     .login-screen {
       min-height: 100vh;
       display: flex;
@@ -49,6 +46,7 @@
       justify-content: center;
       background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg) 100%);
     }
+    .login-screen.hidden { display: none; }
 
     .login-card {
       width: 100%;
@@ -59,608 +57,363 @@
       box-shadow: var(--shadow-lg);
       border: 1px solid var(--border);
     }
+    .login-card h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .login-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
 
-    .login-card h1 {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--text);
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
+      width: 100%; padding: 10px 12px; font-size: 14px; font-family: inherit;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--bg); color: var(--text); transition: border-color .15s;
     }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,82,204,.15); }
+    textarea { resize: vertical; min-height: 80px; }
+    select { cursor: pointer; }
 
-    .login-card p {
-      color: var(--text-muted);
-      font-size: 14px;
-      margin-bottom: 24px;
-    }
+    /* ——— Buttons ——— */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-size: 14px; font-weight: 500; font-family: inherit; border: none; border-radius: var(--radius); cursor: pointer; transition: background .15s, opacity .15s; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-secondary { background: var(--bg-secondary); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: var(--border); }
+    .btn-ghost { background: transparent; color: var(--text-muted); }
+    .btn-ghost:hover:not(:disabled) { background: var(--bg-secondary); color: var(--text); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #bf2600; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
 
-    .form-group {
-      margin-bottom: 16px;
-    }
+    /* ——— App layout ——— */
+    .app { display: none; min-height: 100vh; }
+    .app.visible { display: flex; }
 
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-
-    select {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 14px;
-      font-family: inherit;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--bg);
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    select:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    input[type="text"],
-    input[type="password"],
-    input[type="email"],
-    textarea {
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 14px;
-      font-family: inherit;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--bg);
-      color: var(--text);
-      transition: border-color .15s, box-shadow .15s;
-    }
-
-    input:focus,
-    textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-light);
-    }
-
-    textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 16px;
-      font-size: 14px;
-      font-weight: 500;
-      font-family: inherit;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: background .15s, color .15s, transform .05s;
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: white;
-      width: 100%;
-      padding: 12px;
-    }
-
-    .btn-primary:hover {
-      background: var(--accent-hover);
-    }
-
-    .btn-secondary {
-      background: var(--bg-secondary);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .btn-secondary:hover {
-      background: var(--border);
-    }
-
-    .btn-ghost {
-      background: transparent;
-      color: var(--text-muted);
-    }
-
-    .btn-ghost:hover {
-      background: var(--bg-secondary);
-      color: var(--text);
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: white;
-    }
-
-    .btn-danger:hover {
-      filter: brightness(1.1);
-    }
-
-    .btn-sm {
-      padding: 6px 10px;
-      font-size: 13px;
-    }
-
-    /* App layout */
-    .app {
-      display: none;
+    /* ——— Sidebar ——— */
+    .sidebar {
+      width: var(--sidebar-w);
       min-height: 100vh;
-      flex-direction: column;
-    }
-
-    .app.visible {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
       display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
     }
-
-    .login-screen.hidden {
-      display: none;
-    }
-
-    /* Header */
-    .header {
+    .sidebar-logo {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      height: 56px;
+      padding: 18px 20px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+    }
+    .sidebar-nav { flex: 1; padding: 12px 0; }
+    .sidebar-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 0;
+      border: none;
+      background: none;
+      text-align: left;
+      width: 100%;
+      transition: background .15s, color .15s;
+      text-decoration: none;
+    }
+    .sidebar-nav-link:hover { background: var(--border); color: var(--text); }
+    .sidebar-nav-link.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+    .sidebar-nav-link .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .sidebar-user { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-timer { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: #fff3cd; border-radius: var(--radius); padding: 6px 10px; font-size: 13px; font-weight: 600; color: #856404; }
+    .sidebar-timer.hidden { display: none; }
+
+    /* ——— App content ——— */
+    .app-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    /* ——— Header (minimal, top bar) ——— */
+    .header {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
       padding: 0 24px;
       border-bottom: 1px solid var(--border);
       background: var(--bg);
-      flex-shrink: 0;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-    }
-
-    .logo {
-      font-weight: 700;
-      font-size: 18px;
-      color: var(--text);
-    }
-
-    .nav {
-      display: flex;
-      gap: 4px;
-    }
-
-    .nav a {
-      padding: 8px 12px;
-      font-size: 14px;
-      color: var(--text-muted);
-      text-decoration: none;
-      border-radius: var(--radius);
-      font-weight: 500;
-    }
-
-    .nav a:hover {
-      color: var(--text);
-      background: var(--bg-secondary);
-    }
-
-    .nav a.active {
-      color: var(--accent);
-      background: var(--accent-light);
-    }
-
-    .header-timer {
-      display: flex;
-      align-items: center;
       gap: 12px;
-      padding: 6px 12px;
-      background: var(--accent-light);
-      border-radius: var(--radius);
-      color: var(--accent);
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
+    .logout-btn { padding: 5px 12px; font-size: 13px; background: none; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; color: var(--text-muted); }
+    .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
 
-    .header-timer.hidden {
-      display: none;
-    }
+    /* ——— Main content ——— */
+    .main { flex: 1; padding: 28px; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; }
 
-    .header-timer span {
-      font-size: 16px;
-    }
+    /* ——— Main Dashboard ——— */
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .dashboard-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+    .dashboard-card-title { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 14px; }
+    .stat-row { display: flex; gap: 16px; }
+    .stat-item { flex: 1; text-align: center; }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--text); }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-    /* Main */
-    .main {
-      flex: 1;
-      padding: 24px;
-      max-width: 900px;
-      margin: 0 auto;
-      width: 100%;
-    }
+    .project-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
+    .project-card-name { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .project-card-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+    .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width .3s; }
 
-    .page {
-      display: none;
-    }
+    .activity-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 5px; flex-shrink: 0; }
+    .activity-text { font-size: 13px; color: var(--text); }
+    .activity-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
-    .page.active {
-      display: block;
-    }
+    .team-card { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .team-card:last-child { border-bottom: none; }
+    .team-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+    .team-name { font-size: 14px; font-weight: 600; }
+    .team-meta { font-size: 12px; color: var(--text-muted); }
 
-    .page-title {
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 24px;
-      color: var(--text);
-    }
-
-    /* Toolbar */
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .filters {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-
-    .filter-btn {
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-muted);
-      background: transparent;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .filter-btn:hover {
-      color: var(--text);
-      background: var(--bg-secondary);
-    }
-
-    .filter-btn.active {
-      color: var(--accent);
-      background: var(--accent-light);
-    }
-
-    /* Task list */
-    .task-list {
-      list-style: none;
-    }
-
-    .task-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 8px;
-      transition: box-shadow .15s, border-color .15s;
-    }
-
-    .task-item:hover {
-      border-color: #d0d4db;
-      box-shadow: var(--shadow);
-    }
-
-    .task-item.running {
-      border-left: 3px solid var(--accent);
-      background: var(--accent-light);
-    }
-
-    .task-checkbox {
-      width: 18px;
-      height: 18px;
-      border: 2px solid var(--border);
-      border-radius: 4px;
-      cursor: pointer;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-    }
-
-    .task-item.done .task-checkbox {
-      background: var(--success);
-      border-color: var(--success);
-      color: white;
-    }
-
-    .task-item.done .task-title {
-      text-decoration: line-through;
-      color: var(--text-muted);
-    }
-
-    .task-body {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .task-title {
-      font-weight: 500;
-      font-size: 14px;
-      color: var(--text);
-    }
-
-    .task-meta {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .task-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .task-status {
-      font-size: 11px;
-      font-weight: 500;
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
-
-    .task-status.todo {
-      background: var(--bg-secondary);
-      color: var(--text-muted);
-    }
-
-    .task-status.in_progress {
-      background: var(--accent-light);
-      color: var(--accent);
-    }
-
-    .task-status.done {
-      background: var(--success-bg);
-      color: var(--success);
-    }
-
+    /* ——— Task list (existing) ——— */
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filters { display: flex; gap: 4px; flex-wrap: wrap; }
     .view-toggle { display: flex; gap: 4px; }
+    .filter-btn { padding: 6px 12px; font-size: 13px; font-weight: 500; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 20px; cursor: pointer; color: var(--text-muted); transition: all .15s; }
+    .filter-btn.active, .filter-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+
+    .task-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .task-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color .15s; }
+    .task-item:hover { border-color: var(--accent); }
+    .task-item.done .task-title { text-decoration: line-through; color: var(--text-muted); }
+    .task-item.running { border-color: var(--warning); background: #fffbf0; }
+    .task-checkbox { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 4px; cursor: pointer; flex-shrink: 0; transition: all .15s; }
+    .task-item.done .task-checkbox { background: var(--success); border-color: var(--success); }
+    .task-body { flex: 1; min-width: 0; }
+    .task-title { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .task-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .task-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .task-status { font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 12px; white-space: nowrap; }
+    .task-status.todo { background: var(--bg-secondary); color: var(--text-muted); }
+    .task-status.in_progress { background: #fff3cd; color: #856404; }
+    .task-status.done { background: var(--success-bg); color: var(--success); }
+
     .tasks-view-table { overflow-x: auto; }
-    .tasks-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .tasks-table th, .tasks-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); overflow: hidden; text-overflow: ellipsis; }
-    .tasks-table th { font-weight: 600; font-size: 13px; color: var(--text-muted); background: var(--bg-secondary); position: relative; }
-    .tasks-table th.no-resize .col-resize { display: none; }
-    .tasks-table .col-resize { position: absolute; top: 0; right: 0; width: 6px; height: 100%; cursor: col-resize; }
-    .tasks-table .col-resize:hover { background: var(--accent-light); }
-    .tasks-table td .btn { margin-right: 4px; }
+    .tasks-table { width: 100%; border-collapse: collapse; }
+    .tasks-table th { background: var(--bg-secondary); padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid var(--border); position: relative; white-space: nowrap; }
+    .tasks-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .tasks-table tr.done td { opacity: .6; }
+    .tasks-table tr.running { background: #fffbf0; }
+    .task-actions-cell { white-space: nowrap; }
+    .col-resize { position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; }
+    .resizable-table th { user-select: none; }
 
-    .report-table th { position: relative; }
-    .report-table th .col-resize { position: absolute; top: 0; right: 0; width: 6px; height: 100%; cursor: col-resize; }
-    .report-table th .col-resize:hover { background: var(--accent-light); }
-    .report-table.resizable-table { table-layout: fixed; }
+    /* ——— Report ——— */
+    .report-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .report-tab { padding: 7px 14px; font-size: 13px; font-weight: 500; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; }
+    .report-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .report-section { display: none; }
+    .report-section.active { display: block; }
+    .report-table { width: 100%; border-collapse: collapse; }
+    .report-table th { background: var(--bg-secondary); padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid var(--border); }
+    .report-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .report-empty { text-align: center; color: var(--text-muted); padding: 40px 20px; font-size: 14px; }
+    .time-cell { font-variant-numeric: tabular-nums; }
 
-    /* Modal */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.4);
+    /* ——— Task tree ——— */
+    .tree-container { margin-top: 4px; }
+    .tree-node { position: relative; }
+    .tree-row {
       display: flex;
       align-items: center;
-      justify-content: center;
-      z-index: 100;
-      padding: 24px;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity .2s, visibility .2s;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .1s;
+      font-size: 14px;
     }
+    .tree-row:hover { background: var(--bg-secondary); }
+    .tree-indent { flex-shrink: 0; }
+    .tree-toggle { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 10px; color: var(--text-muted); flex-shrink: 0; transition: transform .15s; }
+    .tree-toggle.open { transform: rotate(90deg); }
+    .tree-level-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: .05em; flex-shrink: 0; }
+    .tree-level-badge.epic { background: #e8d5ff; color: #6b21a8; }
+    .tree-level-badge.story { background: #dbeafe; color: #1d4ed8; }
+    .tree-level-badge.subtask { background: #f0fdf4; color: #166534; }
+    .tree-title { flex: 1; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tree-node.done > .tree-row .tree-title { text-decoration: line-through; color: var(--text-muted); }
+    .tree-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .tree-status { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+    .ts-open { background: var(--bg-secondary); color: var(--text-muted); }
+    .ts-in_progress { background: #fff3cd; color: #92400e; }
+    .ts-in_review { background: #ede9fe; color: #5b21b6; }
+    .ts-done { background: var(--success-bg); color: var(--success); }
+    .ts-cancelled { background: #fee2e2; color: #991b1b; }
+    .tree-sp { font-size: 11px; font-weight: 600; background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px; color: var(--text-muted); }
+    .tree-priority { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+    .tp-critical { background: #fee2e2; color: #991b1b; }
+    .tp-high { background: #ffedd5; color: #9a3412; }
+    .tp-medium { background: #fef9c3; color: #92400e; }
+    .tp-low { background: #f0fdf4; color: #166534; }
+    .tree-children { border-left: 2px solid var(--border); margin-left: 19px; padding-left: 10px; }
+    .tree-children.hidden { display: none; }
 
-    .modal-overlay.visible {
-      opacity: 1;
-      visibility: visible;
+    /* ——— Modals ——— */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.visible { display: flex; }
+    .modal { background: var(--bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; max-width: 520px; display: flex; flex-direction: column; max-height: 90vh; }
+    .modal-lg { max-width: 700px; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .modal-header h2 { font-size: 18px; font-weight: 700; }
+    .modal-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: none; font-size: 20px; cursor: pointer; color: var(--text-muted); border-radius: var(--radius); }
+    .modal-close:hover { background: var(--bg-secondary); }
+    .modal-body { padding: 20px 24px; overflow-y: auto; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; flex-shrink: 0; }
+
+    /* Task item modal */
+    .ti-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); margin-bottom: 14px; flex-wrap: wrap; }
+    .ti-breadcrumb span { cursor: pointer; }
+    .ti-breadcrumb span:hover { color: var(--accent); }
+    .ti-breadcrumb-sep { color: var(--border); }
+    .ti-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .ti-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 14px; white-space: pre-wrap; }
+    .ti-ac { background: var(--bg-secondary); border-radius: var(--radius); padding: 12px 14px; font-size: 13px; margin-bottom: 16px; }
+    .ti-ac-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 6px; }
+    .ti-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .ti-meta-item label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; display: block; margin-bottom: 4px; }
+    .ti-meta-item span, .ti-meta-item select { font-size: 14px; }
+    .ti-children-section { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 4px; }
+    .ti-children-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); margin-bottom: 10px; }
+    .ti-history { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
+    .ti-hist-item { font-size: 12px; color: var(--text-muted); padding: 4px 0; }
+
+    /* ——— Projects section ——— */
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .proj-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; cursor: pointer; transition: box-shadow .15s, border-color .15s; }
+    .proj-card:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); }
+    .proj-card-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .proj-card-goal { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .proj-card-stats { display: flex; gap: 12px; font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+    .proj-card-stats b { color: var(--text); }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success); margin-right: 4px; }
+
+    /* ——— CIO Board ——— */
+    #cio-board {
+      display: none;
+      min-height: 100vh;
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: 'Inter', sans-serif;
     }
-
-    .modal {
-      background: var(--bg);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-lg);
-      width: 100%;
-      max-width: 480px;
-      max-height: 90vh;
-      overflow: auto;
-    }
-
-    .modal-header {
+    #cio-board.visible { display: block; }
+    .cio-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      border-bottom: 1px solid #21262d;
     }
+    .cio-logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 600; color: #e6edf3; letter-spacing: .03em; }
+    .cio-user { font-size: 13px; color: #8b949e; display: flex; align-items: center; gap: 14px; }
+    .cio-main { max-width: 1200px; margin: 0 auto; padding: 36px 40px; }
+    .cio-section-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: #e6edf3; margin-bottom: 20px; letter-spacing: .01em; }
+    .cio-subtitle { font-size: 13px; color: #8b949e; margin-top: -14px; margin-bottom: 22px; }
 
-    .modal-header h2 {
-      font-size: 18px;
-      font-weight: 600;
+    .cio-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+    .cio-kpi-card { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 20px 22px; }
+    .cio-kpi-label { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+    .cio-kpi-value { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 500; color: #e6edf3; }
+    .cio-kpi-value.gold { color: #c9a84c; }
+    .cio-kpi-value.green { color: #22c55e; }
+    .cio-kpi-value.blue { color: #3b6ef8; }
+    .cio-kpi-sub { font-size: 12px; color: #8b949e; margin-top: 4px; }
+
+    .cio-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+    .cio-block { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 22px; }
+    .cio-block-title { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 16px; }
+    .devex-bar { margin-bottom: 14px; }
+    .devex-label { display: flex; justify-content: space-between; font-size: 13px; color: #c9d1d9; margin-bottom: 5px; }
+    .devex-label span { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: #3b6ef8; }
+    .devex-track { height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; }
+    .devex-fill { height: 100%; background: #3b6ef8; border-radius: 3px; }
+
+    .ai-stat { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #21262d; }
+    .ai-stat:last-child { border-bottom: none; }
+    .ai-stat-label { font-size: 13px; color: #8b949e; }
+    .ai-stat-value { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; color: #22c55e; }
+
+    .roadmap-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #21262d; }
+    .roadmap-item:last-child { border-bottom: none; }
+    .roadmap-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .roadmap-dot.done { background: #22c55e; }
+    .roadmap-dot.upcoming { background: #3b6ef8; }
+    .roadmap-dot.risk { background: #f59e0b; }
+    .roadmap-text { font-size: 13px; color: #c9d1d9; }
+    .roadmap-phase { font-size: 11px; color: #8b949e; margin-top: 2px; }
+
+    .insight-card { background: #161b22; border: 1px solid #21262d; border-radius: 12px; padding: 22px; margin-bottom: 16px; }
+    .insight-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 10px; }
+    .insight-tag.good { background: rgba(34,197,94,.15); color: #22c55e; }
+    .insight-tag.risk { background: rgba(245,158,11,.15); color: #f59e0b; }
+    .insight-tag.next { background: rgba(59,110,248,.15); color: #3b6ef8; }
+    .insight-body { font-size: 14px; color: #c9d1d9; line-height: 1.6; }
+
+    .task-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .ts-stat { text-align: center; background: #0d1117; border-radius: 8px; padding: 14px; }
+    .ts-stat-val { font-family: 'DM Mono', monospace; font-size: 24px; font-weight: 500; color: #e6edf3; }
+    .ts-stat-lbl { font-size: 11px; color: #8b949e; margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
+
+    /* ——— Badges, misc ——— */
+    .badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+    .badge-admin { background: #fce7f3; color: #9d174d; }
+    .badge-manager { background: #dbeafe; color: #1e40af; }
+    .badge-cio { background: #f5f3ff; color: #6d28d9; }
+    .badge-user { background: var(--bg-secondary); color: var(--text-muted); }
+
+    .empty-state { text-align: center; color: var(--text-muted); padding: 40px 20px; font-size: 14px; }
+
+    /* ——— Responsive ——— */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .cio-kpi-grid { grid-template-columns: 1fr 1fr; }
+      .cio-row { grid-template-columns: 1fr; }
+      .dashboard-grid { grid-template-columns: 1fr; }
     }
-
-    .modal-close {
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      background: transparent;
-      border-radius: var(--radius);
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 20px;
-    }
-
-    .modal-close:hover {
-      background: var(--bg-secondary);
-      color: var(--text);
-    }
-
-    .modal-body {
-      padding: 24px;
-    }
-
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      padding: 16px 24px;
-      border-top: 1px solid var(--border);
-    }
-
-    /* Report */
-    .report-tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 24px;
-    }
-
-    .report-tab {
-      padding: 10px 18px;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-muted);
-      background: transparent;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .report-tab:hover {
-      color: var(--text);
-      background: var(--bg-secondary);
-    }
-
-    .report-tab.active {
-      color: var(--accent);
-      background: var(--accent-light);
-    }
-
-    .report-section {
-      display: none;
-    }
-
-    .report-section.active {
-      display: block;
-    }
-
-    .report-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    .report-table th,
-    .report-table td {
-      text-align: left;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .report-table th {
-      font-weight: 600;
-      color: var(--text-muted);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .02em;
-    }
-
-    .report-table tr:hover td {
-      background: var(--bg-secondary);
-    }
-
-    .report-table .time-cell {
-      font-variant-numeric: tabular-nums;
-      font-weight: 500;
-      color: var(--accent);
-    }
-
-    .report-empty {
-      text-align: center;
-      padding: 48px 24px;
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-
-    .user-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .user-bar .name {
-      color: var(--text);
-      font-weight: 500;
-    }
-
-    .logout-btn {
-      padding: 6px 10px;
-      font-size: 12px;
-      color: var(--text-muted);
-      background: transparent;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .logout-btn:hover {
-      background: var(--bg-secondary);
-      color: var(--danger);
-    }
-
-    /* Мобильный интерфейс — постановка задач с телефона */
-    @media (max-width: 640px) {
-      .header { padding: 0 12px; flex-wrap: wrap; height: auto; min-height: 56px; gap: 8px; }
-      .header-left { flex-wrap: wrap; }
-      .nav { order: 3; width: 100%; }
-      .nav a { padding: 10px 14px; font-size: 15px; }
+    @media (max-width: 600px) {
       .main { padding: 16px; }
-      .page-title { font-size: 20px; margin-bottom: 16px; }
-      .toolbar { flex-direction: column; align-items: stretch; gap: 12px; }
-      .filters { justify-content: center; }
-      .filter-btn { padding: 10px 14px; min-height: 44px; }
-      #newTaskBtn { min-height: 48px; font-size: 16px; }
-      .task-item { flex-wrap: wrap; gap: 8px; padding: 12px; }
-      .task-actions { width: 100%; justify-content: flex-end; }
-      .task-actions .btn { min-height: 44px; padding: 10px 16px; }
-      .modal { max-height: 85vh; margin: 16px; }
-      .modal-body { padding: 16px; }
-      .modal-footer .btn { min-height: 44px; flex: 1; }
-      .btn { min-height: 44px; }
-      .user-bar .name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
-    }
-
-    @media (max-width: 380px) {
+      .cio-main { padding: 20px 16px; }
+      .cio-header { padding: 16px; }
+      .cio-kpi-grid { grid-template-columns: 1fr 1fr; }
       .login-card { padding: 24px; }
     }
   </style>
 </head>
 <body>
+
   <!-- Login -->
   <div class="login-screen" id="loginScreen">
     <div class="login-card">
       <h1>TaskTime</h1>
-      <p>Войдите по email и паролю. Можно ставить задачи с телефона.</p>
+      <p>Войдите по email и паролю.</p>
       <form id="loginForm">
         <div class="form-group">
           <label for="loginEmail">Email</label>
@@ -671,103 +424,257 @@
           <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
         </div>
         <p id="loginError" class="login-error" style="display:none; color: var(--danger); font-size: 13px; margin-bottom: 12px;"></p>
-        <button type="submit" class="btn btn-primary" id="loginSubmit">Войти</button>
+        <button type="submit" class="btn btn-primary" id="loginSubmit" style="width:100%">Войти</button>
       </form>
     </div>
   </div>
 
-  <!-- App -->
-  <div class="app" id="app">
-    <header class="header">
-      <div class="header-left">
-        <span class="logo">TaskTime</span>
-        <nav class="nav">
-          <a href="#" class="nav-link active" data-page="tasks">Задачи</a>
-          <a href="#" class="nav-link" data-page="report">Отчёт по времени</a>
-        </nav>
+  <!-- CIO Board (dark, full-screen) -->
+  <div id="cio-board">
+    <div class="cio-header">
+      <div class="cio-logo">TaskTime — CIO Dashboard</div>
+      <div class="cio-user">
+        <span id="cioUserName">—</span>
+        <button class="logout-btn" id="cioLogoutBtn" style="border-color:#30363d;color:#8b949e">Выйти</button>
       </div>
-      <div class="header-timer hidden" id="headerTimer">
-        <span id="headerTimerLabel">0:00:00</span>
-        <button type="button" class="btn btn-danger btn-sm" id="stopTimerBtn">Стоп</button>
+    </div>
+    <div class="cio-main">
+      <div class="cio-section-title">Продуктивность команд</div>
+      <div class="cio-subtitle">Последние 30 дней · Банковская платформа</div>
+      <div class="cio-kpi-grid" id="cioKpiGrid">
+        <div class="cio-kpi-card"><div class="cio-kpi-label">Stories done / 30d</div><div class="cio-kpi-value blue" id="kpiStoriesDone">—</div><div class="cio-kpi-sub">Завершённые истории</div></div>
+        <div class="cio-kpi-card"><div class="cio-kpi-label">Pull Requests / 30d</div><div class="cio-kpi-value gold" id="kpiPRs">—</div><div class="cio-kpi-sub">Смержено в main</div></div>
+        <div class="cio-kpi-card"><div class="cio-kpi-label">Stories / person</div><div class="cio-kpi-value green" id="kpiPerPerson">—</div><div class="cio-kpi-sub">Производительность</div></div>
+        <div class="cio-kpi-card"><div class="cio-kpi-label">Avg onboarding</div><div class="cio-kpi-value" id="kpiOnboarding">—</div><div class="cio-kpi-sub">Дней до первого PR</div></div>
       </div>
-      <div class="user-bar">
-        <span class="name" id="userName">—</span>
-        <button type="button" class="logout-btn" id="logoutBtn" title="Выход и смена учётной записи">Выйти</button>
-      </div>
-    </header>
 
-    <main class="main">
-      <!-- Tasks page -->
-      <section class="page active" id="pageTasks">
-        <h1 class="page-title">Задачи</h1>
-        <div class="toolbar">
-          <div class="filters">
-            <button type="button" class="filter-btn active" data-filter="all">Все</button>
-            <button type="button" class="filter-btn" data-filter="in_progress">В работе</button>
-            <button type="button" class="filter-btn" data-filter="done">Готово</button>
-            <button type="button" class="filter-btn" data-filter="mine">Мои</button>
+      <div class="cio-row">
+        <!-- DevEx -->
+        <div class="cio-block">
+          <div class="cio-block-title">DevEx Scores</div>
+          <div class="devex-bar">
+            <div class="devex-label">Flow State <span id="devexFlow">—</span></div>
+            <div class="devex-track"><div class="devex-fill" id="devexFlowBar" style="width:0%"></div></div>
           </div>
-          <div class="view-toggle">
-            <button type="button" class="filter-btn" data-view="list" id="viewListBtn">Список</button>
-            <button type="button" class="filter-btn" data-view="table" id="viewTableBtn">Таблица</button>
+          <div class="devex-bar">
+            <div class="devex-label">Feedback Loops <span id="devexFeedback">—</span></div>
+            <div class="devex-track"><div class="devex-fill" id="devexFeedbackBar" style="width:0%;background:#22c55e"></div></div>
           </div>
-          <button type="button" class="btn btn-primary" id="newTaskBtn">Новая задача</button>
+          <div class="devex-bar">
+            <div class="devex-label">Cognitive Load <span id="devexCognitive">—</span></div>
+            <div class="devex-track"><div class="devex-fill" id="devexCognitiveBar" style="width:0%;background:#f59e0b"></div></div>
+          </div>
         </div>
-        <div id="tasksListWrap" class="tasks-view-list">
-          <ul class="task-list" id="taskList"></ul>
-        </div>
-        <div id="tasksTableWrap" class="tasks-view-table" style="display:none">
-          <table class="tasks-table resizable-table" id="tasksTable" data-storage-key="tasktime_table_tasks">
-            <thead>
-              <tr>
-                <th data-col="0"><span>Название</span><div class="col-resize" aria-hidden="true"></div></th>
-                <th data-col="1"><span>Статус</span><div class="col-resize" aria-hidden="true"></div></th>
-                <th data-col="2"><span>Исполнитель</span><div class="col-resize" aria-hidden="true"></div></th>
-                <th data-col="3"><span>Приоритет</span><div class="col-resize" aria-hidden="true"></div></th>
-                <th data-col="4" class="no-resize"><span>Действия</span></th>
-              </tr>
-            </thead>
-            <tbody id="tasksTableBody"></tbody>
-          </table>
-        </div>
-      </section>
 
-      <!-- Report page -->
-      <section class="page" id="pageReport">
-        <h1 class="page-title">Отчёт по времени</h1>
-        <div class="report-tabs">
-          <button type="button" class="report-tab active" data-report="days">По дням</button>
-          <button type="button" class="report-tab" data-report="tasks">По задачам</button>
+        <!-- AI Penetration -->
+        <div class="cio-block">
+          <div class="cio-block-title">Проникновение ИИ</div>
+          <div class="ai-stat"><span class="ai-stat-label">DAU</span><span class="ai-stat-value" id="aiDau">—</span></div>
+          <div class="ai-stat"><span class="ai-stat-label">MAU</span><span class="ai-stat-value" id="aiMau">—</span></div>
+          <div class="ai-stat"><span class="ai-stat-label">AI Code Flow</span><span class="ai-stat-value" id="aiCodeFlow">—</span></div>
+          <div class="ai-stat"><span class="ai-stat-label">Сэкономлено часов</span><span class="ai-stat-value" id="aiTimeSaved">—</span></div>
+          <div class="ai-stat"><span class="ai-stat-label">Задач агентов</span><span class="ai-stat-value" id="aiAgentTasks">—</span></div>
         </div>
-        <div class="report-section active" id="reportByDays">
-          <table class="report-table resizable-table" id="reportDaysTable" data-storage-key="tasktime_table_report_days">
-            <thead>
-              <tr>
-                <th data-col="0"><span>День</span><div class="col-resize" aria-hidden="true"></div></th>
-                <th data-col="1" style="text-align:right"><span>Время</span><div class="col-resize" aria-hidden="true"></div></th>
-              </tr>
-            </thead>
-            <tbody id="reportDaysBody"></tbody>
-          </table>
-          <div class="report-empty" id="reportDaysEmpty" style="display:none">Нет данных за выбранный период</div>
+
+        <!-- Task stats -->
+        <div class="cio-block">
+          <div class="cio-block-title">Иерархия задач</div>
+          <div class="task-stats-grid" id="cioTaskStats">
+            <div class="ts-stat"><div class="ts-stat-val" id="tsEpics">—</div><div class="ts-stat-lbl">Эпики</div></div>
+            <div class="ts-stat"><div class="ts-stat-val" id="tsStories">—</div><div class="ts-stat-lbl">Стори</div></div>
+            <div class="ts-stat"><div class="ts-stat-val" id="tsSubtasks">—</div><div class="ts-stat-lbl">Сабтаски</div></div>
+            <div class="ts-stat"><div class="ts-stat-val" id="tsOpen">—</div><div class="ts-stat-lbl">Open</div></div>
+            <div class="ts-stat"><div class="ts-stat-val" id="tsInProgress">—</div><div class="ts-stat-lbl">In Progress</div></div>
+            <div class="ts-stat"><div class="ts-stat-val ts-stat-val" style="color:#22c55e" id="tsDone">—</div><div class="ts-stat-lbl">Done</div></div>
+          </div>
         </div>
-        <div class="report-section" id="reportByTasks">
-          <table class="report-table resizable-table" id="reportTasksTable" data-storage-key="tasktime_table_report_tasks">
-            <thead>
-              <tr>
-                <th data-col="0"><span>Задача</span><div class="col-resize" aria-hidden="true"></div></th>
-                <th data-col="1" style="text-align:right"><span>Время</span><div class="col-resize" aria-hidden="true"></div></th>
-              </tr>
-            </thead>
-            <tbody id="reportTasksBody"></tbody>
-          </table>
-          <div class="report-empty" id="reportTasksEmpty" style="display:none">Нет данных по задачам</div>
+      </div>
+
+      <div class="cio-section-title">Roadmap пилота</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px">
+        <div class="cio-block">
+          <div class="cio-block-title">Выполнено</div>
+          <div class="roadmap-item"><div class="roadmap-dot done"></div><div><div class="roadmap-text">JWT-авторизация + RBAC (admin/manager/user/cio)</div><div class="roadmap-phase">Спринт 1 · Март 2025</div></div></div>
+          <div class="roadmap-item"><div class="roadmap-dot done"></div><div><div class="roadmap-text">Иерархия задач: эпики / стори / сабтаски</div><div class="roadmap-phase">Спринт 2 · Апрель 2025</div></div></div>
+          <div class="roadmap-item"><div class="roadmap-dot done"></div><div><div class="roadmap-text">CIO Dashboard с DevEx и AI-метриками</div><div class="roadmap-phase">Спринт 2 · Апрель 2025</div></div></div>
+          <div class="roadmap-item"><div class="roadmap-dot done"></div><div><div class="roadmap-text">Аудит-лог всех мутаций → SIEM-ready</div><div class="roadmap-phase">Спринт 1 · Март 2025</div></div></div>
         </div>
-      </section>
-    </main>
+        <div class="cio-block">
+          <div class="cio-block-title">Впереди</div>
+          <div class="roadmap-item"><div class="roadmap-dot upcoming"></div><div><div class="roadmap-text">Интеграция KeyCloak / ЕСИА SSO</div><div class="roadmap-phase">Спринт 3 · Май 2025</div></div></div>
+          <div class="roadmap-item"><div class="roadmap-dot upcoming"></div><div><div class="roadmap-text">Экспорт отчётов (xlsx, pdf) для регулятора</div><div class="roadmap-phase">Спринт 3 · Май 2025</div></div></div>
+          <div class="roadmap-item"><div class="roadmap-dot risk"></div><div><div class="roadmap-text">Горизонтальное масштабирование (ТЗ 9.9.24)</div><div class="roadmap-phase">Риск: зависит от инфраструктуры</div></div></div>
+          <div class="roadmap-item"><div class="roadmap-dot upcoming"></div><div><div class="roadmap-text">AI-агент для приоритизации бэклога</div><div class="roadmap-phase">Спринт 4 · Q3 2025</div></div></div>
+        </div>
+      </div>
+
+      <div class="cio-section-title">Инсайты</div>
+      <div class="insight-card"><div class="insight-tag good">Работает</div><div class="insight-body">DevEx Feedback Loops 63/100 — команды получают ревью в тот же день благодаря автоматической нотификации. Core Banking Team закрывает 94% subtasks в срок.</div></div>
+      <div class="insight-card"><div class="insight-tag risk">Риск</div><div class="insight-body">Cognitive Load 52/100 — разработчики отмечают избыточные context switch между проектами. Рекомендуется ввести time-boxing: max 2 активных проекта на человека.</div></div>
+      <div class="insight-card"><div class="insight-tag next">Следующий шаг</div><div class="insight-body">Провести AI Code Flow audit в Digital Experience Team (сейчас 14%). Цель к Q3: 30%. Назначен ответственный: Lead, дедлайн — 30 мая.</div></div>
+    </div>
   </div>
 
-  <!-- New task modal -->
+  <!-- App (admin / manager / user) -->
+  <div class="app" id="app">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <a class="sidebar-logo">TaskTime</a>
+      <div class="sidebar-nav">
+        <button class="sidebar-nav-link active" data-page="main"><span class="nav-icon">⊞</span>Дашборд</button>
+        <button class="sidebar-nav-link" data-page="tasks"><span class="nav-icon">✓</span>Задачи</button>
+        <button class="sidebar-nav-link" data-page="projects"><span class="nav-icon">◈</span>Проекты</button>
+        <button class="sidebar-nav-link" data-page="quick"><span class="nav-icon">⚡</span>Быстрые задачи</button>
+        <button class="sidebar-nav-link" data-page="teams"><span class="nav-icon">◎</span>Команды</button>
+        <button class="sidebar-nav-link" data-page="report"><span class="nav-icon">◷</span>Отчёт по времени</button>
+        <button class="sidebar-nav-link sidebar-audit-link" data-page="audit" style="display:none"><span class="nav-icon">⋮</span>Журнал аудита</button>
+      </div>
+      <div class="sidebar-footer">
+        <div class="sidebar-user" id="sidebarUserName">—</div>
+        <div class="sidebar-timer hidden" id="sidebarTimer">
+          <span>⏱</span>
+          <span id="sidebarTimerLabel">0:00:00</span>
+          <button type="button" class="btn btn-danger btn-sm" id="sidebarStopTimerBtn">Стоп</button>
+        </div>
+        <button type="button" class="logout-btn" id="logoutBtn">Выйти</button>
+      </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="app-content">
+      <div class="main">
+
+        <!-- Main Dashboard -->
+        <section class="page active" id="pageMain">
+          <div class="page-title">Дашборд</div>
+          <div class="dashboard-grid">
+            <!-- My tasks -->
+            <div class="dashboard-card" style="grid-column: 1 / -1">
+              <div class="dashboard-card-title">Мои задачи</div>
+              <div id="myTasksList"><div class="empty-state">Загрузка…</div></div>
+            </div>
+            <!-- Projects -->
+            <div class="dashboard-card">
+              <div class="dashboard-card-title">Проекты</div>
+              <div id="dashProjectsList"><div class="empty-state">Загрузка…</div></div>
+            </div>
+            <!-- Teams -->
+            <div class="dashboard-card">
+              <div class="dashboard-card-title">Команды</div>
+              <div id="dashTeamsList"><div class="empty-state">Загрузка…</div></div>
+            </div>
+            <!-- Activity -->
+            <div class="dashboard-card" style="grid-column: 1 / -1">
+              <div class="dashboard-card-title">Последняя активность</div>
+              <div id="dashActivity"><div class="empty-state">Загрузка…</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tasks page (existing) -->
+        <section class="page" id="pageTasks">
+          <div class="page-title">Задачи</div>
+          <div class="toolbar">
+            <div class="filters">
+              <button type="button" class="filter-btn active" data-filter="all">Все</button>
+              <button type="button" class="filter-btn" data-filter="in_progress">В работе</button>
+              <button type="button" class="filter-btn" data-filter="done">Готово</button>
+              <button type="button" class="filter-btn" data-filter="mine">Мои</button>
+            </div>
+            <div class="view-toggle">
+              <button type="button" class="filter-btn" data-view="list" id="viewListBtn">Список</button>
+              <button type="button" class="filter-btn" data-view="table" id="viewTableBtn">Таблица</button>
+            </div>
+            <button type="button" class="btn btn-primary task-create-btn" id="newTaskBtn">Новая задача</button>
+          </div>
+          <div id="tasksListWrap" class="tasks-view-list">
+            <ul class="task-list" id="taskList"></ul>
+          </div>
+          <div id="tasksTableWrap" class="tasks-view-table" style="display:none">
+            <table class="tasks-table resizable-table" id="tasksTable" data-storage-key="tasktime_table_tasks">
+              <thead>
+                <tr>
+                  <th data-col="0"><span>Название</span><div class="col-resize" aria-hidden="true"></div></th>
+                  <th data-col="1"><span>Статус</span><div class="col-resize" aria-hidden="true"></div></th>
+                  <th data-col="2"><span>Исполнитель</span><div class="col-resize" aria-hidden="true"></div></th>
+                  <th data-col="3"><span>Приоритет</span><div class="col-resize" aria-hidden="true"></div></th>
+                  <th data-col="4" class="no-resize"><span>Действия</span></th>
+                </tr>
+              </thead>
+              <tbody id="tasksTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Projects -->
+        <section class="page" id="pageProjects">
+          <div class="page-title">Проекты</div>
+          <div class="toolbar">
+            <button type="button" class="btn btn-primary task-create-btn" id="newProjectBtn">+ Проект</button>
+          </div>
+          <div class="projects-grid" id="projectsGrid"><div class="empty-state">Загрузка…</div></div>
+          <div id="projectDetail" style="display:none; margin-top:24px">
+            <div style="margin-bottom:12px"><button type="button" class="btn btn-secondary btn-sm" id="backToProjectsBtn">← Назад к проектам</button></div>
+            <div id="projectDetailContent"></div>
+          </div>
+        </section>
+
+        <!-- Quick tasks -->
+        <section class="page" id="pageQuick">
+          <div class="page-title">Быстрые задачи</div>
+          <div class="tree-container" id="quickTreeContainer"><div class="empty-state">Загрузка…</div></div>
+        </section>
+
+        <!-- Teams -->
+        <section class="page" id="pageTeams">
+          <div class="page-title">Команды</div>
+          <div class="projects-grid" id="teamsGrid"><div class="empty-state">Загрузка…</div></div>
+          <div id="teamDetail" style="display:none; margin-top:24px">
+            <div style="margin-bottom:12px"><button type="button" class="btn btn-secondary btn-sm" id="backToTeamsBtn">← Назад к командам</button></div>
+            <div id="teamDetailContent"></div>
+          </div>
+        </section>
+
+        <!-- Report page -->
+        <section class="page" id="pageReport">
+          <div class="page-title">Отчёт по времени</div>
+          <div class="report-tabs">
+            <button type="button" class="report-tab active" data-report="days">По дням</button>
+            <button type="button" class="report-tab" data-report="tasks">По задачам</button>
+          </div>
+          <div class="report-section active" id="reportByDays">
+            <table class="report-table resizable-table" id="reportDaysTable" data-storage-key="tasktime_table_report_days">
+              <thead><tr>
+                <th data-col="0"><span>День</span><div class="col-resize" aria-hidden="true"></div></th>
+                <th data-col="1" style="text-align:right"><span>Время</span><div class="col-resize" aria-hidden="true"></div></th>
+              </tr></thead>
+              <tbody id="reportDaysBody"></tbody>
+            </table>
+            <div class="report-empty" id="reportDaysEmpty" style="display:none">Нет данных за выбранный период</div>
+          </div>
+          <div class="report-section" id="reportByTasks">
+            <table class="report-table resizable-table" id="reportTasksTable" data-storage-key="tasktime_table_report_tasks">
+              <thead><tr>
+                <th data-col="0"><span>Задача</span><div class="col-resize" aria-hidden="true"></div></th>
+                <th data-col="1" style="text-align:right"><span>Время</span><div class="col-resize" aria-hidden="true"></div></th>
+              </tr></thead>
+              <tbody id="reportTasksBody"></tbody>
+            </table>
+            <div class="report-empty" id="reportTasksEmpty" style="display:none">Нет данных по задачам</div>
+          </div>
+        </section>
+
+        <!-- Audit log -->
+        <section class="page" id="pageAudit">
+          <div class="page-title">Журнал аудита</div>
+          <div id="auditLogList"><div class="empty-state">Загрузка…</div></div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- New task modal (existing) -->
   <div class="modal-overlay" id="taskModal">
     <div class="modal">
       <div class="modal-header">
@@ -786,9 +693,7 @@
           </div>
           <div class="form-group">
             <label for="taskAssignee">Исполнитель (необязательно)</label>
-            <select id="taskAssignee">
-              <option value="">— Не назначен —</option>
-            </select>
+            <select id="taskAssignee"><option value="">— Не назначен —</option></select>
           </div>
           <div class="form-group">
             <label for="taskPriority">Приоритет</label>
@@ -804,6 +709,19 @@
           <button type="submit" class="btn btn-primary" id="taskSubmit">Создать</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Task Item detail modal -->
+  <div class="modal-overlay" id="taskItemModal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2 id="tiModalTitle">Задача</h2>
+        <button type="button" class="modal-close" id="tiModalClose" aria-label="Закрыть">×</button>
+      </div>
+      <div class="modal-body" id="tiModalBody">
+        <div class="empty-state">Загрузка…</div>
+      </div>
     </div>
   </div>
 
@@ -827,58 +745,58 @@
       const $ = (sel, el = document) => el.querySelector(sel);
       const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
 
+      function escapeHtml(s) {
+        if (s == null) return '';
+        const div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      // ——— API ———
       async function apiFetch(path, options = {}) {
         const url = (API_BASE + path).replace(/\/\/+/g, '/');
         const headers = { 'Content-Type': 'application/json', ...options.headers };
         if (token) headers['Authorization'] = 'Bearer ' + token;
         const res = await fetch(url, { ...options, headers });
         if (res.status === 401) {
-          token = null;
-          currentUser = null;
+          token = null; currentUser = null;
           localStorage.removeItem(STORAGE_TOKEN);
           localStorage.removeItem(STORAGE_USER);
           document.getElementById('loginScreen').classList.remove('hidden');
           document.getElementById('app').classList.remove('visible');
+          document.getElementById('cio-board').classList.remove('visible');
           return null;
         }
         const text = await res.text();
         if (!text) return null;
-        try {
-          return JSON.parse(text);
-        } catch (_) {
-          return text;
-        }
+        try { return JSON.parse(text); } catch (_) { return text; }
       }
 
+      // ——— Timer ———
       function formatTime(ms) {
         const h = Math.floor(ms / 3600000);
         const m = Math.floor((ms % 3600000) / 60000);
         const s = Math.floor((ms % 60000) / 1000);
         return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
       }
-
       function formatDuration(ms) {
         const h = Math.floor(ms / 3600000);
         const m = Math.floor((ms % 3600000) / 60000);
         if (h > 0) return `${h} ч ${m} мин`;
         return `${m} мин`;
       }
-
       function getTimerElapsed() {
         if (!timerStartedAt) return 0;
         return Date.now() - new Date(timerStartedAt).getTime();
       }
-
       function startTimerTicker() {
         if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => { updateHeaderTimer(); }, 1000);
+        timerInterval = setInterval(() => {
+          const t = formatTime(getTimerElapsed());
+          const el1 = $('#sidebarTimerLabel');
+          if (el1) el1.textContent = t;
+        }, 1000);
       }
-
-      function updateHeaderTimer() {
-        const el = $('#headerTimerLabel');
-        if (el) el.textContent = formatTime(getTimerElapsed());
-      }
-
       function saveTimer() {
         if (runningTaskId && timerStartedAt) {
           localStorage.setItem(STORAGE_TIMER, JSON.stringify({ taskId: runningTaskId, startedAt: timerStartedAt }));
@@ -886,27 +804,24 @@
           localStorage.removeItem(STORAGE_TIMER);
         }
       }
-
       async function stopTimer() {
         if (!runningTaskId) return;
         await apiFetch('/api/tasks/' + runningTaskId + '/time/stop', { method: 'POST' });
-        clearInterval(timerInterval);
-        timerInterval = null;
-        runningTaskId = null;
-        timerStartedAt = null;
+        clearInterval(timerInterval); timerInterval = null;
+        runningTaskId = null; timerStartedAt = null;
         saveTimer();
-        $('#headerTimer').classList.add('hidden');
+        $('#sidebarTimer').classList.add('hidden');
         await loadTasks();
         await loadTimeLogs();
         if ($('#pageReport').classList.contains('active')) renderReport();
       }
 
+      // ——— Load ———
       async function loadTasks() {
         const list = await apiFetch('/api/tasks');
         if (Array.isArray(list)) tasks = list;
         renderTasks();
       }
-
       async function loadUsers() {
         const list = await apiFetch('/api/users');
         if (Array.isArray(list)) users = list;
@@ -915,82 +830,39 @@
         sel.innerHTML = '<option value="">— Не назначен —</option>' +
           users.map(u => `<option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(u.email)})</option>`).join('');
       }
-
       async function loadTimeLogs() {
         const list = await apiFetch('/api/time-logs');
         if (Array.isArray(list)) timeLogs = list;
       }
 
-      document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const email = $('#loginEmail').value.trim();
-        const password = $('#loginPassword').value;
-        const errEl = $('#loginError');
-        const btn = $('#loginSubmit');
-        errEl.style.display = 'none';
-        btn.disabled = true;
-        const data = await fetch(API_BASE + '/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        }).then(r => r.json()).catch(() => ({}));
-        if (data.token && data.user) {
-          token = data.token;
-          currentUser = data.user;
-          localStorage.setItem(STORAGE_TOKEN, token);
-          localStorage.setItem(STORAGE_USER, JSON.stringify(currentUser));
-          document.getElementById('loginScreen').classList.add('hidden');
-          document.getElementById('app').classList.add('visible');
-          $('#userName').textContent = currentUser.name || currentUser.email;
-          await loadUsers();
-          await loadTasks();
-          await loadTimeLogs();
-          renderReport();
-          const raw = localStorage.getItem(STORAGE_TIMER);
-          if (raw) try {
-            const { taskId, startedAt } = JSON.parse(raw);
-            runningTaskId = String(taskId);
-            timerStartedAt = new Date(startedAt);
-            startTimerTicker();
-            updateHeaderTimer();
-            $('#headerTimer').classList.remove('hidden');
-            renderTasks();
-          } catch (_) {}
-        } else {
-          errEl.textContent = data.error || 'Ошибка входа';
-          errEl.style.display = 'block';
-        }
-        btn.disabled = false;
-      });
+      // ——— Status / priority helpers ———
+      function statusLabel(s) {
+        return { open: 'К выполнению', in_progress: 'В работе', in_review: 'На ревью', done: 'Готово', cancelled: 'Отменено' }[s] || s || 'К выполнению';
+      }
+      function priorityLabel(p) {
+        return { critical: 'Критичный', high: 'Высокий', medium: 'Средний', low: 'Низкий' }[p] || p || '—';
+      }
+      function levelLabel(l) {
+        return { epic: 'Эпик', story: 'Стори', subtask: 'Сабтаск' }[l] || l;
+      }
+      function relativeTime(ts) {
+        if (!ts) return '';
+        const diff = Date.now() - new Date(ts).getTime();
+        const m = Math.floor(diff / 60000);
+        if (m < 1) return 'только что';
+        if (m < 60) return `${m} мин назад`;
+        const h = Math.floor(m / 60);
+        if (h < 24) return `${h} ч назад`;
+        return new Date(ts).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+      }
 
-      document.getElementById('logoutBtn').addEventListener('click', function() {
-        if (timerInterval) clearInterval(timerInterval);
-        token = null;
-        currentUser = null;
-        localStorage.removeItem(STORAGE_TOKEN);
-        localStorage.removeItem(STORAGE_USER);
-        localStorage.removeItem(STORAGE_TIMER);
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('app').classList.remove('visible');
-      });
-
+      // ——— Tasks render (existing) ———
       function getFilteredTasks() {
         let list = tasks;
         if (currentFilter === 'in_progress') list = list.filter(t => t.status === 'in_progress');
         else if (currentFilter === 'done') list = list.filter(t => t.status === 'done');
         else if (currentFilter === 'mine') list = list.filter(t => t.assignee_id === currentUser?.id);
         return list;
-      }
-
-      function statusLabel(s) {
-        return { open: 'К выполнению', in_progress: 'В работе', done: 'Готово' }[s] || s || 'К выполнению';
-      }
-
-      function escapeHtml(s) {
-        if (s == null) return '';
-        const div = document.createElement('div');
-        div.textContent = s;
-        return div.innerHTML;
       }
 
       let taskViewMode = localStorage.getItem('tasktime_view_mode') || 'list';
@@ -1006,47 +878,42 @@
             const isRunning = String(id) === String(runningTaskId);
             const isDone = task.status === 'done';
             const statusCls = task.status === 'in_progress' ? 'in_progress' : task.status === 'done' ? 'done' : 'todo';
-            const assigneeText = task.assignee_name ? escapeHtml(task.assignee_name) : '—';
-            const priorityLabel = { low: 'Низкий', medium: 'Средний', high: 'Высокий' }[task.priority] || task.priority;
-            return `
-              <tr class="task-row ${isDone ? 'done' : ''} ${isRunning ? 'running' : ''}" data-id="${id}">
-                <td><span class="task-title">${escapeHtml(task.title)}</span></td>
-                <td><span class="task-status ${statusCls}">${statusLabel(task.status)}</span></td>
-                <td>${assigneeText}</td>
-                <td>${priorityLabel}</td>
-                <td class="task-actions-cell">
-                  ${!isDone && !isRunning ? `<button type="button" class="btn btn-primary btn-sm" data-action="start">Старт</button>` : ''}
-                  ${isRunning ? `<button type="button" class="btn btn-danger btn-sm" data-action="stop">Стоп</button>` : ''}
-                  <button type="button" class="btn btn-ghost btn-sm" data-action="toggle">${isDone ? 'Открыть' : 'Готово'}</button>
-                </td>
-              </tr>`;
+            const pLabel = { low: 'Низкий', medium: 'Средний', high: 'Высокий', critical: 'Критичный' }[task.priority] || task.priority;
+            return `<tr class="task-row ${isDone ? 'done' : ''} ${isRunning ? 'running' : ''}" data-id="${id}">
+              <td><span class="task-title">${escapeHtml(task.title)}</span></td>
+              <td><span class="task-status ${statusCls}">${statusLabel(task.status)}</span></td>
+              <td>${task.assignee_name ? escapeHtml(task.assignee_name) : '—'}</td>
+              <td>${pLabel}</td>
+              <td class="task-actions-cell">
+                ${!isDone && !isRunning ? `<button type="button" class="btn btn-primary btn-sm" data-action="start">Старт</button>` : ''}
+                ${isRunning ? `<button type="button" class="btn btn-danger btn-sm" data-action="stop">Стоп</button>` : ''}
+                <button type="button" class="btn btn-ghost btn-sm" data-action="toggle">${isDone ? 'Открыть' : 'Готово'}</button>
+              </td>
+            </tr>`;
           }).join('') || '<tr><td colspan="5" class="report-empty">Нет задач</td></tr>';
           tbody.querySelectorAll('[data-action]').forEach(el => {
             el.addEventListener('click', async function() {
               const row = this.closest('.task-row');
               if (!row || !row.dataset.id) return;
               const id = row.dataset.id;
-              const action = this.dataset.action;
               const t = tasks.find(x => String(x.id) === id);
               if (!t) return;
-              if (action === 'toggle') {
+              if (this.dataset.action === 'toggle') {
                 const newStatus = t.status === 'done' ? 'open' : 'done';
                 await apiFetch('/api/tasks/' + id, { method: 'PUT', body: JSON.stringify({ status: newStatus, assignee_id: t.assignee_id ?? null }) });
                 if (newStatus === 'done' && runningTaskId === id) await stopTimer();
                 await loadTasks();
-              } else if (action === 'start') {
+              } else if (this.dataset.action === 'start') {
                 if (runningTaskId) await stopTimer();
                 const res = await apiFetch('/api/tasks/' + id + '/time/start', { method: 'POST' });
                 if (res && res.id) {
-                  runningTaskId = id;
-                  timerStartedAt = new Date(res.started_at || Date.now());
-                  saveTimer();
-                  startTimerTicker();
-                  $('#headerTimer').classList.remove('hidden');
+                  runningTaskId = id; timerStartedAt = new Date(res.started_at || Date.now());
+                  saveTimer(); startTimerTicker();
+                  $('#sidebarTimer').classList.remove('hidden');
                   await apiFetch('/api/tasks/' + id, { method: 'PUT', body: JSON.stringify({ status: 'in_progress' }) });
                   await loadTasks();
                 }
-              } else if (action === 'stop') {
+              } else if (this.dataset.action === 'stop') {
                 await stopTimer();
               }
             });
@@ -1062,53 +929,410 @@
           const isDone = task.status === 'done';
           const statusCls = task.status === 'in_progress' ? 'in_progress' : task.status === 'done' ? 'done' : 'todo';
           const assigneeText = task.assignee_name ? ' · ' + escapeHtml(task.assignee_name) : '';
-          return `
-            <li class="task-item ${isDone ? 'done' : ''} ${isRunning ? 'running' : ''}" data-id="${id}">
-              <div class="task-checkbox" data-action="toggle" aria-label="Отметить выполненной"></div>
-              <div class="task-body">
-                <div class="task-title">${escapeHtml(task.title)}</div>
-                <div class="task-meta">${statusLabel(task.status)}${assigneeText}</div>
-              </div>
-              <div class="task-actions">
-                <span class="task-status ${statusCls}">${statusLabel(task.status)}</span>
-                ${!isDone && !isRunning ? `<button type="button" class="btn btn-primary btn-sm" data-action="start">Начать работу</button>` : ''}
-                ${isRunning ? `<button type="button" class="btn btn-danger btn-sm" data-action="stop">Стоп</button>` : ''}
-              </div>
-            </li>
-          `;
+          return `<li class="task-item ${isDone ? 'done' : ''} ${isRunning ? 'running' : ''}" data-id="${id}">
+            <div class="task-checkbox" data-action="toggle" aria-label="Отметить выполненной"></div>
+            <div class="task-body">
+              <div class="task-title">${escapeHtml(task.title)}</div>
+              <div class="task-meta">${statusLabel(task.status)}${assigneeText}</div>
+            </div>
+            <div class="task-actions">
+              <span class="task-status ${statusCls}">${statusLabel(task.status)}</span>
+              ${!isDone && !isRunning ? `<button type="button" class="btn btn-primary btn-sm" data-action="start">Начать работу</button>` : ''}
+              ${isRunning ? `<button type="button" class="btn btn-danger btn-sm" data-action="stop">Стоп</button>` : ''}
+            </div>
+          </li>`;
         }).join('') || '<li class="report-empty">Нет задач</li>';
-
         list.querySelectorAll('[data-action]').forEach(el => {
           el.addEventListener('click', async function() {
             const item = this.closest('.task-item');
             if (!item || !item.dataset.id) return;
             const id = item.dataset.id;
-            const action = this.dataset.action;
-            if (action === 'toggle') {
+            if (this.dataset.action === 'toggle') {
               const t = tasks.find(x => String(x.id) === id);
               if (!t) return;
               const newStatus = t.status === 'done' ? 'open' : 'done';
               await apiFetch('/api/tasks/' + id, { method: 'PUT', body: JSON.stringify({ status: newStatus, assignee_id: t.assignee_id ?? null }) });
               if (newStatus === 'done' && runningTaskId === id) await stopTimer();
               await loadTasks();
-            } else if (action === 'start') {
+            } else if (this.dataset.action === 'start') {
               if (runningTaskId) await stopTimer();
               const res = await apiFetch('/api/tasks/' + id + '/time/start', { method: 'POST' });
               if (res && res.id) {
-                runningTaskId = id;
-                timerStartedAt = new Date(res.started_at || Date.now());
-                saveTimer();
-                startTimerTicker();
-                $('#headerTimer').classList.remove('hidden');
+                runningTaskId = id; timerStartedAt = new Date(res.started_at || Date.now());
+                saveTimer(); startTimerTicker();
+                $('#sidebarTimer').classList.remove('hidden');
                 await apiFetch('/api/tasks/' + id, { method: 'PUT', body: JSON.stringify({ status: 'in_progress' }) });
                 await loadTasks();
               }
-            } else if (action === 'stop') {
+            } else if (this.dataset.action === 'stop') {
               await stopTimer();
             }
           });
         });
       }
+
+      // ——— Task Tree renderer ———
+      function renderTaskTree(items) {
+        if (!items || !items.length) return '<div class="empty-state">Нет задач</div>';
+        return items.map(item => renderTreeNode(item, 0)).join('');
+      }
+
+      function renderTreeNode(item, depth) {
+        const hasChildren = item.children && item.children.length > 0;
+        const statusCls = 'ts-' + (item.status || 'open');
+        const prioCls = 'tp-' + (item.priority || 'medium');
+        const indent = depth * 20;
+        return `<div class="tree-node ${item.status === 'done' ? 'done' : ''}" data-id="${item.id}">
+          <div class="tree-row" data-toggle="${item.id}" style="padding-left:${10 + indent}px">
+            <div class="tree-toggle ${hasChildren ? '' : 'invisible'}" data-toggle="${item.id}">${hasChildren ? '▶' : ''}</div>
+            <span class="tree-level-badge ${item.level}">${levelLabel(item.level)}</span>
+            <span class="tree-title" data-open="${item.id}">${escapeHtml(item.title)}</span>
+            <div class="tree-meta">
+              ${item.story_points ? `<span class="tree-sp">SP: ${item.story_points}</span>` : ''}
+              <span class="tree-priority ${prioCls}">${priorityLabel(item.priority)}</span>
+              <span class="tree-status ${statusCls}">${statusLabel(item.status)}</span>
+            </div>
+          </div>
+          ${hasChildren ? `<div class="tree-children hidden" id="tree-ch-${item.id}">${item.children.map(c => renderTreeNode(c, depth + 1)).join('')}</div>` : ''}
+        </div>`;
+      }
+
+      function attachTreeEvents(container) {
+        container.querySelectorAll('[data-toggle]').forEach(el => {
+          el.addEventListener('click', function(e) {
+            if (e.target.closest('[data-open]')) return;
+            const id = this.dataset.toggle;
+            const ch = document.getElementById('tree-ch-' + id);
+            const tog = container.querySelector(`.tree-toggle[data-toggle="${id}"]`);
+            if (ch) { ch.classList.toggle('hidden'); if (tog) tog.classList.toggle('open'); }
+          });
+        });
+        container.querySelectorAll('[data-open]').forEach(el => {
+          el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openTaskItemModal(this.dataset.open);
+          });
+        });
+      }
+
+      // ——— Task Item Modal ———
+      async function openTaskItemModal(id) {
+        const modal = $('#taskItemModal');
+        const body = $('#tiModalBody');
+        modal.classList.add('visible');
+        body.innerHTML = '<div class="empty-state">Загрузка…</div>';
+        const item = await apiFetch('/api/task-items/' + id);
+        if (!item || item.error) { body.innerHTML = '<div class="empty-state">Ошибка загрузки</div>'; return; }
+
+        const breadcrumb = (item.breadcrumb || []).map(b =>
+          `<span>${escapeHtml(b.title)}</span><span class="ti-breadcrumb-sep">›</span>`
+        ).join('') + `<span><b>${escapeHtml(item.title)}</b></span>`;
+
+        const canEdit = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+
+        body.innerHTML = `
+          <div class="ti-breadcrumb">${breadcrumb}</div>
+          <div class="ti-title">${escapeHtml(item.title)}</div>
+          ${item.description ? `<div class="ti-desc">${escapeHtml(item.description)}</div>` : ''}
+          ${item.acceptance_criteria ? `<div class="ti-ac"><div class="ti-ac-label">Критерии приёмки</div>${escapeHtml(item.acceptance_criteria)}</div>` : ''}
+          <div class="ti-meta-grid">
+            <div class="ti-meta-item"><label>Статус</label>
+              ${canEdit
+                ? `<select id="tiStatusSel">${['open','in_progress','in_review','done','cancelled'].map(s => `<option value="${s}" ${item.status===s?'selected':''}>${statusLabel(s)}</option>`).join('')}</select>`
+                : `<span class="tree-status ts-${item.status}">${statusLabel(item.status)}</span>`}
+            </div>
+            <div class="ti-meta-item"><label>Приоритет</label><span class="tree-priority tp-${item.priority}">${priorityLabel(item.priority)}</span></div>
+            <div class="ti-meta-item"><label>Story Points</label><span>${item.story_points || '—'}</span></div>
+            <div class="ti-meta-item"><label>Уровень</label><span class="tree-level-badge ${item.level}">${levelLabel(item.level)}</span></div>
+            <div class="ti-meta-item"><label>Исполнитель</label><span>${escapeHtml(item.assignee_name) || '—'}</span></div>
+            <div class="ti-meta-item"><label>Ревьюер</label><span>${escapeHtml(item.reviewer_name) || '—'}</span></div>
+            <div class="ti-meta-item"><label>Создал</label><span>${escapeHtml(item.creator_name) || '—'}</span></div>
+            <div class="ti-meta-item"><label>Обновлено</label><span>${relativeTime(item.updated_at)}</span></div>
+          </div>
+          ${item.children && item.children.length ? `
+            <div class="ti-children-section">
+              <div class="ti-children-title">Дочерние задачи (${item.children.length})</div>
+              <div id="tiChildrenTree">${renderTaskTree(item.children)}</div>
+            </div>` : ''}
+          ${canEdit ? `<div style="margin-top:16px"><button type="button" class="btn btn-primary btn-sm" id="tiSaveStatus">Сохранить статус</button></div>` : ''}
+        `;
+
+        if (canEdit) {
+          $('#tiSaveStatus').addEventListener('click', async function() {
+            const newStatus = $('#tiStatusSel').value;
+            await apiFetch('/api/task-items/' + id + '/status', { method: 'PATCH', body: JSON.stringify({ status: newStatus }) });
+            modal.classList.remove('visible');
+            if ($('#pageProjects').classList.contains('active')) loadProjectsPage();
+            if ($('#pageQuick').classList.contains('active')) loadQuickPage();
+            if ($('#pageTeams').classList.contains('active')) loadTeamsPage();
+          });
+        }
+        if ($('#tiChildrenTree')) attachTreeEvents($('#tiChildrenTree'));
+      }
+
+      $('#tiModalClose').addEventListener('click', () => $('#taskItemModal').classList.remove('visible'));
+      $('#taskItemModal').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('visible'); });
+
+      // ——— Main Dashboard ———
+      async function loadMainDashboard() {
+        const data = await apiFetch('/api/dashboard/main');
+        if (!data) return;
+
+        // My tasks
+        const myTasksList = $('#myTasksList');
+        if (data.my_tasks && data.my_tasks.length) {
+          myTasksList.innerHTML = data.my_tasks.slice(0, 8).map(t =>
+            `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span class="tree-level-badge ${t.level}" style="flex-shrink:0">${levelLabel(t.level)}</span>
+              <span style="flex:1;font-size:14px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" data-open="${t.id}">${escapeHtml(t.title)}</span>
+              <span class="tree-status ts-${t.status}" style="flex-shrink:0">${statusLabel(t.status)}</span>
+            </div>`
+          ).join('');
+          myTasksList.querySelectorAll('[data-open]').forEach(el => {
+            el.addEventListener('click', () => openTaskItemModal(el.dataset.open));
+          });
+        } else {
+          myTasksList.innerHTML = '<div class="empty-state">Нет активных задач</div>';
+        }
+
+        // Projects
+        const dashProj = $('#dashProjectsList');
+        if (data.projects_summary && data.projects_summary.length) {
+          dashProj.innerHTML = data.projects_summary.map(p => {
+            const total = parseInt(p.stories_total) || 0;
+            const done = parseInt(p.stories_done) || 0;
+            const pct = total > 0 ? Math.round(done / total * 100) : 0;
+            return `<div class="project-card" style="cursor:default">
+              <div class="project-card-name">${escapeHtml(p.name)}</div>
+              <div class="project-card-meta">${done}/${total} сторей завершено</div>
+              <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+            </div>`;
+          }).join('');
+        } else {
+          dashProj.innerHTML = '<div class="empty-state">Нет проектов</div>';
+        }
+
+        // Teams
+        const dashTeams = $('#dashTeamsList');
+        if (data.teams_summary && data.teams_summary.length) {
+          dashTeams.innerHTML = data.teams_summary.map(t =>
+            `<div class="team-card">
+              <div class="team-avatar">${(t.name||'?').charAt(0)}</div>
+              <div>
+                <div class="team-name">${escapeHtml(t.name)}</div>
+                <div class="team-meta">${t.members_count} участников · ${t.active_tasks} в работе</div>
+              </div>
+            </div>`
+          ).join('');
+        } else {
+          dashTeams.innerHTML = '<div class="empty-state">Нет команд</div>';
+        }
+
+        // Activity
+        const dashAct = $('#dashActivity');
+        if (data.recent_activity && data.recent_activity.length) {
+          dashAct.innerHTML = data.recent_activity.map(a =>
+            `<div class="activity-item">
+              <div class="activity-dot"></div>
+              <div>
+                <div class="activity-text"><b>${escapeHtml(a.user_name || 'Система')}</b> · ${escapeHtml(a.action)}${a.entity_id ? ` #${a.entity_id}` : ''}</div>
+                <div class="activity-time">${relativeTime(a.created_at)}</div>
+              </div>
+            </div>`
+          ).join('');
+        } else {
+          dashAct.innerHTML = '<div class="empty-state">Нет активности</div>';
+        }
+      }
+
+      // ——— Projects page ———
+      async function loadProjectsPage() {
+        const grid = $('#projectsGrid');
+        const detail = $('#projectDetail');
+        grid.innerHTML = '<div class="empty-state">Загрузка…</div>';
+        detail.style.display = 'none';
+        const projects = await apiFetch('/api/projects');
+        if (!Array.isArray(projects) || !projects.length) {
+          grid.innerHTML = '<div class="empty-state">Нет проектов</div>';
+          return;
+        }
+        grid.innerHTML = projects.map(p => {
+          const total = parseInt(p.stories_count) || 0;
+          const done = parseInt(p.done_count) || 0;
+          const pct = total > 0 ? Math.round(done / total * 100) : 0;
+          return `<div class="proj-card" data-proj-id="${p.id}">
+            <div class="proj-card-name">${escapeHtml(p.name)}</div>
+            <div class="proj-card-goal">${escapeHtml(p.business_goal || p.description || '')}</div>
+            <div class="proj-card-stats">
+              <span>${p.epics_count || 0} эпиков</span>
+              <span>${total} сторей</span>
+              <span><b>${pct}%</b> завершено</span>
+            </div>
+            <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+          </div>`;
+        }).join('');
+        grid.querySelectorAll('[data-proj-id]').forEach(el => {
+          el.addEventListener('click', () => openProjectDetail(el.dataset.projId));
+        });
+      }
+
+      async function openProjectDetail(id) {
+        const grid = $('#projectsGrid');
+        const detail = $('#projectDetail');
+        const content = $('#projectDetailContent');
+        grid.style.display = 'none';
+        detail.style.display = 'block';
+        content.innerHTML = '<div class="empty-state">Загрузка…</div>';
+        const proj = await apiFetch('/api/projects/' + id);
+        if (!proj || proj.error) { content.innerHTML = '<div class="empty-state">Ошибка</div>'; return; }
+        const epicsTree = await apiFetch('/api/task-items?context_type=project&context_id=' + id);
+        content.innerHTML = `
+          <h2 style="font-size:20px;font-weight:700;margin-bottom:6px">${escapeHtml(proj.name)}</h2>
+          ${proj.business_goal ? `<p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">${escapeHtml(proj.business_goal)}</p>` : ''}
+          <div class="tree-container" id="projTreeContainer">${renderTaskTree(Array.isArray(epicsTree) ? epicsTree : [])}</div>`;
+        attachTreeEvents($('#projTreeContainer'));
+      }
+
+      $('#backToProjectsBtn').addEventListener('click', () => {
+        $('#projectsGrid').style.display = 'grid';
+        $('#projectDetail').style.display = 'none';
+      });
+
+      // ——— Quick tasks page ———
+      async function loadQuickPage() {
+        const container = $('#quickTreeContainer');
+        container.innerHTML = '<div class="empty-state">Загрузка…</div>';
+        const items = await apiFetch('/api/task-items?context_type=quick');
+        if (!Array.isArray(items) || !items.length) {
+          container.innerHTML = '<div class="empty-state">Нет быстрых задач</div>';
+          return;
+        }
+        container.innerHTML = renderTaskTree(items);
+        attachTreeEvents(container);
+      }
+
+      // ——— Teams page ———
+      async function loadTeamsPage() {
+        const grid = $('#teamsGrid');
+        const detail = $('#teamDetail');
+        grid.innerHTML = '<div class="empty-state">Загрузка…</div>';
+        detail.style.display = 'none';
+        const teams = await apiFetch('/api/product-teams');
+        if (!Array.isArray(teams) || !teams.length) {
+          grid.innerHTML = '<div class="empty-state">Нет команд</div>';
+          return;
+        }
+        grid.style.display = 'grid';
+        grid.innerHTML = teams.map(t =>
+          `<div class="proj-card" data-team-id="${t.id}">
+            <div class="proj-card-name">${escapeHtml(t.name)}</div>
+            <div class="proj-card-goal">${escapeHtml(t.description || '')}</div>
+            <div class="proj-card-stats">
+              <span>${t.members_count || 0} участников</span>
+              ${t.lead_name ? `<span>Лид: <b>${escapeHtml(t.lead_name)}</b></span>` : ''}
+            </div>
+          </div>`
+        ).join('');
+        grid.querySelectorAll('[data-team-id]').forEach(el => {
+          el.addEventListener('click', () => openTeamDetail(el.dataset.teamId));
+        });
+      }
+
+      async function openTeamDetail(id) {
+        const grid = $('#teamsGrid');
+        const detail = $('#teamDetail');
+        const content = $('#teamDetailContent');
+        grid.style.display = 'none';
+        detail.style.display = 'block';
+        content.innerHTML = '<div class="empty-state">Загрузка…</div>';
+        const [team, items] = await Promise.all([
+          apiFetch('/api/product-teams/' + id),
+          apiFetch('/api/task-items?context_type=product_team&context_id=' + id),
+        ]);
+        if (!team || team.error) { content.innerHTML = '<div class="empty-state">Ошибка</div>'; return; }
+        const membersHtml = (team.members || []).map(m =>
+          `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg-secondary);border-radius:20px;padding:4px 10px;font-size:13px;margin:3px">${escapeHtml(m.name)}</span>`
+        ).join('');
+        content.innerHTML = `
+          <h2 style="font-size:20px;font-weight:700;margin-bottom:6px">${escapeHtml(team.name)}</h2>
+          ${team.description ? `<p style="color:var(--text-muted);font-size:14px;margin-bottom:12px">${escapeHtml(team.description)}</p>` : ''}
+          ${membersHtml ? `<div style="margin-bottom:16px">${membersHtml}</div>` : ''}
+          <div class="tree-container" id="teamTreeContainer">${renderTaskTree(Array.isArray(items) ? items : [])}</div>`;
+        attachTreeEvents($('#teamTreeContainer'));
+      }
+
+      $('#backToTeamsBtn').addEventListener('click', () => {
+        $('#teamsGrid').style.display = 'grid';
+        $('#teamDetail').style.display = 'none';
+      });
+
+      // ——— Audit log ———
+      async function loadAuditPage() {
+        const el = $('#auditLogList');
+        const logs = await apiFetch('/api/task-items'); // placeholder — use audit if endpoint exists
+        // For now fetch dashboard main which includes recent_activity
+        const data = await apiFetch('/api/dashboard/main');
+        if (!data || !data.recent_activity) { el.innerHTML = '<div class="empty-state">Нет данных</div>'; return; }
+        el.innerHTML = data.recent_activity.map(a =>
+          `<div class="activity-item" style="padding:10px 0">
+            <div class="activity-dot"></div>
+            <div>
+              <div class="activity-text"><b>${escapeHtml(a.user_name || 'Система')}</b> · ${escapeHtml(a.action)}${a.entity_type ? ` [${a.entity_type}${a.entity_id ? ' #'+a.entity_id : ''}]` : ''}</div>
+              <div class="activity-time">${new Date(a.created_at).toLocaleString('ru-RU')}</div>
+            </div>
+          </div>`
+        ).join('');
+      }
+
+      // ——— CIO board ———
+      async function loadCioBoard() {
+        const data = await apiFetch('/api/dashboard/cio');
+        if (!data) return;
+        const p = data.productivity || {};
+        const ai = data.ai_penetration || {};
+        const dx = data.devex || {};
+        const ts = data.task_stats || {};
+
+        if ($('#kpiStoriesDone')) $('#kpiStoriesDone').textContent = p.stories_done_30d ?? '—';
+        if ($('#kpiPRs')) $('#kpiPRs').textContent = p.pull_requests_30d ?? '—';
+        if ($('#kpiPerPerson')) $('#kpiPerPerson').textContent = p.stories_per_person ?? '—';
+        if ($('#kpiOnboarding')) $('#kpiOnboarding').textContent = p.avg_onboarding_days ?? '—';
+
+        if ($('#devexFlow')) { $('#devexFlow').textContent = dx.flow_state; $('#devexFlowBar').style.width = (dx.flow_state||0) + '%'; }
+        if ($('#devexFeedback')) { $('#devexFeedback').textContent = dx.feedback_loops; $('#devexFeedbackBar').style.width = (dx.feedback_loops||0) + '%'; }
+        if ($('#devexCognitive')) { $('#devexCognitive').textContent = dx.cognitive_load; $('#devexCognitiveBar').style.width = (dx.cognitive_load||0) + '%'; }
+
+        if ($('#aiDau')) $('#aiDau').textContent = ai.dau;
+        if ($('#aiMau')) $('#aiMau').textContent = ai.mau;
+        if ($('#aiCodeFlow')) $('#aiCodeFlow').textContent = (ai.ai_code_flow_pct || 0) + '%';
+        if ($('#aiTimeSaved')) $('#aiTimeSaved').textContent = ai.time_saved_hours;
+        if ($('#aiAgentTasks')) $('#aiAgentTasks').textContent = ai.agent_tasks;
+
+        if ($('#tsEpics')) $('#tsEpics').textContent = ts.total_epics ?? '—';
+        if ($('#tsStories')) $('#tsStories').textContent = ts.total_stories ?? '—';
+        if ($('#tsSubtasks')) $('#tsSubtasks').textContent = ts.total_subtasks ?? '—';
+        if ($('#tsOpen')) $('#tsOpen').textContent = ts.open_count ?? '—';
+        if ($('#tsInProgress')) $('#tsInProgress').textContent = ts.in_progress_count ?? '—';
+        if ($('#tsDone')) $('#tsDone').textContent = ts.done_count ?? '—';
+      }
+
+      // ——— Sidebar nav ———
+      $$('.sidebar-nav-link').forEach(btn => {
+        btn.addEventListener('click', function() {
+          $$('.sidebar-nav-link').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const page = this.dataset.page;
+          $$('#app .page').forEach(p => p.classList.remove('active'));
+          const pageMap = { main: 'pageMain', tasks: 'pageTasks', projects: 'pageProjects', quick: 'pageQuick', teams: 'pageTeams', report: 'pageReport', audit: 'pageAudit' };
+          const el = $('#' + pageMap[page]);
+          if (el) el.classList.add('active');
+          if (page === 'projects') loadProjectsPage();
+          if (page === 'quick') loadQuickPage();
+          if (page === 'teams') loadTeamsPage();
+          if (page === 'report') renderReport();
+          if (page === 'audit') loadAuditPage();
+        });
+      });
 
       $$('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -1126,13 +1350,13 @@
         });
       });
 
+      // ——— Resizable tables ———
       function initResizableTables() {
         document.querySelectorAll('.resizable-table').forEach(table => {
           const key = table.dataset.storageKey;
           if (!key) return;
           const saved = (function() { try { return JSON.parse(localStorage.getItem(key) || '{}'); } catch (_) { return {}; } })();
-          const ths = table.querySelectorAll('thead th[data-col]');
-          ths.forEach(th => {
+          table.querySelectorAll('thead th[data-col]').forEach(th => {
             const col = th.dataset.col;
             if (saved[col] != null) th.style.width = saved[col] + 'px';
           });
@@ -1140,23 +1364,17 @@
             const th = resizer.closest('th');
             if (!th || th.classList.contains('no-resize')) return;
             const tableEl = th.closest('table');
-            const key = tableEl.dataset.storageKey;
+            const k = tableEl.dataset.storageKey;
             let startX = 0, startW = 0;
             resizer.addEventListener('mousedown', function(e) {
-              e.preventDefault();
-              startX = e.pageX;
-              startW = th.offsetWidth;
-              const onMove = function(e2) {
-                const dw = e2.pageX - startX;
-                const newW = Math.max(40, startW + dw);
-                th.style.width = newW + 'px';
-              };
-              const onUp = function() {
+              e.preventDefault(); startX = e.pageX; startW = th.offsetWidth;
+              const onMove = e2 => { th.style.width = Math.max(40, startW + e2.pageX - startX) + 'px'; };
+              const onUp = () => {
                 document.removeEventListener('mousemove', onMove);
                 document.removeEventListener('mouseup', onUp);
                 const widths = {};
                 tableEl.querySelectorAll('thead th[data-col]').forEach(c => { widths[c.dataset.col] = c.offsetWidth; });
-                try { localStorage.setItem(key, JSON.stringify(widths)); } catch (_) {}
+                try { localStorage.setItem(k, JSON.stringify(widths)); } catch (_) {}
               };
               document.addEventListener('mousemove', onMove);
               document.addEventListener('mouseup', onUp);
@@ -1167,71 +1385,54 @@
       initResizableTables();
       document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === taskViewMode));
 
-      const taskModal = $('#taskModal');
-      const taskForm = document.getElementById('taskForm');
-
+      // ——— Task modal (new legacy task) ———
       function openTaskModal() {
-        taskModal.classList.add('visible');
-        $('#taskTitle').value = '';
-        $('#taskDesc').value = '';
-        $('#taskAssignee').value = '';
-        $('#taskPriority').value = 'medium';
+        $('#taskModal').classList.add('visible');
+        $('#taskTitle').value = ''; $('#taskDesc').value = '';
+        $('#taskAssignee').value = ''; $('#taskPriority').value = 'medium';
         $('#taskTitle').focus();
       }
+      function closeTaskModal() { $('#taskModal').classList.remove('visible'); }
 
-      function closeTaskModal() {
-        taskModal.classList.remove('visible');
-      }
-
-      document.getElementById('newTaskBtn').addEventListener('click', openTaskModal);
+      const newTaskBtn = document.getElementById('newTaskBtn');
+      if (newTaskBtn) newTaskBtn.addEventListener('click', openTaskModal);
       document.getElementById('taskModalClose').addEventListener('click', closeTaskModal);
       document.getElementById('taskModalCancel').addEventListener('click', closeTaskModal);
-      taskModal.addEventListener('click', function(e) { if (e.target === taskModal) closeTaskModal(); });
+      document.getElementById('taskModal').addEventListener('click', function(e) { if (e.target === this) closeTaskModal(); });
 
-      taskForm.addEventListener('submit', async function(e) {
+      document.getElementById('taskForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const title = $('#taskTitle').value.trim();
         if (!title) return;
-        const assigneeVal = $('#taskAssignee').value;
-        const assignee_id = assigneeVal ? parseInt(assigneeVal, 10) : null;
-        const btn = $('#taskSubmit');
-        btn.disabled = true;
+        const btn = $('#taskSubmit'); btn.disabled = true;
         const created = await apiFetch('/api/tasks', {
           method: 'POST',
           body: JSON.stringify({
-            title,
-            description: $('#taskDesc').value.trim() || undefined,
-            assignee_id: assignee_id || undefined,
-            priority: $('#taskPriority').value || 'medium',
-            status: 'open'
+            title, description: $('#taskDesc').value.trim() || undefined,
+            assignee_id: $('#taskAssignee').value ? parseInt($('#taskAssignee').value, 10) : undefined,
+            priority: $('#taskPriority').value || 'medium', status: 'open'
           })
         });
         btn.disabled = false;
-        if (created && created.id) {
-          closeTaskModal();
-          await loadTasks();
-        } else {
-          alert(created && created.error ? created.error : 'Не удалось создать задачу');
-        }
+        if (created && created.id) { closeTaskModal(); await loadTasks(); }
+        else alert(created && created.error ? created.error : 'Не удалось создать задачу');
       });
 
-      $$('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-          e.preventDefault();
-          const page = this.dataset.page;
-          $$('.nav-link').forEach(l => l.classList.remove('active'));
+      // ——— Stop timer ———
+      document.getElementById('sidebarStopTimerBtn').addEventListener('click', stopTimer);
+
+      // ——— Report ———
+      document.querySelectorAll('.report-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
           this.classList.add('active');
-          $$('.main .page').forEach(p => p.classList.remove('active'));
-          $('#page' + (page === 'tasks' ? 'Tasks' : 'Report')).classList.add('active');
-          if (page === 'report') renderReport();
+          document.querySelectorAll('.report-section').forEach(s => s.classList.remove('active'));
+          document.getElementById('reportBy' + (this.dataset.report === 'days' ? 'Days' : 'Tasks')).classList.add('active');
         });
       });
 
-      document.getElementById('stopTimerBtn').addEventListener('click', stopTimer);
-
       function renderReport() {
-        const byDay = {};
-        const byTask = {};
+        const byDay = {}, byTask = {};
         timeLogs.forEach(entry => {
           const started = entry.started_at || entry.startedAt;
           const day = (started || '').slice(0, 10);
@@ -1241,56 +1442,97 @@
           const tid = entry.task_id || entry.taskId;
           if (tid) byTask[tid] = (byTask[tid] || 0) + dur;
         });
-
-        const daysBody = $('#reportDaysBody');
-        const daysEmpty = $('#reportDaysEmpty');
+        const daysBody = $('#reportDaysBody'), daysEmpty = $('#reportDaysEmpty');
         const daysList = Object.entries(byDay).sort((a, b) => b[0].localeCompare(a[0]));
-        if (daysList.length === 0) {
-          daysBody.innerHTML = '';
-          daysEmpty.style.display = 'block';
-        } else {
+        if (!daysList.length) { daysBody.innerHTML = ''; daysEmpty.style.display = 'block'; }
+        else {
           daysEmpty.style.display = 'none';
-          daysBody.innerHTML = daysList.map(([day, ms]) => `
-            <tr>
-              <td>${new Date(day + 'T12:00:00').toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</td>
-              <td class="time-cell" style="text-align:right">${formatDuration(ms)}</td>
-            </tr>
-          `).join('');
+          daysBody.innerHTML = daysList.map(([day, ms]) =>
+            `<tr><td>${new Date(day + 'T12:00:00').toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</td><td class="time-cell" style="text-align:right">${formatDuration(ms)}</td></tr>`
+          ).join('');
         }
-
-        const tasksBody = $('#reportTasksBody');
-        const tasksEmpty = $('#reportTasksEmpty');
+        const tasksBody = $('#reportTasksBody'), tasksEmpty = $('#reportTasksEmpty');
         const taskIds = Object.keys(byTask);
-        if (taskIds.length === 0) {
-          tasksBody.innerHTML = '';
-          tasksEmpty.style.display = 'block';
-        } else {
+        if (!taskIds.length) { tasksBody.innerHTML = ''; tasksEmpty.style.display = 'block'; }
+        else {
           tasksEmpty.style.display = 'none';
           tasksBody.innerHTML = taskIds.map(taskId => {
             const task = tasks.find(t => String(t.id) === String(taskId));
-            const title = task ? task.title : (timeLogs.find(l => String(l.task_id || l.taskId) === String(taskId))?.task_title) || 'Задача';
+            const title = task ? task.title : (timeLogs.find(l => String(l.task_id||l.taskId) === String(taskId))?.task_title) || 'Задача';
             return `<tr><td>${escapeHtml(title)}</td><td class="time-cell" style="text-align:right">${formatDuration(byTask[taskId])}</td></tr>`;
           }).join('');
         }
       }
 
-      if (token && currentUser) {
+      // ——— Login ———
+      function showApp() {
+        const isCio = currentUser && currentUser.role === 'cio';
         document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('app').classList.add('visible');
-        $('#userName').textContent = currentUser.name || currentUser.email;
-        loadUsers().then(() => {}).catch(() => {});
-        loadTasks().then(() => {}).catch(() => {});
-        loadTimeLogs().then(() => { renderReport(); }).catch(() => {});
-        const raw = localStorage.getItem(STORAGE_TIMER);
-        if (raw) try {
-          const { taskId, startedAt } = JSON.parse(raw);
-          runningTaskId = String(taskId);
-          timerStartedAt = new Date(startedAt);
-          startTimerTicker();
-          updateHeaderTimer();
-          $('#headerTimer').classList.remove('hidden');
-        } catch (_) {}
+        if (isCio) {
+          document.getElementById('cio-board').classList.add('visible');
+          document.getElementById('app').classList.remove('visible');
+          $('#cioUserName').textContent = currentUser.name || currentUser.email;
+          loadCioBoard();
+        } else {
+          document.getElementById('app').classList.add('visible');
+          document.getElementById('cio-board').classList.remove('visible');
+          $('#sidebarUserName').textContent = currentUser.name || currentUser.email;
+          // Show audit link for admin
+          if (currentUser.role === 'admin') {
+            $$('.sidebar-audit-link').forEach(el => el.style.display = 'flex');
+          }
+          loadUsers();
+          loadTasks();
+          loadTimeLogs().then(() => { renderReport(); });
+          loadMainDashboard();
+          const raw = localStorage.getItem(STORAGE_TIMER);
+          if (raw) try {
+            const { taskId, startedAt } = JSON.parse(raw);
+            runningTaskId = String(taskId); timerStartedAt = new Date(startedAt);
+            startTimerTicker();
+            $('#sidebarTimer').classList.remove('hidden');
+          } catch (_) {}
+        }
       }
+
+      document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const email = $('#loginEmail').value.trim();
+        const password = $('#loginPassword').value;
+        const errEl = $('#loginError'), btn = $('#loginSubmit');
+        errEl.style.display = 'none'; btn.disabled = true;
+        const data = await fetch(API_BASE + '/api/auth/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        }).then(r => r.json()).catch(() => ({}));
+        if (data.token && data.user) {
+          token = data.token; currentUser = data.user;
+          localStorage.setItem(STORAGE_TOKEN, token);
+          localStorage.setItem(STORAGE_USER, JSON.stringify(currentUser));
+          showApp();
+        } else {
+          errEl.textContent = data.error || 'Ошибка входа';
+          errEl.style.display = 'block';
+        }
+        btn.disabled = false;
+      });
+
+      function handleLogout() {
+        if (timerInterval) clearInterval(timerInterval);
+        token = null; currentUser = null;
+        localStorage.removeItem(STORAGE_TOKEN);
+        localStorage.removeItem(STORAGE_USER);
+        localStorage.removeItem(STORAGE_TIMER);
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('app').classList.remove('visible');
+        document.getElementById('cio-board').classList.remove('visible');
+      }
+      document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+      document.getElementById('cioLogoutBtn').addEventListener('click', handleLogout);
+
+      // ——— Auto-login on load ———
+      if (token && currentUser) showApp();
+
     })();
   </script>
 </body>
