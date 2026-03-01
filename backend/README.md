@@ -49,3 +49,12 @@ npm run dev        # с автоперезапуском
 - **GET** `/api/time-logs` — мои записи времени (query: task_id)
 
 Все маршруты кроме `/api/auth/*` и `/health` требуют заголовок `Authorization: Bearer <JWT>`.
+
+## Настройка сервера с БД (production)
+
+Полная инструкция по деплою на VPS (Timeweb Cloud, Ubuntu): **см. [DEPLOY.md](../DEPLOY.md)** в корне репозитория.
+
+Репозиторий: **https://github.com/jackrescuer-gif/tasktime-mvp**
+
+В папке **`scripts/`**:
+- **`scripts/setup-script.sh`** — для Ubuntu/Debian: установка Node.js 20, PostgreSQL, Nginx, создание БД и пользователя `taskuser`, настройка systemd-сервиса и брандмауэра. Лог: `/var/log/tasktime-setup.log`. Запуск: `sudo bash scripts/setup-script.sh`. Перед запуском смените `DB_PASSWORD` в скрипте.
