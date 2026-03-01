@@ -20,7 +20,7 @@ const USERS = [
   { email: 'dev4@company.com',     name: 'Ольга Новикова',   role: 'user',    password: 'dev123' },
   // Team users
   { email: 'pavel@tasktime.demo',  name: 'Pavel',            role: 'admin',   password: 'tasktime24' },
-  { email: 'georgiy@tasktime.demo',name: 'Georgiy',          role: 'user',    password: 'tasktime24' },
+  { email: 'georgiy@tasktime.demo',name: 'Georgiy',          role: 'viewer',  password: 'tasktime24' },
   { email: 'olesya@tasktime.demo', name: 'Olesya',           role: 'user',    password: 'tasktime24' },
   { email: 'andrey@tasktime.demo', name: 'Andrey',           role: 'user',    password: 'tasktime24' },
   { email: 'anton@tasktime.demo',  name: 'Anton',            role: 'user',    password: 'tasktime24' },

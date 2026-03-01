@@ -149,6 +149,7 @@ app.get('/api/tasks', authMiddleware, async (req, res) => {
 
 // Create task
 app.post('/api/tasks', authMiddleware, async (req, res) => {
+  if (isReadOnly(req.user)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const {
       title,
@@ -218,6 +219,7 @@ app.get('/api/tasks/:id', authMiddleware, async (req, res) => {
 
 // Update task (RBAC: user can update only if creator or assignee)
 app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
+  if (isReadOnly(req.user)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const check = await query('SELECT id, creator_id, assignee_id FROM tasks WHERE id = $1', [req.params.id]);
     if (check.rows.length === 0) return res.status(404).json({ error: 'Task not found' });
@@ -255,6 +257,7 @@ app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
 
 // Delete task (RBAC: user can delete only if creator or assignee)
 app.delete('/api/tasks/:id', authMiddleware, async (req, res) => {
+  if (isReadOnly(req.user)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const check = await query('SELECT id, creator_id, assignee_id FROM tasks WHERE id = $1', [req.params.id]);
     if (check.rows.length === 0) return res.status(404).json({ error: 'Task not found' });
@@ -374,8 +377,12 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 function isAdminOrManager(user) {
   return user.role === 'admin' || user.role === 'manager';
 }
+// viewer: GET-only, sees everything like admin but cannot mutate
 function canReadAll(user) {
-  return user.role === 'admin' || user.role === 'manager' || user.role === 'cio';
+  return user.role === 'admin' || user.role === 'manager' || user.role === 'cio' || user.role === 'viewer';
+}
+function isReadOnly(user) {
+  return user.role === 'cio' || user.role === 'viewer';
 }
 
 // ——— Task Items (hierarchical: epic → story → subtask) ———
@@ -515,6 +522,7 @@ app.post('/api/task-items', authMiddleware, async (req, res) => {
 });
 
 app.put('/api/task-items/:id', authMiddleware, async (req, res) => {
+  if (isReadOnly(req.user)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const check = await query('SELECT id, creator_id, assignee_id FROM task_items WHERE id = $1', [req.params.id]);
     if (!check.rows.length) return res.status(404).json({ error: 'Not found' });
@@ -565,6 +573,7 @@ app.delete('/api/task-items/:id', authMiddleware, async (req, res) => {
 });
 
 app.patch('/api/task-items/:id/status', authMiddleware, async (req, res) => {
+  if (isReadOnly(req.user)) return res.status(403).json({ error: 'Forbidden' });
   try {
     const { status } = req.body;
     const valid = ['open','in_progress','in_review','done','cancelled'];
@@ -572,7 +581,7 @@ app.patch('/api/task-items/:id/status', authMiddleware, async (req, res) => {
     const check = await query('SELECT id, creator_id, assignee_id FROM task_items WHERE id = $1', [req.params.id]);
     if (!check.rows.length) return res.status(404).json({ error: 'Not found' });
     const item = check.rows[0];
-    if (!canReadAll(req.user) && item.creator_id !== req.user.id && item.assignee_id !== req.user.id)
+    if (!isAdminOrManager(req.user) && item.creator_id !== req.user.id && item.assignee_id !== req.user.id)
       return res.status(403).json({ error: 'Forbidden' });
     const r = await query(
       'UPDATE task_items SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING *',

@@ -1028,7 +1028,8 @@
           `<span>${escapeHtml(b.title)}</span><span class="ti-breadcrumb-sep">›</span>`
         ).join('') + `<span><b>${escapeHtml(item.title)}</b></span>`;
 
-        const canEdit = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
+        const isReadOnly = currentUser && (currentUser.role === 'cio' || currentUser.role === 'viewer');
+        const canEdit = currentUser && !isReadOnly && (currentUser.role === 'admin' || currentUser.role === 'manager');
 
         body.innerHTML = `
           <div class="ti-breadcrumb">${breadcrumb}</div>
@@ -1477,9 +1478,13 @@
           document.getElementById('app').classList.add('visible');
           document.getElementById('cio-board').classList.remove('visible');
           $('#sidebarUserName').textContent = currentUser.name || currentUser.email;
-          // Show audit link for admin
-          if (currentUser.role === 'admin') {
+          // Show audit link for admin / viewer
+          if (currentUser.role === 'admin' || currentUser.role === 'viewer') {
             $$('.sidebar-audit-link').forEach(el => el.style.display = 'flex');
+          }
+          // Hide create buttons for read-only roles (viewer, cio handled separately)
+          if (currentUser.role === 'viewer') {
+            $$('.task-create-btn').forEach(el => el.style.display = 'none');
           }
           loadUsers();
           loadTasks();
