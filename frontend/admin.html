@@ -1116,26 +1116,13 @@
 
     // ——— Init ———
     (async function init() {
-      // Проверяем сессию через куку (/api/auth/me не требует Bearer).
-      // Если Bearer в localStorage протух — сервер всё равно примет куку
-      // (authMiddleware исправлен: пробует Bearer, при неудаче — куку).
-      let me = null;
-      try {
-        const r = await fetch('/api/auth/me', { credentials: 'include' });
-        if (r.ok) {
-          me = await r.json();
-          currentUser = me;
-          localStorage.setItem(STORAGE_USER, JSON.stringify(me));
-        } else if (r.status === 401) {
-          localStorage.removeItem(STORAGE_TOKEN);
-          localStorage.removeItem(STORAGE_USER);
-        }
-      } catch (_) {}
-
-      if (!me) {
-        window.location.href = '/';
-        return;
-      }
+      // Используем apiFetch (отправляет Bearer из localStorage).
+      // Голый fetch без Bearer не работает на HTTP-окружении: кука Secure
+      // не передаётся браузером по незащищённому соединению.
+      const me = await apiFetch('/api/auth/me');
+      if (!me) return; // apiFetch уже сделал редирект на '/' при 401
+      currentUser = me;
+      localStorage.setItem(STORAGE_USER, JSON.stringify(me));
 
       if (me.role !== 'admin' && me.role !== 'super-admin') {
         document.body.innerHTML = `
