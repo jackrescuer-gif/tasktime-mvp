@@ -576,7 +576,14 @@
       if (token) headers['Authorization'] = `Bearer ${token}`;
       try {
         const r = await fetch(url, { ...opts, headers, credentials: 'include' });
-        if (r.status === 401) { window.location.href = '/?blocked=1'; return null; }
+        if (r.status === 401) {
+          // Старый Bearer-токен в localStorage мог протухнуть.
+          // Удаляем его и перенаправляем на логин (не на пасхалку).
+          localStorage.removeItem(STORAGE_TOKEN);
+          localStorage.removeItem(STORAGE_USER);
+          window.location.href = '/';
+          return null;
+        }
         if (r.status === 403) {
           const body = await r.json().catch(() => ({}));
           showToast(body.error || 'Доступ запрещён', 'error');
@@ -589,7 +596,7 @@
         }
         return r.status === 204 ? true : await r.json();
       } catch (e) {
-        showToast('Ошибка сети', 'error');
+        showToast('Ошибка сети: ' + e.message, 'error');
         return null;
       }
     }
@@ -1086,11 +1093,9 @@
 
     // ——— Init ———
     (async function init() {
-      const stored = localStorage.getItem(STORAGE_USER);
-      if (stored) {
-        try { currentUser = JSON.parse(stored); } catch (_) {}
-      }
-
+      // Проверяем сессию через куку (/api/auth/me не требует Bearer).
+      // Если Bearer в localStorage протух — сервер всё равно примет куку
+      // (authMiddleware исправлен: пробует Bearer, при неудаче — куку).
       let me = null;
       try {
         const r = await fetch('/api/auth/me', { credentials: 'include' });
@@ -1098,11 +1103,14 @@
           me = await r.json();
           currentUser = me;
           localStorage.setItem(STORAGE_USER, JSON.stringify(me));
+        } else if (r.status === 401) {
+          localStorage.removeItem(STORAGE_TOKEN);
+          localStorage.removeItem(STORAGE_USER);
         }
       } catch (_) {}
 
       if (!me) {
-        window.location.href = '/?blocked=1';
+        window.location.href = '/';
         return;
       }
 

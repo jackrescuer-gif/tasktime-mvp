@@ -42,22 +42,30 @@ function canDeleteTask(task, user) {
 }
 
 // ——— JWT middleware — принимает Bearer-заголовок ИЛИ HttpOnly-куку ———
+// Если Bearer присутствует но невалиден — пробуем куку (не отказываем сразу).
+// Это важно когда в localStorage осталась старая/истёкшая подпись.
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
-  const token =
-    (authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null) ||
-    (req.cookies && req.cookies[COOKIE_NAME]) ||
-    null;
-  if (!token) {
+  const bearerToken = authHeader && authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : null;
+  const cookieToken = req.cookies && req.cookies[COOKIE_NAME] || null;
+
+  let payload = null;
+
+  if (bearerToken) {
+    try { payload = jwt.verify(bearerToken, JWT_SECRET); } catch (_) {}
+  }
+  if (!payload && cookieToken) {
+    try { payload = jwt.verify(cookieToken, JWT_SECRET); } catch (_) {}
+  }
+
+  if (!payload) {
     return res.status(401).json({ error: 'Token required' });
   }
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.user = { id: payload.id, email: payload.email, role: payload.role };
-    next();
-  } catch (e) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
+
+  req.user = { id: payload.id, email: payload.email, role: payload.role };
+  next();
 }
 
 // ——— Admin middleware — только admin и super-admin ———
