@@ -286,6 +286,54 @@ const os = require('os');
 // os.totalmem() / os.freemem() — память в байтах
 ```
 
+### SPA-аутентификация: HTTP vs HTTPS — кука Secure не работает по HTTP
+
+**Проблема:** Если сайт работает по HTTP (нет TLS), а кука выставлена с флагом `Secure`,
+браузер не отправляет её в запросах. `fetch('/api/auth/me', { credentials: 'include' })`
+без Bearer-заголовка всегда получает 401, даже если кука технически существует в браузере.
+
+**Паттерн:** В SPA-страницах аутентификацию делать через Bearer-токен из localStorage,
+а не через голый fetch без заголовка. Кука — только дополнительный fallback.
+
+```javascript
+// ❌ Так НЕ работает на HTTP (Secure cookie не отправляется)
+const r = await fetch('/api/auth/me', { credentials: 'include' });
+
+// ✅ Правильно: использовать apiFetch (отправляет Bearer из localStorage)
+const me = await apiFetch('/api/auth/me');
+```
+
+**Правило:** `apiFetch` всегда отправляет `Authorization: Bearer <token>` если токен
+есть в localStorage. При 401 — пробует повтор без Bearer (для HTTPS с кукой),
+и только потом редиректит на логин.
+
+```javascript
+async function apiFetch(url, opts = {}) {
+  const token = localStorage.getItem('tasktime_token');
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const r = await fetch(url, { ...opts, headers, credentials: 'include' });
+  // Если Bearer дал 401 — retry без Bearer (пробуем куку для HTTPS)
+  if (r.status === 401 && token) {
+    const r2 = await fetch(url, { ...opts, headers: { 'Content-Type': 'application/json' }, credentials: 'include' });
+    if (r2.status === 401) { /* redirect to / */ return null; }
+    return r2.status === 204 ? true : await r2.json();
+  }
+  // ...
+}
+```
+
+**Также:** `init()` не должен `await`-ить вызов загрузки данных — иначе ошибка
+данных убьёт отображение страницы до того как пользователь её увидит.
+
+```javascript
+// ❌ Ошибка загрузки данных редиректит юзера с ещё незагруженной страницы
+await loadStats();
+
+// ✅ Страница рендерится сразу, данные грузятся фоном
+loadStats(); // без await
+```
+
 ### Чтение deploy-лога: graceful если файл отсутствует
 
 ```javascript
