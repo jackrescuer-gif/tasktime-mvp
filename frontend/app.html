@@ -193,6 +193,15 @@
     .task-status.todo { background: var(--bg-secondary); color: var(--text-muted); }
     .task-status.in_progress { background: #fff3cd; color: #856404; }
     .task-status.done { background: var(--success-bg); color: var(--success); }
+    .task-story-link-pill {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      cursor: default;
+    }
 
     .tasks-view-table { overflow-x: auto; }
     .tasks-table { width: 100%; border-collapse: collapse; }
@@ -1020,6 +1029,44 @@
         if (Array.isArray(list)) tasks = list;
         renderTasks();
       }
+
+      async function createStoryFromTask(task) {
+        try {
+          const projectId = task.project_id;
+          if (!projectId) {
+            alert('У задачи не указан проект. Сначала выберите проект в форме регистрации задач.');
+            return;
+          }
+          const title = prompt('Название стори для проекта (будет видно на доске)', task.title || '');
+          if (!title) return;
+          const created = await apiFetch('/api/task-items', {
+            method: 'POST',
+            body: JSON.stringify({
+              level: 'story',
+              title,
+              context_type: 'project',
+              context_id: projectId,
+              status: 'open',
+            }),
+          });
+          if (!created || !created.id) {
+            alert(created && created.error ? created.error : 'Не удалось создать стори');
+            return;
+          }
+          await apiFetch('/api/task-links', {
+            method: 'POST',
+            body: JSON.stringify({
+              task_id: task.id,
+              task_item_id: created.id,
+              link_type: 'origin',
+            }),
+          });
+          await loadTasks();
+          alert('Стори создана и связана с задачей. Посмотреть её можно на доске проекта.');
+        } catch (e) {
+          alert('Ошибка при создании стори');
+        }
+      }
       async function loadUsers() {
         const list = await apiFetch('/api/users');
         if (Array.isArray(list)) users = list;
@@ -1106,6 +1153,7 @@
             const isDone    = task.status === 'done';
             const statusCls = task.status === 'in_progress' ? 'in_progress' : task.status === 'done' ? 'done' : 'todo';
             const pLabel    = { low: 'Низкий', medium: 'Средний', high: 'Высокий', critical: 'Критичный' }[task.priority] || task.priority;
+            const canCreateStory = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
             return `<tr class="task-row ${isDone ? 'done' : ''} ${isRunning ? 'running' : ''}" data-id="${id}">
               <td><span class="task-title">${escapeHtml(task.title)}</span></td>
               <td><span class="task-status ${statusCls}">${statusLabel(task.status)}</span></td>
@@ -1114,6 +1162,7 @@
               <td class="task-actions-cell">
                 ${!isDone && !isRunning ? `<button type="button" class="btn btn-primary btn-sm" data-action="start">Старт</button>` : ''}
                 ${isRunning ? `<button type="button" class="btn btn-danger btn-sm" data-action="stop">Стоп</button>` : ''}
+                ${canCreateStory ? `<button type="button" class="btn btn-secondary btn-sm" data-action="make-story">Сделать стори</button>` : ''}
                 <button type="button" class="btn btn-ghost btn-sm" data-action="toggle">${isDone ? 'Открыть' : 'Готово'}</button>
               </td>
             </tr>`;
@@ -1142,6 +1191,8 @@
                 }
               } else if (this.dataset.action === 'stop') {
                 await stopTimer();
+              } else if (this.dataset.action === 'make-story') {
+                await createStoryFromTask(t);
               }
             });
           });
@@ -1156,6 +1207,7 @@
           const isDone    = task.status === 'done';
           const statusCls = task.status === 'in_progress' ? 'in_progress' : task.status === 'done' ? 'done' : 'todo';
           const assigneeText = task.assignee_name ? ' · ' + escapeHtml(task.assignee_name) : '';
+          const canCreateStory = currentUser && (currentUser.role === 'admin' || currentUser.role === 'manager');
           return `<li class="task-item ${isDone ? 'done' : ''} ${isRunning ? 'running' : ''}" data-id="${id}">
             <div class="task-checkbox" data-action="toggle" aria-label="Отметить выполненной"></div>
             <div class="task-body">
@@ -1166,6 +1218,7 @@
               <span class="task-status ${statusCls}">${statusLabel(task.status)}</span>
               ${!isDone && !isRunning ? `<button type="button" class="btn btn-primary btn-sm" data-action="start">Начать работу</button>` : ''}
               ${isRunning ? `<button type="button" class="btn btn-danger btn-sm" data-action="stop">Стоп</button>` : ''}
+              ${canCreateStory ? `<button type="button" class="btn btn-secondary btn-sm" data-action="make-story">Сделать стори</button>` : ''}
             </div>
           </li>`;
         }).join('') || '<li class="report-empty">Нет задач</li>';
@@ -1174,9 +1227,9 @@
             const item = this.closest('.task-item');
             if (!item || !item.dataset.id) return;
             const id = item.dataset.id;
+            const t = tasks.find(x => String(x.id) === id);
+            if (!t) return;
             if (this.dataset.action === 'toggle') {
-              const t = tasks.find(x => String(x.id) === id);
-              if (!t) return;
               const newStatus = t.status === 'done' ? 'open' : 'done';
               await apiFetch('/api/tasks/' + id, { method: 'PUT', body: JSON.stringify({ status: newStatus, assignee_id: t.assignee_id ?? null }) });
               if (newStatus === 'done' && runningTaskId === id) await stopTimer();
@@ -1193,6 +1246,8 @@
               }
             } else if (this.dataset.action === 'stop') {
               await stopTimer();
+            } else if (this.dataset.action === 'make-story') {
+              await createStoryFromTask(t);
             }
           });
         });
@@ -1487,7 +1542,10 @@
               <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
                 ${['backlog','in_progress','done'].map(col => `
                   <div style="background:var(--bg-secondary);border-radius:var(--radius);padding:10px;min-height:120px">
-                    <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${colTitle[col]}</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+                      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">${colTitle[col]}</div>
+                      <button type="button" class="btn btn-primary btn-sm" data-k-create="${col}" style="font-size:11px;padding:3px 8px;">+ Стори</button>
+                    </div>
                     <div id="kanban-${col}">
                       ${cols[col].length ? cols[col].map(item => `
                         <div style="background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:8px;border:1px solid var(--border);font-size:13px" data-story-id="${item.id}">
@@ -1536,6 +1594,29 @@
                 openProjectDetail(id);
               });
             });
+            const createBtn = colEl.closest('div')?.querySelector('[data-k-create="' + col + '"]');
+            if (createBtn) {
+              createBtn.addEventListener('click', async function(e) {
+                e.stopPropagation();
+                const title = window.prompt('Название стори для проекта ' + (proj.name || ''));
+                if (!title) return;
+                const status =
+                  col === 'backlog' ? 'open' :
+                  col === 'in_progress' ? 'in_progress' :
+                  'done';
+                await apiFetch('/api/task-items', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    level: 'story',
+                    title,
+                    context_type: 'project',
+                    context_id: proj.id,
+                    status,
+                  }),
+                });
+                openProjectDetail(id);
+              });
+            }
           });
         }
       }
