@@ -140,3 +140,17 @@ CREATE INDEX IF NOT EXISTS idx_task_items_status ON task_items(status);
 
 -- Link time_logs to task_items (in addition to legacy tasks)
 ALTER TABLE time_logs ADD COLUMN IF NOT EXISTS task_item_id INTEGER REFERENCES task_items(id);
+
+-- Link between flat tasks and hierarchical task_items (stories/epics)
+CREATE TABLE IF NOT EXISTS task_item_links (
+  task_id      INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  task_item_id INTEGER NOT NULL REFERENCES task_items(id) ON DELETE CASCADE,
+  link_type    VARCHAR(30) NOT NULL DEFAULT 'origin',
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (task_id, task_item_id, link_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_item_links_task
+  ON task_item_links(task_id);
+CREATE INDEX IF NOT EXISTS idx_task_item_links_item
+  ON task_item_links(task_item_id);

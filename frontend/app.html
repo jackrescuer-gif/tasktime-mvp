@@ -1258,6 +1258,23 @@
         const isReadOnly = currentUser && (currentUser.role === 'cio' || currentUser.role === 'viewer');
         const canEdit    = currentUser && !isReadOnly && (currentUser.role === 'admin' || currentUser.role === 'manager');
 
+        let originBlock = '';
+        if (Array.isArray(item.origin_tasks) && item.origin_tasks.length) {
+          originBlock = `
+            <div class="ti-origin-section">
+              <div class="ti-origin-title">Исходные задачи</div>
+              <ul class="ti-origin-list">
+                ${item.origin_tasks.map(t =>
+                  `<li class="ti-origin-item">
+                     <span class="ti-origin-id">#${t.id}</span>
+                     <span class="ti-origin-title-text">${escapeHtml(t.title || '')}</span>
+                     <span class="ti-origin-status">${statusLabel(t.status)}</span>
+                   </li>`
+                ).join('')}
+              </ul>
+            </div>`;
+        }
+
         body.innerHTML = `
           <div class="ti-breadcrumb">${breadcrumb}</div>
           <div class="ti-title">${escapeHtml(item.title)}</div>
@@ -1282,6 +1299,7 @@
               <div class="ti-children-title">Дочерние задачи (${item.children.length})</div>
               <div id="tiChildrenTree">${renderTaskTree(item.children)}</div>
             </div>` : ''}
+          ${originBlock}
           ${canEdit ? `<div style="margin-top:16px"><button type="button" class="btn btn-primary btn-sm" id="tiSaveStatus">Сохранить статус</button></div>` : ''}
         `;
 

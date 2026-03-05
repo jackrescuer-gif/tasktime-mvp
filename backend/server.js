@@ -369,7 +369,24 @@ app.get('/api/tasks/:id', authMiddleware, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Task not found' });
     const task = result.rows[0];
     if (!canReadTask(task, req.user)) return res.status(403).json({ error: 'Forbidden' });
-    res.json(task);
+
+    // linked hierarchical items (stories/subtasks) for this flat task
+    let linkedItems = [];
+    try {
+      const liRes = await query(
+        `SELECT ti.id, ti.title, ti.level, ti.status, ti.priority, ti.context_type, ti.context_id
+         FROM task_item_links til
+         JOIN task_items ti ON til.task_item_id = ti.id
+         WHERE til.task_id = $1 AND til.link_type = 'origin'
+         ORDER BY ti.level, ti.id`,
+        [req.params.id]
+      );
+      linkedItems = liRes.rows;
+    } catch (e) {
+      if (e.code !== '42P01') throw e;
+    }
+
+    res.json({ ...task, linked_items: linkedItems });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -438,6 +455,41 @@ app.put('/api/tasks/:id', authMiddleware, async (req, res) => {
     const task = result.rows[0];
     await audit({ userId: req.user.id, action: 'task.update', entityType: 'task', entityId: task.id, req: req });
     res.json(task);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ——— Task ↔ TaskItem links ———
+// For now only admin/manager can create links between flat tasks and stories.
+app.post('/api/task-links', authMiddleware, async (req, res) => {
+  if (!isAdminOrManager(req.user)) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const { task_id, task_item_id, link_type = 'origin' } = req.body;
+    if (!task_id || !task_item_id) return res.status(400).json({ error: 'task_id and task_item_id required' });
+    try {
+      await query(
+        `INSERT INTO task_item_links (task_id, task_item_id, link_type)
+         VALUES ($1, $2, $3)
+         ON CONFLICT DO NOTHING`,
+        [task_id, task_item_id, link_type]
+      );
+    } catch (e) {
+      if (e.code === '42P01') {
+        // link table not migrated — treat as no-op but don't break flow
+        return res.status(501).json({ error: 'Links table not available on this environment' });
+      }
+      throw e;
+    }
+    await audit({
+      userId: req.user.id,
+      action: 'task_link.created',
+      entityType: 'task_link',
+      entityId: `${task_id}:${task_item_id}`,
+      details: { task_id, task_item_id, link_type },
+      req,
+    });
+    res.status(201).json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -661,7 +713,24 @@ app.get('/api/task-items/:id', authMiddleware, async (req, res) => {
       cur = pr.rows[0];
     }
 
-    const item = { ...root, children: buildTree(childRes.rows), breadcrumb };
+    // origin tasks (flat tasks that this story/subtask came from)
+    let originTasks = [];
+    try {
+      const linksRes = await query(
+        `SELECT t.id, t.title, t.status, t.priority
+         FROM task_item_links til
+         JOIN tasks t ON til.task_id = t.id
+         WHERE til.task_item_id = $1 AND til.link_type = 'origin'
+         ORDER BY t.id`,
+        [req.params.id]
+      );
+      originTasks = linksRes.rows;
+    } catch (e) {
+      // If link table not migrated yet — just omit originTasks
+      if (e.code !== '42P01') throw e;
+    }
+
+    const item = { ...root, children: buildTree(childRes.rows), breadcrumb, origin_tasks: originTasks };
     res.json(item);
   } catch (e) {
     res.status(500).json({ error: e.message });
