@@ -69,6 +69,9 @@ CREATE TABLE IF NOT EXISTS projects (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   description TEXT,
+  -- Тип проекта: demo (синтетический/демо) или real (живой продуктовый проект)
+  project_type VARCHAR(20) NOT NULL DEFAULT 'demo'
+    CHECK (project_type IN ('demo','real')),
   business_goal TEXT,
   budget NUMERIC(15,2),
   planned_revenue NUMERIC(15,2),

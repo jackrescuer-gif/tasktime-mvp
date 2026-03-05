@@ -631,7 +631,20 @@
           <div class="toolbar">
             <button type="button" class="btn btn-primary task-create-btn" id="newProjectBtn">+ Проект</button>
           </div>
-          <div class="projects-grid" id="projectsGrid"><div class="empty-state">Загрузка…</div></div>
+          <div id="projectsRealBlock" style="margin-bottom:24px;display:none">
+            <h3 style="font-size:14px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+              <span style="padding:3px 10px;border-radius:999px;background:#ecfdf5;color:#166534;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Real project</span>
+              <span>Живые продуктовые проекты</span>
+            </h3>
+            <div class="projects-grid" id="projectsRealGrid"></div>
+          </div>
+          <div id="projectsDemoBlock">
+            <h3 style="font-size:14px;font-weight:700;margin:0 0 8px;display:flex;align-items:center;gap:8px;color:var(--text-muted)">
+              <span style="padding:3px 10px;border-radius:999px;background:var(--bg-secondary);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Demo</span>
+              <span>Демонстрационные проекты</span>
+            </h3>
+            <div class="projects-grid" id="projectsGrid"><div class="empty-state">Загрузка…</div></div>
+          </div>
           <div id="projectDetail" style="display:none; margin-top:24px">
             <div style="margin-bottom:12px"><button type="button" class="btn btn-secondary btn-sm" id="backToProjectsBtn">← Назад к проектам</button></div>
             <div id="projectDetailContent"></div>
@@ -1192,16 +1205,57 @@
 
       // ——— Projects page ———
       async function loadProjectsPage() {
-        const grid   = $('#projectsGrid');
+        const realBlock = $('#projectsRealBlock');
+        const realGrid  = $('#projectsRealGrid');
+        const grid      = $('#projectsGrid');
         const detail = $('#projectDetail');
         grid.innerHTML = '<div class="empty-state">Загрузка…</div>';
+        realGrid.innerHTML = '';
         detail.style.display = 'none';
         const projects = await apiFetch('/api/projects');
         if (!Array.isArray(projects) || !projects.length) {
+          realBlock.style.display = 'none';
+          $('#projectsDemoBlock').style.display = 'block';
           grid.innerHTML = '<div class="empty-state">Нет проектов</div>';
           return;
         }
-        grid.innerHTML = projects.map(p => {
+
+        const realProjects = projects.filter(p => p.project_type === 'real');
+        const demoProjects = projects.filter(p => !p.project_type || p.project_type === 'demo');
+
+        if (realProjects.length) {
+          realBlock.style.display = 'block';
+          realGrid.innerHTML = realProjects.map(p => {
+            const total = parseInt(p.stories_count) || 0;
+            const done  = parseInt(p.done_count)    || 0;
+            const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+            const isMvp = p.name === 'MVP замены Jira на вайб-коде';
+            return `<div class="proj-card" data-proj-id="${p.id}" style="${isMvp ? 'border-color:var(--accent);box-shadow:var(--shadow-lg);position:relative;' : ''}">
+              ${isMvp ? '<div style="position:absolute;top:10px;right:12px;padding:2px 8px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:600;">MVP Jira</div>' : ''}
+              <div class="proj-card-name">${escapeHtml(p.name)}</div>
+              <div class="proj-card-goal">${escapeHtml(p.business_goal || p.description || '')}</div>
+              <div class="proj-card-stats">
+                <span>${p.epics_count || 0} эпиков</span>
+                <span>${total} сторей</span>
+                <span><b>${pct}%</b> завершено</span>
+              </div>
+              <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+            </div>`;
+          }).join('');
+        } else {
+          realBlock.style.display = 'none';
+        }
+
+        $('#projectsDemoBlock').style.display = demoProjects.length ? 'block' : 'none';
+        if (!demoProjects.length) {
+          grid.innerHTML = '<div class="empty-state">Нет демо-проектов</div>';
+          projects.forEach(p => {
+            const el = document.createElement('div');
+            el.innerHTML = '';
+          });
+        }
+
+        grid.innerHTML = demoProjects.map(p => {
           const total = parseInt(p.stories_count) || 0;
           const done  = parseInt(p.done_count)    || 0;
           const pct   = total > 0 ? Math.round(done / total * 100) : 0;
@@ -1215,8 +1269,9 @@
             </div>
             <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
           </div>`;
-        }).join('');
-        grid.querySelectorAll('[data-proj-id]').forEach(el => {
+        }).join('') || '<div class="empty-state">Нет демо-проектов</div>';
+
+        document.querySelectorAll('[data-proj-id]').forEach(el => {
           el.addEventListener('click', () => openProjectDetail(el.dataset.projId));
         });
       }
@@ -1231,11 +1286,74 @@
         const proj      = await apiFetch('/api/projects/' + id);
         if (!proj || proj.error) { content.innerHTML = '<div class="empty-state">Ошибка</div>'; return; }
         const epicsTree = await apiFetch('/api/task-items?context_type=project&context_id=' + id);
+
+        // Если это реальный проект (в т.ч. «MVP замены Jira…») — показываем Kanban-доску по сториз
+        let kanbanHtml = '';
+        if (proj.project_type === 'real') {
+          const stories = await apiFetch('/api/task-items?context_type=project&context_id=' + id + '&level=story') || [];
+          const cols = {
+            backlog: stories.filter(s => !s.status || s.status === 'open'),
+            in_progress: stories.filter(s => s.status === 'in_progress' || s.status === 'in_review'),
+            done: stories.filter(s => s.status === 'done'),
+          };
+          const colTitle = { backlog: 'Backlog', in_progress: 'In progress', done: 'Done' };
+          kanbanHtml = `
+            <div style="margin-top:16px;margin-bottom:20px">
+              <h3 style="font-size:14px;font-weight:700;margin-bottom:10px">Kanban — сториз проекта</h3>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+                ${['backlog','in_progress','done'].map(col => `
+                  <div style="background:var(--bg-secondary);border-radius:var(--radius);padding:10px;min-height:120px">
+                    <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${colTitle[col]}</div>
+                    <div id="kanban-${col}">
+                      ${cols[col].length ? cols[col].map(item => `
+                        <div style="background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:8px;border:1px solid var(--border);font-size:13px" data-story-id="${item.id}">
+                          <div style="font-weight:600;margin-bottom:4px">${escapeHtml(item.title)}</div>
+                          ${item.story_points ? `<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">SP: ${item.story_points}</div>` : ''}
+                          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">
+                            <button type="button" class="btn btn-sm btn-secondary" data-k-move="open" style="font-size:11px;padding:3px 6px;">Backlog</button>
+                            <button type="button" class="btn btn-sm btn-secondary" data-k-move="in_progress" style="font-size:11px;padding:3px 6px;">In progress</button>
+                            <button type="button" class="btn btn-sm btn-primary" data-k-move="done" style="font-size:11px;padding:3px 6px;">Done</button>
+                          </div>
+                        </div>
+                      `).join('') : '<div class="empty-state" style="padding:6px 4px;font-size:12px">Нет задач</div>'}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>`;
+        }
+
         content.innerHTML = `
           <h2 style="font-size:20px;font-weight:700;margin-bottom:6px">${escapeHtml(proj.name)}</h2>
-          ${proj.business_goal ? `<p style="color:var(--text-muted);font-size:14px;margin-bottom:16px">${escapeHtml(proj.business_goal)}</p>` : ''}
+          ${proj.business_goal ? `<p style="color:var(--text-muted);font-size:14px;margin-bottom:8px">${escapeHtml(proj.business_goal)}</p>` : ''}
+          ${proj.project_type === 'real'
+            ? '<p style="color:var(--success);font-size:12px;font-weight:600;margin-bottom:8px">Живой проект · задачи влияют на реальную реализацию MVP</p>'
+            : '<p style="color:var(--text-muted);font-size:12px;margin-bottom:8px">Демонстрационный проект</p>'}
+          ${kanbanHtml}
           <div class="tree-container" id="projTreeContainer">${renderTaskTree(Array.isArray(epicsTree) ? epicsTree : [])}</div>`;
         attachTreeEvents($('#projTreeContainer'));
+
+        // Обработчики Kanban-кнопок, если есть
+        if (proj.project_type === 'real') {
+          ['backlog','in_progress','done'].forEach(col => {
+            const colEl = document.getElementById('kanban-' + col);
+            if (!colEl) return;
+            colEl.querySelectorAll('[data-k-move]').forEach(btn => {
+              btn.addEventListener('click', async function(e) {
+                e.stopPropagation();
+                const storyEl = this.closest('[data-story-id]');
+                if (!storyEl) return;
+                const storyId = storyEl.getAttribute('data-story-id');
+                const targetStatus = this.getAttribute('data-k-move');
+                await apiFetch('/api/task-items/' + storyId + '/status', {
+                  method: 'PATCH',
+                  body: JSON.stringify({ status: targetStatus }),
+                });
+                openProjectDetail(id);
+              });
+            });
+          });
+        }
       }
 
       $('#backToProjectsBtn').addEventListener('click', () => {

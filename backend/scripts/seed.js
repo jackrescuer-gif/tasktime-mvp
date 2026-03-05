@@ -20,7 +20,7 @@ const USERS = [
   { email: 'dev4@company.com',     name: 'Ольга Новикова',   role: 'user',    password: 'dev123' },
   // Team users
   { email: 'pavel@tasktime.demo',  name: 'Pavel',            role: 'admin',   password: 'tasktime24' },
-  { email: 'georgiy@tasktime.demo',name: 'Georgiy',          role: 'viewer',  password: 'tasktime24' },
+  { email: 'georgiy@tasktime.demo',name: 'Georgiy',          role: 'admin',   password: 'tasktime24' },
   { email: 'olesya@tasktime.demo', name: 'Olesya',           role: 'user',    password: 'tasktime24' },
   { email: 'andrey@tasktime.demo', name: 'Andrey',           role: 'cio',     password: 'tasktime24' },
   { email: 'anton@tasktime.demo',  name: 'Anton',            role: 'user',    password: 'tasktime24' },
@@ -79,6 +79,7 @@ async function seedProjects(userIds) {
     {
       name: 'Цифровой банк 2.0',
       description: 'Новая платформа ДБО для физических лиц',
+      project_type: 'demo',
       business_goal: 'Увеличить долю цифровых транзакций с 34% до 60% к Q4 2025',
       budget: 42000000, planned_revenue: 180000000,
       owner_id: userIds['eve@demo.com'], status: 'active',
@@ -86,6 +87,7 @@ async function seedProjects(userIds) {
     {
       name: 'AML Модуль',
       description: 'Система мониторинга и противодействия отмыванию денег (115-ФЗ)',
+      project_type: 'demo',
       business_goal: 'Соответствие требованиям ЦБ РФ. Снижение ложных срабатываний на 40%',
       budget: 18000000, planned_revenue: 0,
       owner_id: userIds['eve@demo.com'], status: 'active',
@@ -93,19 +95,30 @@ async function seedProjects(userIds) {
     {
       name: 'RegTech Platform',
       description: 'Автоматизация регуляторной отчётности в ЦБ и Росфинмониторинг',
+      project_type: 'demo',
       business_goal: 'Сократить трудозатраты на подготовку отчётности на 70%',
       budget: 29000000, planned_revenue: 0,
       owner_id: userIds['alice@demo.com'], status: 'active',
+    },
+    {
+      name: 'MVP замены Jira на вайб-коде',
+      description: 'Живой проект: замена Jira на лёгкий таск-трекер вокруг TaskTime и ИИ-агентов',
+      project_type: 'real',
+      business_goal: 'Собрать и реализовать MVP замены Jira для внутренней команды на базе vibe-кода и TaskTime',
+      budget: null,
+      planned_revenue: null,
+      owner_id: userIds['pavel@tasktime.demo'] || userIds['alice@demo.com'],
+      status: 'active',
     },
   ];
   const ids = [];
   for (const p of projects) {
     const r = await query(
-      `INSERT INTO projects (name, description, business_goal, budget, planned_revenue, owner_id, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
+      `INSERT INTO projects (name, description, project_type, business_goal, budget, planned_revenue, owner_id, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
        ON CONFLICT DO NOTHING
        RETURNING id`,
-      [p.name, p.description, p.business_goal, p.budget, p.planned_revenue, p.owner_id, p.status]
+      [p.name, p.description, p.project_type, p.business_goal, p.budget, p.planned_revenue, p.owner_id, p.status]
     );
     if (r.rows.length) {
       ids.push(r.rows[0].id);

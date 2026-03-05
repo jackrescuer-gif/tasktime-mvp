@@ -16,6 +16,7 @@ npm install
 - `PG_HOST`, `PG_PORT`, `PG_DATABASE`, `PG_USER`, `PG_PASSWORD` — подключение к PostgreSQL
 - `JWT_SECRET` — секрет для подписи JWT (в продакшене обязательно свой)
 - `PORT` — порт сервера (по умолчанию 3000)
+- `PIXEL_OFFICE_WEBHOOK_URL` — (необязательно) URL вебхука при создании задачи (POST с телом `{ source, event, task }`) для внешних систем. Визуализация ИИ-команды и постановка задач: см. **docs/PIXEL_AGENTS_AND_TASKS.md** в корне репозитория (Pixel Agents + TaskTime).
 
 ## База данных
 
