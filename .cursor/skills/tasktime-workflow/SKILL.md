@@ -152,7 +152,7 @@ Gatekeeper:
 5. Проверить лог деплоя: `tail -f /var/log/tasktime-deploy.log`
 
 **Документация** — обновить до коммита (правило `docs-after-every-task`):  
-DEPLOYMENT_STEPS.md + при необходимости DEPLOY.md, ACCOUNTS.md, docs/API.md.
+DEPLOYMENT_STEPS.md + при необходимости DEPLOY.md, ACCOUNTS.md, docs/ENG/API.md или docs/RU/API.md.
 
 ---
 

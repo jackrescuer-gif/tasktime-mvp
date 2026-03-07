@@ -68,7 +68,7 @@ sudo systemctl daemon-reload
 
 ```bash
 sudo -u tasktime bash -c 'cd /home/tasktime/app/backend && npm install'
-# При обновлении: применять schema.sql для новых таблиц (например audit_log). Миграции: см. docs/ADMIN_GUIDE.md.
+# При обновлении: применять schema.sql для новых таблиц (например audit_log). Миграции: см. docs/ENG/ADMIN_GUIDE.md или docs/RU/ADMIN_GUIDE.md.
 sudo cat /home/tasktime/app/backend/schema.sql | sudo -u postgres psql -d tasktime
 sudo -u tasktime /home/tasktime/init-db.sh
 sudo systemctl start tasktime
@@ -168,7 +168,7 @@ sudo -u postgres pg_dump -Fc tasktime > /backup/tasktime_$(date +%Y%m%d).dump
 sudo -u postgres pg_restore -d tasktime --clean --if-exists /backup/tasktime_YYYYMMDD.dump
 ```
 
-Рекомендуется автоматизировать резервное копирование (cron) и хранить копии в безопасном месте. Подробнее: [docs/ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md).
+Рекомендуется автоматизировать резервное копирование (cron) и хранить копии в безопасном месте. Подробнее: [docs/ENG/ADMIN_GUIDE.md](docs/ENG/ADMIN_GUIDE.md) или [docs/RU/ADMIN_GUIDE.md](docs/RU/ADMIN_GUIDE.md).
 
 ---
 
@@ -180,4 +180,4 @@ sudo -u postgres pg_restore -d tasktime --clean --if-exists /backup/tasktime_YYY
 2. Настроить сертификат (например Let's Encrypt) и перенаправление HTTP → HTTPS.
 3. Не передавать секреты (JWT_SECRET, пароли БД) по незашифрованным каналам.
 
-Детали настройки прокси и сертификатов зависят от вашей инфраструктуры. См. также [docs/ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md).
+Детали настройки прокси и сертификатов зависят от вашей инфраструктуры. См. также [docs/ENG/ADMIN_GUIDE.md](docs/ENG/ADMIN_GUIDE.md) или [docs/RU/ADMIN_GUIDE.md](docs/RU/ADMIN_GUIDE.md).

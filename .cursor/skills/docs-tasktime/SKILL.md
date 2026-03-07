@@ -42,8 +42,8 @@ description: Write and keep in sync TaskTime docs: deploy steps for non-technica
 |----------|-------|
 | `DEPLOYMENT_STEPS.md` | После любой технической задачи — новый раздел: что сделано, зачем, результат, когда |
 | `DEPLOY.md` | Изменился процесс деплоя, команды, инфраструктура |
-| `docs/ADMIN_GUIDE.md` | Изменились процедуры администрирования |
-| `docs/API.md` | Добавился или изменился API |
+| `docs/ENG/ADMIN_GUIDE.md` или `docs/RU/ADMIN_GUIDE.md` | Изменились процедуры администрирования |
+| `docs/ENG/API.md` или `docs/RU/API.md` | Добавился или изменился API |
 | `ACCOUNTS.md` | Изменились роли или учётки |
 | `backend/README.md` | Изменилась внутренняя архитектура бэкенда |
 

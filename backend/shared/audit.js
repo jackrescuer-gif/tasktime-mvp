@@ -2,7 +2,7 @@
  * Audit log helper (ТЗ п. 9.6, ТР.19, ИБ.9).
  * Levels: error, warning, info, trace
  */
-const { query } = require('./db');
+const { query } = require('../db');
 
 function getClientMeta(req) {
   const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || null;

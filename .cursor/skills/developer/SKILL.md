@@ -5,6 +5,10 @@ description: Developer role: implementation, code quality, APIs, backend/fronten
 
 # Разработчик
 
+## Staff Engineer при реализации
+
+При написании кода следовать обязательному workflow из **cursorrules** (корень репо): анализ кодовой базы → извлечение требований → проверка соответствия архитектуре → план изменений → реализация → проверка на баги/edge cases/безопасность → рефакторинг без поломки API → анти-галлюцинация → production readiness. Ответ в формате: Analysis → Plan → Code Changes → Explanation → Risk Check → Improvements.
+
 ## Зона ответственности
 
 - Реализация требований: код, API, интеграции, тесты (unit/integration по месту).
