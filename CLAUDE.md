@@ -126,3 +126,91 @@ Chrome 139+, Yandex Browser 25+, Edge 139+, Safari 18+
 - 2500+ concurrent sessions
 - 1M+ objects in DB
 - 60%+ test coverage
+
+## Ход диалога (полный контекст чата 2026-03-09)
+
+### Начало: Интервью по 8 блокам
+
+PO (product owner) провёл серию вопрос-ответов по 8 блокам для уточнения scope MVP.
+
+**Блок 1-2 (Продукт и пользователи):**
+- Продукт — "Jira Cut", минимальная замена Jira для финсектора
+- Целевая аудитория: PM, тимлиды, разработчики, аналитики. 50-200 человек, масштаб до 5000-6000
+- Роли: admin, manager, user, viewer (CIO)
+
+**Блок 3-4 (Функции и интеграции):**
+- Иерархия задач: EPIC -> STORY -> TASK -> SUBTASK + BUG
+- Kanban + Scrum (спринты)
+- Учёт времени: таймер + ручной ввод
+- Интеграции: GitLab webhook, Confluence, Telegram-бот
+- Отчёты: задачи по статусам, по исполнителям, burn-down/burn-up
+
+**Блок 5 (Безопасность):**
+- RBAC с 4 глобальными ролями
+- Audit log для всех мутаций (ФЗ-152 compliance)
+- JWT + refresh tokens, HTTPS, bcrypt
+- Будущее: KeyCloak/ALD Pro SSO, SIEM, DLP
+
+**Блок 6 (Техстратегия):**
+- Решение: пересборка с нуля (текущий прототип — vanilla JS монолит, ~4000 строк фронтенда)
+- AI-агент как основной разработчик, PO как валидатор
+- Вопрос TypeScript vs JavaScript — PO спросил "что в требованиях?" → в ТЗ JS, но рекомендация TS для нового проекта → принято
+
+**Блок 7 (Deployment):**
+- Текущее: VPS Ubuntu
+- MVP: облако в изолированной среде (если ИБ допустит)
+- Целевое: on-premise на Astra Linux SE 1.7+ / Red OS 7.3+
+- PostgreSQL 14+ (целевой 16) на Linux
+
+**Блок 8 (Приоритеты):**
+- ТОП-3 для "готовности к использованию": управление проектами/задачами, аналитика, AI-модуль
+- Главные боли заказчика: юридические риски, legacy-кастом в Jira, разные флоу в командах
+- Конкуренты: Т1 Сфера, EVA, Diasoft
+
+### Выбор стека
+
+PO выбрал:
+- ORM: **Prisma** (рекомендация принята)
+- UI: **Ant Design** (рекомендация принята)
+- Language: **TypeScript** (рекомендация принята, хотя в старом ТЗ был JS)
+- DB: **PostgreSQL** (рекомендация принята) + **Redis** для кэша/сессий
+- Frontend: **React 18 + Vite** (по аналогии с Atlassian стеком)
+- State: **Zustand** (рекомендация)
+
+Критерий выбора: "Подходящий под ТЗ Jira Cut и на базе мировых вендоров (Atlassian и пр.), также учитываем требования к импортозамещению в РФ"
+
+### Создание плана
+
+1. Создан `docs/RU/REBUILD_PLAN_V2.md` — 800+ строк, покрывает архитектуру, доменную модель, API, RBAC, 4 спринта, NFR
+2. PO попросил "только план" (без кода) — план на ревью
+3. PO попросил вывести план в чат (был не у компа)
+4. PO попросил добавить Edge и Safari в браузеры — добавлено
+5. PO попросил добавить требования к Astra Linux / Red OS — добавлено детально (10 пунктов + исключения для MVP)
+6. PO подтвердил: в репо не должно остаться ничего от старого прототипа — обновлён раздел миграции
+7. PO попросил проверить иерархию задач — проверена, соответствует ответам
+
+### Текущий статус
+
+- План создан и запушен в `claude/mvp-project-management-hdAvd`
+- CLAUDE.md создан с полным контекстом
+- **Следующий шаг:** PO утверждает план → очистка репо → Sprint 1
+- Sprint 1 scope: Auth + Users + Projects + Issues (20 задач)
+
+### Существующий прототип (для справки, будет удалён)
+
+Backend (Node.js + Express + vanilla JS):
+- 6 модулей: auth, issues, time, users, projects, admin
+- Каждый модуль: api.js → service.js → repository.js
+- PostgreSQL через pg (сырые SQL запросы)
+- JWT auth, bcryptjs, cookie-parser
+- Роли: user, manager, admin, super-admin, cio, viewer
+- Webhook интеграция с Pixel Office
+- Audit logging
+
+Frontend (vanilla HTML + inline JS):
+- index.html (158 строк) — логин
+- app.html (2376 строк) — основное приложение
+- admin.html (1152 строк) — админ-панель
+- CSS tokens в tokens.css
+
+Scripts: setup-script.sh (Ubuntu), deploy-server.sh
