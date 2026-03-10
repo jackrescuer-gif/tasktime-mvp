@@ -11,6 +11,8 @@ import IssueDetailPage from './pages/IssueDetailPage';
 import BoardPage from './pages/BoardPage';
 import SprintsPage from './pages/SprintsPage';
 import TimePage from './pages/TimePage';
+import TeamsPage from './pages/TeamsPage';
+import AdminPage from './pages/AdminPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -39,6 +41,8 @@ export default function App() {
             <Route path="projects/:id/sprints" element={<SprintsPage />} />
             <Route path="issues/:id" element={<IssueDetailPage />} />
             <Route path="time" element={<TimePage />} />
+            <Route path="teams" element={<TeamsPage />} />
+            <Route path="admin" element={<AdminPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
