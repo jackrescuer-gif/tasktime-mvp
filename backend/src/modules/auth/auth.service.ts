@@ -51,6 +51,8 @@ export async function login(dto: LoginDto) {
   const accessToken = signAccessToken(tokenPayload);
   const refreshToken = signRefreshToken(tokenPayload);
 
+  await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+
   await prisma.refreshToken.create({
     data: {
       token: crypto.createHash('sha256').update(refreshToken).digest('hex'),
