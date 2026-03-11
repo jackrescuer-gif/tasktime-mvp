@@ -5,9 +5,9 @@ import * as adminService from './admin.service.js';
 
 const router = Router();
 
-router.use(authenticate, requireRole('ADMIN'));
+router.use(authenticate);
 
-router.get('/admin/stats', async (_req, res, next) => {
+router.get('/admin/stats', requireRole('ADMIN', 'MANAGER', 'VIEWER'), async (_req, res, next) => {
   try {
     const stats = await adminService.getStats();
     res.json(stats);
@@ -16,7 +16,7 @@ router.get('/admin/stats', async (_req, res, next) => {
   }
 });
 
-router.get('/admin/users', async (_req, res, next) => {
+router.get('/admin/users', requireRole('ADMIN'), async (_req, res, next) => {
   try {
     const users = await adminService.listUsersWithMeta();
     res.json(users);
@@ -24,6 +24,65 @@ router.get('/admin/users', async (_req, res, next) => {
     next(err);
   }
 });
+
+router.get('/admin/activity', requireRole('ADMIN', 'MANAGER', 'VIEWER'), async (_req, res, next) => {
+  try {
+    const activity = await adminService.getActivity();
+    res.json(activity);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get(
+  '/admin/reports/issues-by-status',
+  requireRole('ADMIN', 'MANAGER', 'VIEWER'),
+  async (req, res, next) => {
+    try {
+      const { projectId, sprintId, from, to } = req.query as {
+        projectId?: string;
+        sprintId?: string;
+        from?: string;
+        to?: string;
+      };
+
+      if (!projectId) {
+        res.status(400).json({ error: 'projectId is required' });
+        return;
+      }
+
+      const data = await adminService.getIssuesByStatusReport({ projectId, sprintId, from, to });
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.get(
+  '/admin/reports/issues-by-assignee',
+  requireRole('ADMIN', 'MANAGER', 'VIEWER'),
+  async (req, res, next) => {
+    try {
+      const { projectId, sprintId, from, to } = req.query as {
+        projectId?: string;
+        sprintId?: string;
+        from?: string;
+        to?: string;
+      };
+
+      if (!projectId) {
+        res.status(400).json({ error: 'projectId is required' });
+        return;
+      }
+
+      const data = await adminService.getIssuesByAssigneeReport({ projectId, sprintId, from, to });
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 export default router;
 

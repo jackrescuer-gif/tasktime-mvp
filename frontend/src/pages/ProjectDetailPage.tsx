@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Table, Button, Tag, Space, Modal, Form, Input, Select, message } from 'antd';
+import { Typography, Table, Button, Tag, Space, Modal, Form, Input, Select, message, Card, Row, Col, Progress } from 'antd';
 import { PlusOutlined, ArrowLeftOutlined, AppstoreOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { useIssuesStore } from '../store/issues.store';
 import { useAuthStore } from '../store/auth.store';
@@ -22,12 +22,14 @@ export default function ProjectDetailPage() {
   const { issues, loading: issuesLoading, fetchIssues } = useIssuesStore();
   const { user } = useAuthStore();
   const [project, setProject] = useState<Project | null>(null);
+  const [dashboard, setDashboard] = useState<projectsApi.ProjectDashboard | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
     if (id) {
       projectsApi.getProject(id).then(setProject);
+      projectsApi.getProjectDashboard(id).then(setDashboard);
       fetchIssues(id);
     }
   }, [id, fetchIssues]);
@@ -57,7 +59,7 @@ export default function ProjectDetailPage() {
     }
   };
 
-  if (!project) return <LoadingSpinner />;
+  if (!project || !dashboard) return <LoadingSpinner />;
 
   const columns = [
     { title: 'Key', width: 100, render: (_: unknown, r: Issue) => `${project.key}-${r.number}` },
@@ -79,6 +81,71 @@ export default function ProjectDetailPage() {
         <Typography.Title level={3} style={{ margin: 0 }}>{project.key} - {project.name}</Typography.Title>
       </Space>
       {project.description && <Typography.Paragraph type="secondary">{project.description}</Typography.Paragraph>}
+
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col span={8}>
+          <Card title="Issues by Status">
+            {dashboard.issuesByStatus.map((row) => (
+              <div key={row.status} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span>{row.status}</span>
+                <span>{row._count._all}</span>
+              </div>
+            ))}
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card title="Issues by Type">
+            {dashboard.issuesByType.map((row) => (
+              <div key={row.type} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span>{row.type}</span>
+                <span>{row._count._all}</span>
+              </div>
+            ))}
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card title="Issues by Priority">
+            {dashboard.issuesByPriority.map((row) => (
+              <div key={row.priority} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span>{row.priority}</span>
+                <span>{row._count._all}</span>
+              </div>
+            ))}
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col span={8}>
+          <Card title="Total Issues">
+            <div style={{ fontSize: 24 }}>{dashboard.totals.totalIssues}</div>
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card title="Done Issues">
+            <div style={{ fontSize: 24 }}>{dashboard.totals.doneIssues}</div>
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card title="Active Sprint Progress">
+            {dashboard.activeSprint ? (
+              <>
+                <Typography.Text>{dashboard.activeSprint.name}</Typography.Text>
+                <Progress
+                  percent={
+                    dashboard.activeSprint.totalIssues === 0
+                      ? 0
+                      : Math.round((dashboard.activeSprint.doneIssues / dashboard.activeSprint.totalIssues) * 100)
+                  }
+                  style={{ marginTop: 8 }}
+                />
+              </>
+            ) : (
+              <Typography.Text type="secondary">No active sprint</Typography.Text>
+            )}
+          </Card>
+        </Col>
+      </Row>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 16 }}>
         <Button icon={<AppstoreOutlined />} onClick={() => navigate(`/projects/${id}/board`)}>Board</Button>

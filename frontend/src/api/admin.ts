@@ -40,3 +40,28 @@ export async function listAdminUsers() {
   return data;
 }
 
+export async function getIssuesByStatusReport(params: {
+  projectId: string;
+  sprintId?: string;
+  from?: string;
+  to?: string;
+}) {
+  const { data } = await api.get<{ status: string; _count: { _all: number } }[]>('/admin/reports/issues-by-status', {
+    params,
+  });
+  return data;
+}
+
+export async function getIssuesByAssigneeReport(params: {
+  projectId: string;
+  sprintId?: string;
+  from?: string;
+  to?: string;
+}) {
+  const { data } = await api.get<{ assigneeId: string | null; _count: { _all: number } }[]>(
+    '/admin/reports/issues-by-assignee',
+    { params }
+  );
+  return data;
+}
+
