@@ -3,15 +3,6 @@ import { prisma } from '../../prisma/client.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
 import type { CreateIssueDto, UpdateIssueDto, UpdateStatusDto, AssignDto } from './issues.dto.js';
 
-// Hierarchy rules: parent type -> allowed child types
-const HIERARCHY_RULES: Record<IssueType, IssueType[]> = {
-  EPIC: ['STORY', 'TASK'],
-  STORY: ['TASK', 'SUBTASK'],
-  TASK: ['SUBTASK'],
-  SUBTASK: [],
-  BUG: ['SUBTASK'],
-};
-
 // Which types can be children (and their allowed parent types)
 const ALLOWED_PARENTS: Record<IssueType, IssueType[]> = {
   EPIC: [], // top-level only
@@ -50,7 +41,7 @@ async function getNextNumber(projectId: string): Promise<number> {
   return (last?.number ?? 0) + 1;
 }
 
-export async function listIssues(projectId: string, filters?: {
+type ListIssuesFilters = {
   status?: string[];
   type?: string[];
   priority?: string[];
@@ -59,8 +50,10 @@ export async function listIssues(projectId: string, filters?: {
   from?: string;
   to?: string;
   search?: string;
-}) {
-  const where: any = { projectId };
+};
+
+export async function listIssues(projectId: string, filters?: ListIssuesFilters) {
+  const where: Record<string, unknown> = { projectId };
 
   if (filters?.status && filters.status.length > 0) {
     where.status = { in: filters.status };
@@ -129,7 +122,7 @@ export async function bulkUpdateIssues(projectId: string, params: {
     }
   }
 
-  const data: any = {};
+  const data: Record<string, unknown> = {};
   if (params.status) data.status = params.status;
   if (params.assigneeId !== undefined) data.assigneeId = params.assigneeId;
 

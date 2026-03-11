@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Col, Row, Statistic, Table, Tag, Typography, Select, DatePicker, Space, Divider } from 'antd';
+import { Table, Tag, Typography, Select, DatePicker, Space, List } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { UserOutlined, ProjectOutlined, BugOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import * as adminApi from '../api/admin';
@@ -143,7 +143,7 @@ export default function AdminPage() {
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      render: (role: string) => <Tag>{role}</Tag>,
+      render: (role: string) => <Tag className="tt-admin-role-tag">{role}</Tag>,
     },
     {
       title: 'Status',
@@ -169,35 +169,103 @@ export default function AdminPage() {
   ];
 
   return (
-    <div>
-      <Typography.Title level={3}>Admin</Typography.Title>
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={6}>
-          <Card>
-            <Statistic title="Users" value={stats.counts.users} prefix={<UserOutlined />} />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="Projects" value={stats.counts.projects} prefix={<ProjectOutlined />} />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="Issues" value={stats.counts.issues} prefix={<BugOutlined />} />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="Time Logs" value={stats.counts.timeLogs} prefix={<ClockCircleOutlined />} />
-          </Card>
-        </Col>
-      </Row>
+    <div className="tt-page">
+      <div className="tt-page-header">
+        <div>
+          <h1 className="tt-page-title">Admin</h1>
+          <p className="tt-page-subtitle">Workspace-wide metrics, reports and activity</p>
+        </div>
+      </div>
 
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col span={24}>
-          <Card title="Reports">
-            <Space style={{ marginBottom: 16 }} wrap>
+      <div className="tt-stats-grid">
+        <div className="tt-stats-card">
+          <div className="tt-stats-label">Users</div>
+          <div className="tt-stats-value">
+            <UserOutlined className="tt-stats-icon" />
+            {stats.counts.users}
+          </div>
+        </div>
+        <div className="tt-stats-card">
+          <div className="tt-stats-label">Projects</div>
+          <div className="tt-stats-value">
+            <ProjectOutlined className="tt-stats-icon" />
+            {stats.counts.projects}
+          </div>
+        </div>
+        <div className="tt-stats-card">
+          <div className="tt-stats-label">Issues</div>
+          <div className="tt-stats-value">
+            <BugOutlined className="tt-stats-icon" />
+            {stats.counts.issues}
+          </div>
+        </div>
+        <div className="tt-stats-card">
+          <div className="tt-stats-label">Time Logs</div>
+          <div className="tt-stats-value">
+            <ClockCircleOutlined className="tt-stats-icon" />
+            {stats.counts.timeLogs}
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="tt-panel-grid"
+        style={{ marginTop: 16 }}
+      >
+        <div className="tt-panel">
+          <div className="tt-panel-header">Overall Issues by Status</div>
+          <div className="tt-panel-body">
+            {Object.entries(issuesByStatus).length === 0 ? (
+              <div className="tt-panel-empty">
+                <Typography.Text type="secondary">No data yet</Typography.Text>
+              </div>
+            ) : (
+              Object.entries(issuesByStatus).map(([status, count]) => (
+                <div
+                  key={status}
+                  className="tt-panel-row"
+                >
+                  <span>{status}</span>
+                  <span>{count}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="tt-panel">
+          <div className="tt-panel-header">Overall Issues by Assignee</div>
+          <div className="tt-panel-body">
+            {issuesByAssignee.length === 0 ? (
+              <div className="tt-panel-empty">
+                <Typography.Text type="secondary">No data yet</Typography.Text>
+              </div>
+            ) : (
+              issuesByAssignee.map((row) => (
+                <div
+                  key={row.assignee}
+                  className="tt-panel-row"
+                >
+                  <span>{row.assignee}</span>
+                  <span>{row.count}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="tt-panel"
+        style={{ marginTop: 16 }}
+      >
+        <div className="tt-panel-header">Reports</div>
+        <div className="tt-panel-body">
+          <div style={{ padding: 12 }}>
+            <Space
+              style={{ marginBottom: 16 }}
+              wrap
+            >
               <Select
                 placeholder="Project"
                 style={{ minWidth: 200 }}
@@ -222,41 +290,101 @@ export default function AdminPage() {
                 }
               />
             </Space>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Card size="small" title="Issues by Status">
-                  {reportByStatus.map((row) => (
-                    <div
-                      key={row.status}
-                      style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}
-                    >
-                      <span>{row.status}</span>
-                      <span>{row._count._all}</span>
-                    </div>
-                  ))}
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card size="small" title="Issues by Assignee">
-                  {reportByAssignee.map((row) => (
-                    <div
-                      key={row.assignee}
-                      style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}
-                    >
-                      <span>{row.assignee}</span>
-                      <span>{row.count}</span>
-                    </div>
-                  ))}
-                </Card>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
 
-      <Card title="Users">
-        <Table<AdminUserRow> rowKey="id" dataSource={users} columns={userColumns} pagination={{ pageSize: 10 }} />
-      </Card>
+            <div className="tt-panel-grid">
+              <div className="tt-panel">
+                <div className="tt-panel-header">Issues by Status</div>
+                <div className="tt-panel-body">
+                  {reportByStatus.length === 0 ? (
+                    <div className="tt-panel-empty">
+                      <Typography.Text type="secondary">No data yet</Typography.Text>
+                    </div>
+                  ) : (
+                    reportByStatus.map((row) => (
+                      <div
+                        key={row.status}
+                        className="tt-panel-row"
+                      >
+                        <span>{row.status}</span>
+                        <span>{row._count._all}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="tt-panel">
+                <div className="tt-panel-header">Issues by Assignee</div>
+                <div className="tt-panel-body">
+                  {reportByAssignee.length === 0 ? (
+                    <div className="tt-panel-empty">
+                      <Typography.Text type="secondary">No data yet</Typography.Text>
+                    </div>
+                  ) : (
+                    reportByAssignee.map((row) => (
+                      <div
+                        key={row.assignee}
+                        className="tt-panel-row"
+                      >
+                        <span>{row.assignee}</span>
+                        <span>{row.count}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="tt-two-column"
+        style={{ marginTop: 16 }}
+      >
+        <div className="tt-two-column-main">
+          <div className="tt-panel">
+            <div className="tt-panel-header">Users</div>
+            <div className="tt-panel-body">
+              <Table<AdminUserRow>
+                className="tt-table"
+                rowKey="id"
+                dataSource={users}
+                columns={userColumns}
+                pagination={{ pageSize: 10 }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <aside className="tt-two-column-aside">
+          <div className="tt-panel">
+            <div className="tt-panel-header">Recent Activity</div>
+            <div className="tt-panel-body">
+              <List
+                dataSource={stats.recentActivity}
+                renderItem={(item) => (
+                  <List.Item>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <div className="tt-admin-activity-main">
+                        <span className="tt-admin-activity-action">
+                          {item.action} {item.entityType} {item.entityId}
+                        </span>
+                        <span className="tt-admin-activity-date">
+                          {new Date(item.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <Typography.Text className="tt-admin-activity-user">
+                        {item.user ? `${item.user.name} (${item.user.email})` : 'System'}
+                      </Typography.Text>
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

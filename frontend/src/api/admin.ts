@@ -8,7 +8,7 @@ export interface AdminStats {
     timeLogs: number;
   };
   issuesByStatus: { status: string; _count: { _all: number } }[];
-  issuesByAssignee: { assigneeId: string | null; _count: { _all: number } }[];
+  issuesByAssignee: { assigneeId: string | null; assigneeName: string | null; _count: { _all: number } }[];
   recentActivity: {
     id: string;
     action: string;

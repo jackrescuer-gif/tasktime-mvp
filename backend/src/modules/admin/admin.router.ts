@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../../shared/middleware/auth.js';
 import { requireRole } from '../../shared/middleware/rbac.js';
 import * as adminService from './admin.service.js';
+import type { UatRole } from './uat-tests.data.js';
 
 const router = Router();
 
@@ -29,6 +30,16 @@ router.get('/admin/activity', requireRole('ADMIN', 'MANAGER', 'VIEWER'), async (
   try {
     const activity = await adminService.getActivity();
     res.json(activity);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/admin/uat-tests', requireRole('ADMIN', 'MANAGER', 'USER', 'VIEWER'), async (req, res, next) => {
+  try {
+    const { role } = req.query as { role?: UatRole };
+    const tests = await adminService.listUatTests({ role });
+    res.json(tests);
   } catch (err) {
     next(err);
   }

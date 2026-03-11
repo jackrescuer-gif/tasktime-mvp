@@ -1,29 +1,39 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Col, Form, Input, Modal, Row, Select, Space, Table, Tag, Typography, message, Popconfirm } from 'antd';
+import { Avatar, Button, Col, Form, Input, Modal, Row, Select, Space, Table, Tag, Typography, message, Popconfirm } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { Team, User } from '../types';
 import * as teamsApi from '../api/teams';
 import * as usersApi from '../api/auth';
+import { useAuthStore } from '../store/auth.store';
 
 export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [form] = Form.useForm();
   const [membersForm] = Form.useForm();
+  const { user } = useAuthStore();
+  const canManageTeams = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
   const load = async () => {
     setLoading(true);
     try {
       const [teamsData, usersData] = await Promise.all([
         teamsApi.listTeams(),
-        usersApi.listUsers?.() ?? Promise.resolve([]),
+        usersApi.listUsers(),
       ]);
       setTeams(teamsData);
-      setUsers(usersData as User[]);
+      if (!selectedTeam && teamsData.length > 0) {
+        setSelectedTeam(teamsData[0]);
+      } else if (selectedTeam) {
+        const updatedSelected = teamsData.find((t) => t.id === selectedTeam.id);
+        setSelectedTeam(updatedSelected ?? teamsData[0] ?? null);
+      }
+      setUsers(usersData);
     } catch {
       message.error('Failed to load teams');
     } finally {
@@ -73,7 +83,7 @@ export default function TeamsPage() {
       setIsModalOpen(false);
       await load();
     } catch (err) {
-      if ((err as any).errorFields) return;
+      if ((err as { errorFields?: unknown }).errorFields) return;
       message.error('Failed to save team');
     }
   };
@@ -97,79 +107,188 @@ export default function TeamsPage() {
       setIsMembersModalOpen(false);
       await load();
     } catch (err) {
-      if ((err as any).errorFields) return;
+      if ((err as { errorFields?: unknown }).errorFields) return;
       message.error('Failed to update members');
     }
   };
 
-  return (
-    <div>
-      <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
-        <Typography.Title level={3} style={{ margin: 0 }}>Teams</Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-          New Team
-        </Button>
-      </Space>
+  const columns = [
+    {
+      title: 'Team',
+      dataIndex: 'name',
+      key: 'name',
+      render: (name: string, record: Team) => {
+        const members = record.members ?? [];
+        const firstMember = members[0]?.user;
+        const initials =
+          firstMember?.name
+            ?.split(' ')
+            .map((p) => p[0])
+            .join('')
+            .slice(0, 2) || name.slice(0, 2).toUpperCase();
+        return (
+          <Space size="middle">
+            <Avatar
+              size="small"
+              style={{ backgroundColor: 'var(--bg-el)', color: 'var(--t1)', fontSize: 11 }}
+            >
+              {initials}
+            </Avatar>
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--t1)' }}>{name}</div>
+              {record.description && (
+                <div style={{ fontSize: 11, color: 'var(--t3)' }}>{record.description}</div>
+              )}
+            </div>
+          </Space>
+        );
+      },
+    },
+    {
+      title: 'Members',
+      key: 'members',
+      render: (_: unknown, record: Team) => {
+        const members = record.members ?? [];
+        const total = record._count?.members ?? members.length;
+        return (
+          <Space size="small" style={{ alignItems: 'center' }}>
+            <Avatar.Group maxCount={4} size="small">
+              {members.map((m) => {
+                const initials =
+                  m.user.name
+                    .split(' ')
+                    .map((p) => p[0])
+                    .join('')
+                    .slice(0, 2) || m.user.email[0]?.toUpperCase();
+                return (
+                  <Avatar
+                    key={m.id}
+                    style={{ backgroundColor: 'var(--bg-el)', color: 'var(--t1)', fontSize: 10 }}
+                  >
+                    {initials}
+                  </Avatar>
+                );
+              })}
+            </Avatar.Group>
+            <span className="tt-mono" style={{ fontSize: 11, color: 'var(--t2)' }}>
+              {total ?? 0}
+            </span>
+          </Space>
+        );
+      },
+    },
+    {
+      title: 'Created',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 130,
+      render: (v: string) => new Date(v).toLocaleDateString(),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_: unknown, record: Team) =>
+        canManageTeams ? (
+          <Space
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <Button type="link" size="small" onClick={() => openEdit(record)}>
+              Edit
+            </Button>
+            <Button type="link" size="small" onClick={() => openMembers(record)}>
+              Members
+            </Button>
+            <Popconfirm
+              title="Delete team"
+              description="Are you sure you want to delete this team?"
+              onConfirm={() => handleDelete(record)}
+            >
+              <Button type="link" size="small" danger>
+                Delete
+              </Button>
+            </Popconfirm>
+          </Space>
+        ) : null,
+    },
+  ];
 
-      <Row gutter={[16, 16]}>
-        <Col span={24}>
-          <Table<Team>
-            rowKey="id"
-            loading={loading}
-            dataSource={teams}
-            pagination={false}
-            columns={[
-              {
-                title: 'Name',
-                dataIndex: 'name',
-                key: 'name',
-              },
-              {
-                title: 'Description',
-                dataIndex: 'description',
-                key: 'description',
-              },
-              {
-                title: 'Members',
-                key: 'members',
-                render: (_, record) => (
-                  <Space size="small" wrap>
-                    {record.members?.slice(0, 5).map((m) => (
-                      <Tag key={m.id}>{m.user.name}</Tag>
-                    ))}
-                    {record._count && record._count.members > 5 && (
-                      <Tag>+{record._count.members - 5} more</Tag>
-                    )}
-                  </Space>
-                ),
-              },
-              {
-                title: 'Actions',
-                key: 'actions',
-                render: (_, record) => (
-                  <Space>
-                    <Button size="small" onClick={() => openEdit(record)}>
-                      Edit
-                    </Button>
-                    <Button size="small" onClick={() => openMembers(record)}>
-                      Members
-                    </Button>
-                    <Popconfirm
-                      title="Delete team"
-                      description="Are you sure you want to delete this team?"
-                      onConfirm={() => handleDelete(record)}
-                    >
-                      <Button size="small" danger>
-                        Delete
-                      </Button>
-                    </Popconfirm>
-                  </Space>
-                ),
-              },
-            ]}
-          />
-        </Col>
-      </Row>
+  return (
+    <div className="tt-page">
+      <div className="tt-page-header">
+        <div>
+          <h1 className="tt-page-title">Teams</h1>
+          <p className="tt-page-subtitle">
+            Overview of all teams with members and basic stats
+          </p>
+        </div>
+        <div className="tt-page-actions">
+          {canManageTeams && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
+              New Team
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="tt-two-column">
+        <div className="tt-two-column-main">
+          <div className="tt-panel">
+            <div className="tt-panel-header">Teams</div>
+            <div className="tt-panel-body">
+              <Table<Team>
+                className="tt-table"
+                rowKey="id"
+                loading={loading}
+                dataSource={teams}
+                pagination={false}
+                columns={columns}
+                onRow={(record) => ({
+                  onClick: () => setSelectedTeam(record),
+                  style: {
+                    cursor: 'pointer',
+                    backgroundColor:
+                      selectedTeam && selectedTeam.id === record.id ? 'var(--bg-hover)' : undefined,
+                  },
+                })}
+              />
+            </div>
+          </div>
+        </div>
+
+        <aside className="tt-two-column-aside">
+          <div className="tt-panel">
+            <div className="tt-panel-header">Team details</div>
+            {selectedTeam ? (
+              <>
+                <div className="tt-panel-row">
+                  <span>Name</span>
+                  <span>{selectedTeam.name}</span>
+                </div>
+                <div className="tt-panel-row">
+                  <span>Members</span>
+                  <span>{selectedTeam._count?.members ?? selectedTeam.members?.length ?? 0}</span>
+                </div>
+                <div className="tt-panel-row">
+                  <span>Created</span>
+                  <span>{new Date(selectedTeam.createdAt).toLocaleDateString()}</span>
+                </div>
+                {selectedTeam.description && (
+                  <div className="tt-panel-row">
+                    <span>Description</span>
+                    <span style={{ maxWidth: 140, textAlign: 'right' }}>
+                      {selectedTeam.description}
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="tt-panel-empty">Select a team to see details.</div>
+            )}
+          </div>
+        </aside>
+      </div>
 
       <Modal
         open={isModalOpen}

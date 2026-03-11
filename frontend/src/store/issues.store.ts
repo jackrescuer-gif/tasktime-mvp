@@ -15,17 +15,20 @@ interface IssuesState {
   loading: boolean;
   filters: IssuesFilters;
   setFilters: (filters: Partial<IssuesFilters>) => void;
+  resetFilters: () => void;
   fetchIssues: (projectId: string) => Promise<void>;
 }
+
+const initialFilters: IssuesFilters = {
+  status: [],
+  type: [],
+  priority: [],
+};
 
 export const useIssuesStore = create<IssuesState>((set, get) => ({
   issues: [],
   loading: false,
-  filters: {
-    status: [],
-    type: [],
-    priority: [],
-  },
+  filters: initialFilters,
 
   setFilters: (partial) => {
     set((state) => ({
@@ -34,6 +37,10 @@ export const useIssuesStore = create<IssuesState>((set, get) => ({
         ...partial,
       },
     }));
+  },
+
+  resetFilters: () => {
+    set({ filters: initialFilters });
   },
 
   fetchIssues: async (projectId: string) => {
