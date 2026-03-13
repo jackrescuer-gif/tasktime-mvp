@@ -1,3 +1,7 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 
@@ -5,6 +9,8 @@ import { bootstrapDefaultUsers } from '../src/prisma/bootstrap.js';
 import { seedDatabase } from '../src/prisma/seed.js';
 
 const prisma = new PrismaClient();
+const testsDir = path.dirname(fileURLToPath(import.meta.url));
+const packageJsonPath = path.resolve(testsDir, '..', 'package.json');
 
 async function clearDatabase() {
   await prisma.auditLog.deleteMany();
@@ -29,6 +35,14 @@ afterAll(async () => {
 });
 
 describe('seedDatabase', () => {
+  it('runs TTMP import through the built dist script for production images', async () => {
+    const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8')) as {
+      scripts?: Record<string, string>;
+    };
+
+    expect(packageJson.scripts?.['db:seed:ttmp']).toBe('SEED_SCOPE=TTMP_ONLY node dist/prisma/seed.js');
+  });
+
   it('seeds only TTMP project data in TTMP_ONLY scope and stays idempotent', async () => {
     await bootstrapDefaultUsers(prisma, 'password123');
 
