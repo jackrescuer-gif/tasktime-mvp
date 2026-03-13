@@ -42,7 +42,7 @@ sudo mkdir -p /opt/tasktime
 sudo chown -R "$USER":"$USER" /opt/tasktime
 ```
 
-Copy the `deploy/` directory to the server once, or let GitHub Actions sync it during the first deployment.
+Copy the `deploy/` directory to the server once, or let GitHub Actions sync it during bootstrap. Bootstrap only prepares the host and environment files. It does not deploy an image and it does not run any data sync.
 
 ## Environment Files
 
@@ -109,7 +109,7 @@ The publish workflow pushes:
 - `main` tag on branch `main`
 - `release-*` tag on release tags
 
-## Deployment Commands
+## Deploy
 
 ### Staging
 
@@ -128,8 +128,46 @@ What the script does:
 1. Loads the environment file for the target environment
 2. Pulls the requested images
 3. Applies `prisma migrate deploy`
-4. Recreates containers with `docker compose up -d`
-5. Verifies the web container health endpoint
+4. Runs `npm run db:bootstrap`
+5. Recreates containers with `docker compose up -d`
+6. Verifies the web container health endpoint
+
+`deploy.sh` does not run any prod-to-dev sync. Sync remains a separate operation so deploy and data import can be approved and executed independently.
+
+## Prod-to-Dev Sync
+
+Use the sync wrapper only when you intentionally want to refresh a dev or staging database from a production source:
+
+```bash
+./deploy/scripts/sync-prod-to-dev.sh deploy/env/backend.staging.env
+```
+
+The sync wrapper always:
+
+1. Loads the target backend env file
+2. Rejects obvious production targets such as `backend.production.env`
+3. Validates `SOURCE_DATABASE_URL` and `DATABASE_URL`
+4. Rejects identical or same-host source/target database pairs
+5. Runs `npm run db:sync:prod-to-dev -- --dry-run`
+6. Stores an approval marker for that reviewed env file
+
+The real import must happen in a second invocation after review. Passing `--confirm-import` without a prior reviewed dry-run fails closed.
+
+First run the dry-run and review the plan:
+
+```bash
+./deploy/scripts/sync-prod-to-dev.sh deploy/env/backend.staging.env
+```
+
+Then, if the reviewed output is acceptable, run the import in a separate invocation:
+
+```bash
+./deploy/scripts/sync-prod-to-dev.sh deploy/env/backend.staging.env --confirm-import
+```
+
+If the env file changes between the dry-run and confirmation, rerun the dry-run before importing.
+
+This is a separate operation from deploy. Do not assume a successful deploy implies a sync, and do not assume a sync is safe to run as part of every release.
 
 ## Baseline Existing Databases
 
@@ -155,6 +193,12 @@ Application rollback is image-based:
 ```bash
 ./deploy/scripts/rollback.sh production <previous-image-tag>
 ```
+
+Rollback expectations:
+
+1. `rollback.sh` only rolls application containers back to a previous image tag
+2. It does not revert Prisma migrations
+3. It does not undo any prod-to-dev sync that was run separately
 
 Database rollback is not automatic. Use:
 
@@ -187,3 +231,4 @@ Minimum requirement:
 6. Run `Build and Publish Images`
 7. Verify staging autodeploy
 8. Run manual production deploy with a known-good image tag
+9. Run prod-to-dev sync only as a separate, explicitly approved operation when needed

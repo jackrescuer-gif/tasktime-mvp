@@ -18,6 +18,7 @@ export const BOOTSTRAP_USERS: ReadonlyArray<{
 
 type BootstrapPrismaClient = Pick<PrismaClient, 'user'>;
 
+// Bootstrap is intentionally limited to default users only.
 export async function bootstrapDefaultUsers(prisma: BootstrapPrismaClient, password: string): Promise<void> {
   const passwordHash = await hashPassword(password);
 
@@ -56,6 +57,7 @@ async function main() {
   try {
     await bootstrapDefaultUsers(prisma, password);
     console.log(`Bootstrapped ${BOOTSTRAP_USERS.length} default users.`);
+    console.log('Bootstrap responsibility: default users only.');
   } finally {
     await prisma.$disconnect();
   }

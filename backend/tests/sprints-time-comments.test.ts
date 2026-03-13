@@ -5,6 +5,11 @@ import { request } from './helpers.js';
 const prisma = new PrismaClient();
 
 let adminToken: string;
+let adminUserId: string;
+let managerToken: string;
+let managerUserId: string;
+let userToken: string;
+let userUserId: string;
 let projectId: string;
 let issueId: string;
 
@@ -23,9 +28,29 @@ beforeEach(async () => {
     password: 'password123',
     name: 'Admin 2',
   });
+  adminUserId = reg.body.user.id as string;
   await prisma.user.update({ where: { id: reg.body.user.id }, data: { role: 'ADMIN' } });
   const login = await request.post('/api/auth/login').send({ email: 'admin2@test.com', password: 'password123' });
   adminToken = login.body.accessToken;
+
+  const managerReg = await request.post('/api/auth/register').send({
+    email: 'manager2@test.com',
+    password: 'password123',
+    name: 'Manager 2',
+  });
+  managerUserId = managerReg.body.user.id as string;
+  await prisma.user.update({ where: { id: managerUserId }, data: { role: 'MANAGER' } });
+  const managerLogin = await request.post('/api/auth/login').send({ email: 'manager2@test.com', password: 'password123' });
+  managerToken = managerLogin.body.accessToken;
+
+  const userReg = await request.post('/api/auth/register').send({
+    email: 'user2@test.com',
+    password: 'password123',
+    name: 'User 2',
+  });
+  userUserId = userReg.body.user.id as string;
+  const userLogin = await request.post('/api/auth/login').send({ email: 'user2@test.com', password: 'password123' });
+  userToken = userLogin.body.accessToken;
 
   const proj = await request.post('/api/projects')
     .set('Authorization', `Bearer ${adminToken}`)
@@ -119,6 +144,74 @@ describe('Sprint 2 APIs: sprints, time, comments, history', () => {
       .set('Authorization', `Bearer ${adminToken}`);
     expect(logs.status).toBe(200);
     expect(logs.body.length).toBeGreaterThan(0);
+  });
+
+  it('returns user time summary with separated human and agent aggregates', async () => {
+    const manual = await request.post(`/api/issues/${issueId}/time`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ hours: 1.5, note: 'Human work' });
+    expect(manual.status).toBe(201);
+
+    const agentSession = await request.post('/api/ai-sessions')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        issueId,
+        userId: adminUserId,
+        model: 'claude-3-7-sonnet',
+        provider: 'anthropic',
+        startedAt: '2026-03-13T10:00:00.000Z',
+        finishedAt: '2026-03-13T12:00:00.000Z',
+        tokensInput: 1000,
+        tokensOutput: 500,
+        costMoney: 12.34,
+        notes: 'Agent work',
+        issueSplits: [{ issueId, ratio: 1 }],
+      });
+    expect(agentSession.status).toBe(201);
+
+    const summary = await request.get(`/api/users/${adminUserId}/time/summary`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(summary.status).toBe(200);
+    expect(summary.body).toEqual({
+      userId: adminUserId,
+      humanHours: 1.5,
+      agentHours: 2,
+      totalHours: 3.5,
+      agentCost: 12.34,
+    });
+  });
+
+  it('forbids a regular user from reading another users time summary', async () => {
+    const manual = await request.post(`/api/issues/${issueId}/time`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ hours: 1.5, note: 'Human work' });
+    expect(manual.status).toBe(201);
+
+    const summary = await request.get(`/api/users/${adminUserId}/time/summary`)
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(summary.status).toBe(403);
+    expect(summary.body.error).toBe('Insufficient permissions');
+  });
+
+  it('allows a manager to read another users time summary', async () => {
+    const manual = await request.post(`/api/issues/${issueId}/time`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ hours: 1.5, note: 'Human work' });
+    expect(manual.status).toBe(201);
+
+    const summary = await request.get(`/api/users/${adminUserId}/time/summary`)
+      .set('Authorization', `Bearer ${managerToken}`);
+
+    expect(summary.status).toBe(200);
+    expect(summary.body).toEqual({
+      userId: adminUserId,
+      humanHours: 1.5,
+      agentHours: 0,
+      totalHours: 1.5,
+      agentCost: 0,
+    });
   });
 
   it('creates comments and returns them on issue detail page API', async () => {

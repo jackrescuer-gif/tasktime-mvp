@@ -1,5 +1,5 @@
 import api from './client';
-import type { TimeLog } from '../types';
+import type { TimeLog, UserTimeSummary } from '../types';
 
 export async function startTimer(issueId: string): Promise<TimeLog> {
   const { data } = await api.post<TimeLog>(`/issues/${issueId}/time/start`);
@@ -23,6 +23,11 @@ export async function getIssueLogs(issueId: string): Promise<TimeLog[]> {
 
 export async function getUserLogs(userId: string): Promise<TimeLog[]> {
   const { data } = await api.get<TimeLog[]>(`/users/${userId}/time`);
+  return data;
+}
+
+export async function getUserTimeSummary(userId: string): Promise<UserTimeSummary> {
+  const { data } = await api.get<UserTimeSummary>(`/users/${userId}/time/summary`);
   return data;
 }
 

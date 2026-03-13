@@ -1,3 +1,5 @@
+import { pathToFileURL } from 'node:url';
+
 import { PrismaClient, Prisma } from '@prisma/client';
 
 import { BOOTSTRAP_USERS, bootstrapDefaultUsers } from './bootstrap.js';
@@ -5,7 +7,8 @@ import { BOOTSTRAP_USERS, bootstrapDefaultUsers } from './bootstrap.js';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding database...');
+  console.log('Seeding development/demo data...');
+  console.log('This seed script provides development/demo data and is not the production source of truth.');
 
   const defaultPassword = 'password123';
   await bootstrapDefaultUsers(prisma, defaultPassword);
@@ -1653,6 +1656,11 @@ async function main() {
   console.log(`Projects: ${project.key}, ${backendProject.key}`);
 }
 
-main()
-  .catch((e) => { console.error(e); process.exit(1); })
-  .finally(() => prisma.$disconnect());
+const isExecutedDirectly = process.argv[1] !== undefined
+  && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isExecutedDirectly) {
+  main()
+    .catch((e) => { console.error(e); process.exit(1); })
+    .finally(() => prisma.$disconnect());
+}

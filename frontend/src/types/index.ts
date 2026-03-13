@@ -100,6 +100,14 @@ export interface TimeLog {
   agentSession?: { model: string; provider: string };
 }
 
+export interface UserTimeSummary {
+  userId: string;
+  humanHours: number;
+  agentHours: number;
+  totalHours: number;
+  agentCost: number;
+}
+
 export interface AuditEntry {
   id: string;
   action: string;
