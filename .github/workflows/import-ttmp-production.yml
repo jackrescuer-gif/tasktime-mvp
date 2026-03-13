@@ -2,6 +2,11 @@ name: Import TTMP Production Data
 
 on:
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Backend image tag to use for TTMP import
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -27,4 +32,4 @@ jobs:
       - name: Run remote TTMP import
         run: |
           ssh "${{ secrets.PRODUCTION_DEPLOY_USER }}@${{ secrets.PRODUCTION_DEPLOY_HOST }}" \
-            "cd '${{ secrets.PRODUCTION_DEPLOY_PATH }}' && chmod +x deploy/scripts/*.sh && ./deploy/scripts/import-ttmp.sh production"
+            "cd '${{ secrets.PRODUCTION_DEPLOY_PATH }}' && chmod +x deploy/scripts/*.sh && ./deploy/scripts/import-ttmp.sh production '${{ github.event.inputs.image_tag }}'"
