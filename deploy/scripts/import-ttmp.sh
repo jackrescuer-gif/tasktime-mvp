@@ -33,6 +33,6 @@ if [ -n "$IMAGE_TAG_OVERRIDE" ]; then
   export IMAGE_TAG="$IMAGE_TAG_OVERRIDE"
 fi
 
-docker compose --env-file "$COMPOSE_ENV_FILE" -f "$COMPOSE_FILE" run --rm backend npm run db:seed:ttmp
+docker compose --env-file "$COMPOSE_ENV_FILE" -f "$COMPOSE_FILE" run --rm -T backend npm run db:seed:ttmp
 
 echo "TTMP import completed for $ENVIRONMENT."
