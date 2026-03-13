@@ -21,19 +21,15 @@ type BootstrapPrismaClient = Pick<PrismaClient, 'user'>;
 // Bootstrap is intentionally limited to default users only.
 export async function bootstrapDefaultUsers(prisma: BootstrapPrismaClient, password: string): Promise<void> {
   const passwordHash = await hashPassword(password);
-
-  for (const user of BOOTSTRAP_USERS) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: {},
-      create: {
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        passwordHash,
-      },
-    });
-  }
+  await prisma.user.createMany({
+    data: BOOTSTRAP_USERS.map((user) => ({
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      passwordHash,
+    })),
+    skipDuplicates: true,
+  });
 }
 
 function getBootstrapPassword(): string | null {
