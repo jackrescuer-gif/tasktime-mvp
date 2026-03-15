@@ -40,3 +40,10 @@ deploy/env/.env.production
 deploy/env/backend.staging.env
 deploy/env/backend.production.env
 deploy/backups/
+
+# Redis dump
+dump.rdb
+
+# Playwright test artifacts
+frontend/e2e-report/
+frontend/test-results/
