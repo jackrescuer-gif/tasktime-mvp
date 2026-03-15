@@ -52,6 +52,16 @@ export async function getIssuesByStatusReport(params: {
   return data;
 }
 
+export function buildExportUrl(
+  type: 'issues' | 'time',
+  params: { projectId: string; sprintId?: string; from?: string; to?: string; format?: 'csv' | 'pdf' },
+): string {
+  const base = import.meta.env.VITE_API_URL ?? '/api';
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, v); });
+  return `${base}/admin/reports/${type}/export?${qs.toString()}`;
+}
+
 export async function getIssuesByAssigneeReport(params: {
   projectId: string;
   sprintId?: string;

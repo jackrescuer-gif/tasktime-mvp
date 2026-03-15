@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Table, Tag, Typography, Select, DatePicker, Space, List } from 'antd';
+import { Table, Tag, Typography, Select, DatePicker, Space, List, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { UserOutlined, ProjectOutlined, BugOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import * as adminApi from '../api/admin';
+import { DownloadOutlined } from '@ant-design/icons';
 import * as authApi from '../api/auth';
 import type { User, Project, Sprint } from '../types';
 import * as projectsApi from '../api/projects';
@@ -292,6 +293,52 @@ export default function AdminPage() {
                 }
               />
             </Space>
+
+            {selectedProjectId && (
+              <Space style={{ marginBottom: 12 }} wrap>
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  href={adminApi.buildExportUrl('issues', {
+                    projectId: selectedProjectId,
+                    sprintId: selectedSprintId,
+                    from: dateRange[0],
+                    to: dateRange[1],
+                    format: 'csv',
+                  })}
+                  target="_blank"
+                >
+                  Issues CSV
+                </Button>
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  href={adminApi.buildExportUrl('issues', {
+                    projectId: selectedProjectId,
+                    sprintId: selectedSprintId,
+                    from: dateRange[0],
+                    to: dateRange[1],
+                    format: 'pdf',
+                  })}
+                  target="_blank"
+                >
+                  Issues PDF
+                </Button>
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  href={adminApi.buildExportUrl('time', {
+                    projectId: selectedProjectId,
+                    from: dateRange[0],
+                    to: dateRange[1],
+                    format: 'csv',
+                  })}
+                  target="_blank"
+                >
+                  Time CSV
+                </Button>
+              </Space>
+            )}
 
             <div className="tt-panel-grid">
               <div className="tt-panel">

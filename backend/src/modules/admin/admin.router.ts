@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../../shared/middleware/auth.js';
 import { requireRole } from '../../shared/middleware/rbac.js';
 import * as adminService from './admin.service.js';
+import * as exportService from './reports-export.service.js';
 import type { UatRole } from './uat-tests.data.js';
 
 const router = Router();
@@ -93,6 +94,62 @@ router.get(
       next(err);
     }
   }
+);
+
+// ===== EXPORT ENDPOINTS =====
+
+type ExportFormat = 'csv' | 'pdf';
+
+function parseExportQuery(query: Record<string, string | undefined>) {
+  const { projectId, sprintId, from, to, status, format } = query;
+  return { projectId, sprintId, from, to, status, format: (format ?? 'csv') as ExportFormat };
+}
+
+router.get(
+  '/admin/reports/issues/export',
+  requireRole('ADMIN', 'MANAGER'),
+  async (req, res, next) => {
+    try {
+      const { projectId, sprintId, from, to, status, format } = parseExportQuery(
+        req.query as Record<string, string | undefined>,
+      );
+      if (!projectId) { res.status(400).json({ error: 'projectId required' }); return; }
+
+      if (format === 'pdf') {
+        const buf = await exportService.exportIssuesPdf({ projectId, sprintId, from, to, status });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="issues-${projectId}.pdf"`);
+        res.send(buf);
+      } else {
+        const buf = await exportService.exportIssuesCsv({ projectId, sprintId, from, to, status });
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="issues-${projectId}.csv"`);
+        res.send(buf);
+      }
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.get(
+  '/admin/reports/time/export',
+  requireRole('ADMIN', 'MANAGER'),
+  async (req, res, next) => {
+    try {
+      const { projectId, from, to } = parseExportQuery(
+        req.query as Record<string, string | undefined>,
+      );
+      if (!projectId) { res.status(400).json({ error: 'projectId required' }); return; }
+
+      const buf = await exportService.exportTimeCsv({ projectId, from, to });
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="time-${projectId}.csv"`);
+      res.send(buf);
+    } catch (err) {
+      next(err);
+    }
+  },
 );
 
 export default router;
