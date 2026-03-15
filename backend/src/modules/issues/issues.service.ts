@@ -63,6 +63,8 @@ type ListIssuesFilters = {
   from?: string;
   to?: string;
   search?: string;
+  page?: number;
+  limit?: number;
 };
 
 export async function listIssues(projectId: string, filters?: ListIssuesFilters) {
@@ -96,15 +98,26 @@ export async function listIssues(projectId: string, filters?: ListIssuesFilters)
     ];
   }
 
-  return prisma.issue.findMany({
-    where,
-    include: {
-      assignee: { select: { id: true, name: true, email: true } },
-      creator: { select: { id: true, name: true } },
-      _count: { select: { children: true } },
-    },
-    orderBy: [{ orderIndex: 'asc' }, { createdAt: 'desc' }],
-  });
+  const limit = Math.min(filters?.limit ?? 100, 200);
+  const page = Math.max(filters?.page ?? 1, 1);
+  const skip = (page - 1) * limit;
+
+  const [items, total] = await Promise.all([
+    prisma.issue.findMany({
+      where,
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        creator: { select: { id: true, name: true } },
+        _count: { select: { children: true } },
+      },
+      orderBy: [{ orderIndex: 'asc' }, { createdAt: 'desc' }],
+      skip,
+      take: limit,
+    }),
+    prisma.issue.count({ where }),
+  ]);
+
+  return { items, total, page, limit, pages: Math.ceil(total / limit) };
 }
 
 type MvpLivecodeFilters = {

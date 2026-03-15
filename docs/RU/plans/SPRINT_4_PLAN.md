@@ -14,7 +14,7 @@
 | 4.2 | AI: декомпозиция требований | ✅ DONE | P0 |
 | 4.3 | Telegram-бот: нотификации | ✅ DONE | P1 |
 | 4.4 | GitLab webhook: автообновление статусов | ✅ DONE | P1 |
-| 4.5 | Экспорт отчётов (CSV, PDF) | 🔲 TODO | P1 |
+| 4.5 | Экспорт отчётов (CSV, PDF) | ✅ DONE | P1 |
 | 4.6 | Performance optimization | 🔲 TODO | P2 |
 | 4.7 | Security audit | 🔲 TODO | P2 |
 | 4.8 | Deployment scripts (production) | 🔲 TODO | P2 |

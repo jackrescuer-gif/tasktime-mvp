@@ -45,6 +45,16 @@ async function getRedisClientInternal(): Promise<RedisClient | null> {
   return connecting;
 }
 
+export async function deleteCachedJson(key: string): Promise<void> {
+  const redis = await getRedisClientInternal();
+  if (!redis) return;
+  try {
+    await redis.del(key);
+  } catch {
+    // ignore
+  }
+}
+
 export async function getCachedJson<T>(key: string): Promise<T | null> {
   const redis = await getRedisClientInternal();
   if (!redis) return null;

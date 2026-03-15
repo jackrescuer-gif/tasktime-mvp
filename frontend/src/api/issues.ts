@@ -17,20 +17,45 @@ export interface IssueFilters {
   from?: string;
   to?: string;
   search?: string;
+  page?: number;
+  limit?: number;
 }
 
+export interface PaginatedIssues {
+  items: Issue[];
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
+function buildIssueParams(filters?: IssueFilters) {
+  return {
+    ...(filters?.status && { status: filters.status.join(',') }),
+    ...(filters?.type && { type: filters.type.join(',') }),
+    ...(filters?.priority && { priority: filters.priority.join(',') }),
+    ...(filters?.assigneeId && { assigneeId: filters.assigneeId }),
+    ...(filters?.sprintId && { sprintId: filters.sprintId }),
+    ...(filters?.from && { from: filters.from }),
+    ...(filters?.to && { to: filters.to }),
+    ...(filters?.search && { search: filters.search }),
+    ...(filters?.page && { page: filters.page }),
+    ...(filters?.limit && { limit: filters.limit }),
+  };
+}
+
+// Returns just the items array (backward-compatible)
 export async function listIssues(projectId: string, filters?: IssueFilters): Promise<Issue[]> {
-  const { data } = await api.get<Issue[]>(`/projects/${projectId}/issues`, {
-    params: {
-      ...(filters?.status && { status: filters.status.join(',') }),
-      ...(filters?.type && { type: filters.type.join(',') }),
-      ...(filters?.priority && { priority: filters.priority.join(',') }),
-      ...(filters?.assigneeId && { assigneeId: filters.assigneeId }),
-      ...(filters?.sprintId && { sprintId: filters.sprintId }),
-      ...(filters?.from && { from: filters.from }),
-      ...(filters?.to && { to: filters.to }),
-      ...(filters?.search && { search: filters.search }),
-    },
+  const { data } = await api.get<PaginatedIssues>(`/projects/${projectId}/issues`, {
+    params: buildIssueParams(filters),
+  });
+  return data.items;
+}
+
+// Returns full paginated result
+export async function listIssuesPaginated(projectId: string, filters?: IssueFilters): Promise<PaginatedIssues> {
+  const { data } = await api.get<PaginatedIssues>(`/projects/${projectId}/issues`, {
+    params: buildIssueParams(filters),
   });
   return data;
 }

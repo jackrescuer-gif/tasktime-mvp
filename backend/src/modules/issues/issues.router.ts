@@ -22,16 +22,19 @@ router.use(authenticate);
 // List issues for a project with filters
 router.get('/projects/:projectId/issues', async (req, res, next) => {
   try {
-    const { status, type, priority, assigneeId, sprintId, from, to, search } = req.query as {
-      status?: string | string[];
-      type?: string | string[];
-      priority?: string | string[];
-      assigneeId?: string;
-      sprintId?: string;
-      from?: string;
-      to?: string;
-      search?: string;
-    };
+    const { status, type, priority, assigneeId, sprintId, from, to, search, page, limit } =
+      req.query as {
+        status?: string | string[];
+        type?: string | string[];
+        priority?: string | string[];
+        assigneeId?: string;
+        sprintId?: string;
+        from?: string;
+        to?: string;
+        search?: string;
+        page?: string;
+        limit?: string;
+      };
 
     const toArray = (value?: string | string[]) =>
       typeof value === 'string' ? value.split(',').filter(Boolean) : value;
@@ -45,6 +48,8 @@ router.get('/projects/:projectId/issues', async (req, res, next) => {
       from,
       to,
       search,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
     });
     res.json(issues);
   } catch (err) {
