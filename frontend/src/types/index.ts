@@ -44,6 +44,7 @@ export interface Issue {
   children?: Issue[];
   project?: { id: string; name: string; key: string };
   _count?: { children: number };
+  estimatedHours?: number | null;
   createdAt: string;
   updatedAt: string;
 }

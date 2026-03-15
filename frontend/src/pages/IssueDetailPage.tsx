@@ -33,6 +33,7 @@ import {
 import * as issuesApi from '../api/issues';
 import * as commentsApi from '../api/comments';
 import * as timeApi from '../api/time';
+import AiEstimateButton from '../components/issues/AiEstimateButton';
 import { useAuthStore } from '../store/auth.store';
 import type { Issue, Comment, TimeLog, AuditEntry, IssueStatus, IssuePriority } from '../types';
 import api from '../api/client';
@@ -410,6 +411,17 @@ export default function IssueDetailPage() {
                   <span>{issue.aiExecutionStatus ?? 'NOT_STARTED'}</span>
                 )}
               </div>
+            </div>
+          </div>
+
+          <div className="tt-panel">
+            <div className="tt-panel-header">AI Estimate</div>
+            <div className="tt-panel-body">
+              <AiEstimateButton
+                issueId={issue.id}
+                currentEstimate={issue.estimatedHours}
+                onEstimated={() => load()}
+              />
             </div>
           </div>
 
