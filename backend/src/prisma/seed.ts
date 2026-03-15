@@ -1644,6 +1644,223 @@ export async function seedDatabase(seedPrisma: PrismaClient, options: SeedOption
     },
   });
 
+  // ===== Sprint 4 — AI, Export API, Интеграции =====
+  const sprint4 = await seedPrisma.sprint.upsert({
+    where: { projectId_name: { projectId: mvpProject.id, name: 'Sprint 4 — AI, Export API, Интеграции' } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      name: 'Sprint 4 — AI, Export API, Интеграции',
+      goal: 'Export Open Tasks API, 3-way time analytics (HUMAN/HUMAN_AI/AGENT), AI-интеграции, GitLab/Telegram',
+      startDate: new Date('2026-03-15T09:00:00Z'),
+      endDate: new Date('2026-03-17T18:00:00Z'),
+      state: 'ACTIVE',
+    },
+  });
+
+  // Close Sprint 3.5 now that Sprint 4 is active
+  await seedPrisma.sprint.update({
+    where: { id: sprint35.id },
+    data: { state: 'CLOSED' },
+  });
+
+  const epicSprint4 = await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 81 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 81,
+      title: 'Sprint 4 — AI-модуль, Export API, интеграции',
+      type: 'EPIC',
+      priority: 'HIGH',
+      status: 'IN_PROGRESS',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+    },
+  });
+
+  const storyExportApi = await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 82 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 82,
+      title: 'Export Open Tasks API для AI-агентов',
+      type: 'STORY',
+      priority: 'HIGH',
+      status: 'IN_PROGRESS',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+      parentId: epicSprint4.id,
+      aiEligible: true,
+      aiAssigneeType: 'AGENT',
+    },
+  });
+
+  const taskExportEndpoints = await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 83 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 83,
+      title: 'Реализовать 8 эндпоинтов Export API (open-tasks, plan, dev-result, test-result, dev-links, ai-status)',
+      type: 'TASK',
+      priority: 'HIGH',
+      status: 'REVIEW',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+      parentId: storyExportApi.id,
+      aiEligible: true,
+      aiExecutionStatus: 'DONE',
+      aiAssigneeType: 'AGENT',
+      aiPlan: '## План реализации Export API\n\n1. Prisma schema: DevLink model + aiPlan/aiDevResult/aiTestResult на Issue\n2. export.dto.ts — Zod-валидация для всех 8 эндпоинтов\n3. export.service.ts — бизнес-логика с time breakdown агрегацией\n4. export.router.ts — Express router + audit logging\n5. Регистрация в app.ts',
+      aiDevResult: 'Реализованы 8 эндпоинтов:\n- GET /export/open-tasks (фильтры + time breakdown)\n- GET /export/open-tasks/:id (детали + comments + devLinks)\n- GET /export/tasks/:id/time-summary\n- PATCH plan/dev-result/test-result\n- POST dev-links\n- PATCH ai-status\n\n526 строк кода, 13 файлов изменено.',
+      aiTestResult: 'Backend: `npx tsc --noEmit` — 0 ошибок.\nФронтенд: типы обновлены, компилируется (ошибки только из-за отсутствия node_modules в CI).',
+    },
+  });
+
+  const taskTimeAnalytics = await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 84 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 84,
+      title: 'Добавить HUMAN_AI в TimeSource + 3-way аналитику (Human / Human+AI / AI)',
+      type: 'TASK',
+      priority: 'HIGH',
+      status: 'REVIEW',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+      parentId: storyExportApi.id,
+      aiEligible: true,
+      aiExecutionStatus: 'DONE',
+      aiAssigneeType: 'MIXED',
+      aiPlan: '## 3-Way Time Analytics\n\n1. Расширить TimeSource enum: HUMAN | HUMAN_AI | AGENT\n2. time.dto — source в manualTimeDto\n3. time.service — передавать source, расширить groupBy\n4. time.domain — humanAiHours + humanAiCost в summary\n5. Frontend: 3 карточки, 3 бейджа, selector в модалке',
+      aiDevResult: 'TimeSource расширен на HUMAN_AI.\nВсе summary-функции возвращают 3-way breakdown.\nUI: карточка Human+AI (cyan), selector source при ручном вводе.',
+    },
+  });
+
+  await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 85 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 85,
+      title: 'Prisma migration: HUMAN_AI enum + DevLink model + Issue AI fields',
+      type: 'SUBTASK',
+      priority: 'HIGH',
+      status: 'DONE',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+      parentId: taskExportEndpoints.id,
+      aiEligible: true,
+      aiExecutionStatus: 'DONE',
+      aiAssigneeType: 'AGENT',
+    },
+  });
+
+  await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 86 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 86,
+      title: 'Frontend: TimePage 3-way cards + IssueDetailPage source selector',
+      type: 'SUBTASK',
+      priority: 'MEDIUM',
+      status: 'DONE',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+      parentId: taskTimeAnalytics.id,
+      aiEligible: true,
+      aiExecutionStatus: 'DONE',
+      aiAssigneeType: 'AGENT',
+    },
+  });
+
+  const storyIntegrations = await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 87 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 87,
+      title: 'GitLab webhook + Telegram-бот (нотификации)',
+      type: 'STORY',
+      priority: 'MEDIUM',
+      status: 'OPEN',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+      parentId: epicSprint4.id,
+      aiEligible: true,
+      aiAssigneeType: 'AGENT',
+    },
+  });
+
+  await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 88 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 88,
+      title: 'GitLab webhook: автообновление статуса задачи при push/merge',
+      type: 'TASK',
+      priority: 'MEDIUM',
+      status: 'OPEN',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+      parentId: storyIntegrations.id,
+      aiEligible: true,
+      aiAssigneeType: 'AGENT',
+    },
+  });
+
+  await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 89 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 89,
+      title: 'Telegram-бот: уведомления о смене статуса и назначениях',
+      type: 'TASK',
+      priority: 'LOW',
+      status: 'OPEN',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+      parentId: storyIntegrations.id,
+      aiEligible: true,
+      aiAssigneeType: 'AGENT',
+    },
+  });
+
+  await prisma.issue.upsert({
+    where: { projectId_number: { projectId: mvpProject.id, number: 90 } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      sprintId: sprint4.id,
+      number: 90,
+      title: 'Seed: демо-данные Sprint 4, HUMAN_AI логи, DevLinks',
+      type: 'TASK',
+      priority: 'MEDIUM',
+      status: 'IN_PROGRESS',
+      creatorId: manager.id,
+      assigneeId: dev.id,
+      parentId: storyExportApi.id,
+      aiEligible: true,
+      aiExecutionStatus: 'IN_PROGRESS',
+      aiAssigneeType: 'MIXED',
+    },
+  });
+
   // Demo time tracking data for My Time (Pavel + AI)
   if (isFullDevSeed) {
     const existingAiSessions = await prisma.aiSession.count();
@@ -1723,6 +1940,109 @@ export async function seedDatabase(seedPrisma: PrismaClient, options: SeedOption
           }),
         });
       }
+    }
+
+    // === HUMAN_AI demo time logs (vibe-coding sessions) ===
+    const existingHumanAiLogs = await prisma.timeLog.count({ where: { source: 'HUMAN_AI' } });
+    if (existingHumanAiLogs === 0) {
+      // Vibe-coding session: owner discussed + implemented export API with Claude
+      await prisma.timeLog.createMany({
+        data: [
+          {
+            issueId: taskExportEndpoints.id,
+            userId: owner.id,
+            hours: new Prisma.Decimal(3.25),
+            note: 'Вайб-код: обсуждение архитектуры Export API + совместная реализация с Claude',
+            logDate: new Date('2026-03-15'),
+            source: 'HUMAN_AI',
+          },
+          {
+            issueId: taskTimeAnalytics.id,
+            userId: owner.id,
+            hours: new Prisma.Decimal(1.75),
+            note: 'Вайб-код: проектирование 3-way аналитики HUMAN/HUMAN_AI/AGENT с Claude',
+            logDate: new Date('2026-03-15'),
+            source: 'HUMAN_AI',
+          },
+          {
+            issueId: taskExportEndpoints.id,
+            userId: dev.id,
+            hours: new Prisma.Decimal(2.0),
+            note: 'Вайб-код: code review Export API + доработка DTOs с Cursor',
+            logDate: new Date('2026-03-15'),
+            source: 'HUMAN_AI',
+          },
+          // Pure human review
+          {
+            issueId: taskExportEndpoints.id,
+            userId: manager.id,
+            hours: new Prisma.Decimal(0.5),
+            note: 'Ревью плана и приёмка API-спецификации',
+            logDate: new Date('2026-03-15'),
+            source: 'HUMAN',
+          },
+        ],
+      });
+
+      // Claude autonomous session for subtask 85 (migration)
+      const aiSession2 = await prisma.aiSession.create({
+        data: {
+          issueId: taskExportEndpoints.id,
+          userId: owner.id,
+          model: 'claude-opus-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-15T10:00:00Z'),
+          finishedAt: new Date('2026-03-15T10:35:00Z'),
+          tokensInput: 45000,
+          tokensOutput: 18000,
+          costMoney: new Prisma.Decimal(2.43),
+          notes: 'Autonomous: Prisma migration + export module scaffold + time module extension',
+        },
+      });
+
+      await prisma.timeLog.create({
+        data: {
+          issueId: taskExportEndpoints.id,
+          userId: null,
+          hours: new Prisma.Decimal(0.58),
+          note: 'AI: автономная реализация Export API module (schema + dto + service + router)',
+          logDate: new Date('2026-03-15'),
+          source: 'AGENT',
+          agentSessionId: aiSession2.id,
+          startedAt: aiSession2.startedAt,
+          stoppedAt: aiSession2.finishedAt,
+          costMoney: new Prisma.Decimal(2.43),
+        },
+      });
+    }
+
+    // === DevLink demo data ===
+    const existingDevLinks = await prisma.devLink.count();
+    if (existingDevLinks === 0) {
+      await prisma.devLink.createMany({
+        data: [
+          {
+            issueId: taskExportEndpoints.id,
+            type: 'BRANCH',
+            url: 'https://github.com/jackrescuer-gif/tasktime-mvp/tree/claude/export-open-tasks-Z3iJt',
+            title: 'claude/export-open-tasks-Z3iJt',
+          },
+          {
+            issueId: taskExportEndpoints.id,
+            type: 'COMMIT',
+            url: 'https://github.com/jackrescuer-gif/tasktime-mvp/commit/36d64ed',
+            title: 'feat: add Export Open Tasks API + 3-way time analytics',
+            sha: '36d64ed',
+          },
+          {
+            issueId: taskTimeAnalytics.id,
+            type: 'COMMIT',
+            url: 'https://github.com/jackrescuer-gif/tasktime-mvp/commit/36d64ed',
+            title: 'feat: add Export Open Tasks API + 3-way time analytics',
+            sha: '36d64ed',
+          },
+        ],
+      });
     }
   }
 
