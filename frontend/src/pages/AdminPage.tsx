@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Table, Tag, Typography, Select, DatePicker, Space, List, Button } from 'antd';
+import { Table, Tag, Typography, Select, DatePicker, Space, List, Button, Alert } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { UserOutlined, ProjectOutlined, BugOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import * as adminApi from '../api/admin';
@@ -11,6 +11,8 @@ import * as sprintsApi from '../api/sprints';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import TelegramSettings from '../components/common/TelegramSettings';
 import GitLabSettings from '../components/common/GitLabSettings';
+import { useAuthStore } from '../store/auth.store';
+import { hasRequiredRole } from '../lib/roles';
 
 interface AdminUserRow {
   id: string;
@@ -25,7 +27,11 @@ interface AdminUserRow {
 }
 
 export default function AdminPage() {
+  const { user } = useAuthStore();
+  const isAdmin = hasRequiredRole(user?.role, 'ADMIN');
+
   const [stats, setStats] = useState<adminApi.AdminStats | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [usersMap, setUsersMap] = useState<Record<string, User>>({});
   const [loading, setLoading] = useState(true);
@@ -40,9 +46,9 @@ export default function AdminPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [statsData, adminUsers, allUsers, allProjects] = await Promise.all([
+        // Stats and projects are accessible to ADMIN, MANAGER and VIEWER
+        const [statsData, allUsers, allProjects] = await Promise.all([
           adminApi.getStats(),
-          adminApi.listAdminUsers(),
           authApi.listUsers(),
           projectsApi.listProjects(),
         ]);
@@ -52,29 +58,41 @@ export default function AdminPage() {
           userMap[u.id] = u;
         });
         setUsersMap(userMap);
-        setUsers(
-          adminUsers.map((u) => ({
-            id: u.id,
-            email: u.email,
-            name: u.name,
-            role: u.role,
-            isActive: u.isActive,
-            createdAt: u.createdAt,
-            createdIssues: u._count.createdIssues,
-            assignedIssues: u._count.assignedIssues,
-            timeLogs: u._count.timeLogs,
-          }))
-        );
         setProjects(allProjects);
         if (allProjects.length > 0) {
           setSelectedProjectId(allProjects[0].id);
         }
+
+        // Users table is ADMIN-only — load separately so a 403 doesn't break the whole page
+        if (isAdmin) {
+          try {
+            const adminUsers = await adminApi.listAdminUsers();
+            setUsers(
+              adminUsers.map((u) => ({
+                id: u.id,
+                email: u.email,
+                name: u.name,
+                role: u.role,
+                isActive: u.isActive,
+                createdAt: u.createdAt,
+                createdIssues: u._count.createdIssues,
+                assignedIssues: u._count.assignedIssues,
+                timeLogs: u._count.timeLogs,
+              }))
+            );
+          } catch {
+            // non-fatal: users table just stays empty
+          }
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Failed to load admin data';
+        setLoadError(msg);
       } finally {
         setLoading(false);
       }
     };
     void load();
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     const loadReports = async () => {
@@ -127,7 +145,12 @@ export default function AdminPage() {
     void loadSprints();
   }, [selectedProjectId]);
 
-  if (loading || !stats) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner />;
+  if (loadError || !stats) return (
+    <div className="tt-page">
+      <Alert type="error" message={loadError ?? 'Failed to load admin data'} showIcon style={{ margin: 24 }} />
+    </div>
+  );
 
   const issuesByStatus = stats.issuesByStatus.reduce<Record<string, number>>((acc, item) => {
     acc[item.status] = item._count._all;
@@ -392,18 +415,20 @@ export default function AdminPage() {
         style={{ marginTop: 16 }}
       >
         <div className="tt-two-column-main">
-          <div className="tt-panel">
-            <div className="tt-panel-header">Users</div>
-            <div className="tt-panel-body">
-              <Table<AdminUserRow>
-                className="tt-table"
-                rowKey="id"
-                dataSource={users}
-                columns={userColumns}
-                pagination={{ pageSize: 10 }}
-              />
+          {isAdmin && (
+            <div className="tt-panel">
+              <div className="tt-panel-header">Users</div>
+              <div className="tt-panel-body">
+                <Table<AdminUserRow>
+                  className="tt-table"
+                  rowKey="id"
+                  dataSource={users}
+                  columns={userColumns}
+                  pagination={{ pageSize: 10 }}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <aside className="tt-two-column-aside">
@@ -440,12 +465,14 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className="tt-panel">
-            <div className="tt-panel-header">GitLab Integration</div>
-            <div className="tt-panel-body">
-              <GitLabSettings />
+          {isAdmin && (
+            <div className="tt-panel">
+              <div className="tt-panel-header">GitLab Integration</div>
+              <div className="tt-panel-body">
+                <GitLabSettings />
+              </div>
             </div>
-          </div>
+          )}
         </aside>
       </div>
     </div>

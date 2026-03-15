@@ -14,7 +14,7 @@ import {
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import UatOnboardingOverlay from '../uat/UatOnboardingOverlay';
-import { hasRequiredRole } from '../../lib/roles';
+import { hasAnyRequiredRole } from '../../lib/roles';
 
 const { Header, Sider, Content } = Layout;
 
@@ -44,7 +44,7 @@ export default function AppLayout() {
     { key: '/sprints', icon: <CalendarOutlined />, label: 'Sprints' },
     { key: '/time', icon: <ClockCircleOutlined />, label: 'My Time' },
     { key: '/teams', icon: <TeamOutlined />, label: 'Teams' },
-    ...(hasRequiredRole(user?.role, 'ADMIN')
+    ...(hasAnyRequiredRole(user?.role, ['ADMIN', 'MANAGER', 'VIEWER'])
       ? [{ key: '/admin', icon: <SettingOutlined />, label: 'Admin' } as const]
       : []),
   ];
