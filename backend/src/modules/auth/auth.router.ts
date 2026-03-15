@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { validate } from '../../shared/middleware/validate.js';
 import { authenticate } from '../../shared/middleware/auth.js';
 import { registerDto, loginDto, refreshDto } from './auth.dto.js';
@@ -7,7 +8,17 @@ import type { AuthRequest } from '../../shared/types/index.js';
 
 const router = Router();
 
-router.post('/register', validate(registerDto), async (req, res, next) => {
+// Rate limit: max 10 attempts per IP per minute on sensitive auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' },
+  skip: () => process.env.NODE_ENV === 'test',
+});
+
+router.post('/register', authLimiter, validate(registerDto), async (req, res, next) => {
   try {
     const result = await authService.register(req.body);
     res.status(201).json(result);
@@ -16,7 +27,7 @@ router.post('/register', validate(registerDto), async (req, res, next) => {
   }
 });
 
-router.post('/login', validate(loginDto), async (req, res, next) => {
+router.post('/login', authLimiter, validate(loginDto), async (req, res, next) => {
   try {
     const result = await authService.login(req.body);
     res.json(result);
