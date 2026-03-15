@@ -83,6 +83,9 @@ model Issue {
   aiEligible        Boolean          @default(false)     @map("ai_eligible")
   aiExecutionStatus AiExecutionStatus @default(NOT_STARTED) @map("ai_execution_status")
   aiAssigneeType    AiAssigneeType   @default(HUMAN)    @map("ai_assignee_type")
+  aiPlan            String?          @map("ai_plan")
+  aiDevResult       String?          @map("ai_dev_result")
+  aiTestResult      String?          @map("ai_test_result")
 
   parentId String? @map("parent_id")
   parent   Issue?  @relation("issueHierarchy", fields: [parentId], references: [id])
@@ -105,6 +108,7 @@ model Issue {
   comments Comment[]
   timeLogs TimeLog[]
   aiSessions AiSession[]
+  devLinks   DevLink[]
 
   @@unique([projectId, number])
   @@index([projectId, status])
@@ -235,7 +239,33 @@ model TimeLog {
 
 enum TimeSource {
   HUMAN
+  HUMAN_AI
   AGENT
+}
+
+// ===== DEV LINKS =====
+
+model DevLink {
+  id        String      @id @default(uuid())
+  issueId   String      @map("issue_id")
+  type      DevLinkType
+  url       String
+  title     String?
+  sha       String?
+  status    String?
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@map("dev_links")
+}
+
+enum DevLinkType {
+  COMMIT
+  BRANCH
+  PULL_REQUEST
+  MERGE
 }
 
 // ===== AI SESSIONS =====

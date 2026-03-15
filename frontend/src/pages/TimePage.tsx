@@ -10,9 +10,11 @@ function emptySummary(userId?: string): UserTimeSummary {
   return {
     userId: userId ?? '',
     humanHours: 0,
+    humanAiHours: 0,
     agentHours: 0,
     totalHours: 0,
     agentCost: 0,
+    humanAiCost: 0,
   };
 }
 
@@ -150,10 +152,12 @@ export default function TimePage() {
     {
       title: 'Source',
       dataIndex: 'source',
-      width: 90,
+      width: 110,
       render: (src: TimeLog['source']) =>
         src === 'AGENT' ? (
           <span className="tt-badge tt-badge-purple">AI</span>
+        ) : src === 'HUMAN_AI' ? (
+          <span className="tt-badge tt-badge-cyan">Human+AI</span>
         ) : (
           <span className="tt-badge tt-badge-blue">Human</span>
         ),
@@ -282,6 +286,12 @@ export default function TimePage() {
           <Typography.Text type="secondary">Human</Typography.Text>
           <div className="tt-mono" style={{ fontSize: 24, marginTop: 8 }}>
             {summary.humanHours.toFixed(2)}h
+          </div>
+        </Card>
+        <Card size="small" data-testid="time-summary-human-ai">
+          <Typography.Text type="secondary">Human+AI</Typography.Text>
+          <div className="tt-mono" style={{ fontSize: 24, marginTop: 8 }}>
+            {summary.humanAiHours.toFixed(2)}h
           </div>
         </Card>
         <Card size="small" data-testid="time-summary-ai">

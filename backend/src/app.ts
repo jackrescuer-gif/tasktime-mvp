@@ -16,6 +16,7 @@ import timeRouter from './modules/time/time.router.js';
 import teamsRouter from './modules/teams/teams.router.js';
 import adminRouter from './modules/admin/admin.router.js';
 import aiSessionsRouter from './modules/ai/ai-sessions.router.js';
+import exportRouter from './modules/export/export.router.js';
 
 export function createApp() {
   const app = express();
@@ -49,6 +50,7 @@ export function createApp() {
   app.use('/api', teamsRouter);
   app.use('/api', adminRouter);
   app.use('/api', aiSessionsRouter);
+  app.use('/api', exportRouter);
 
   // Error handler (must be last)
   app.use(errorHandler);

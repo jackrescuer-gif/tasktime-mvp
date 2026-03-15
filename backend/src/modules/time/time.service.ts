@@ -55,7 +55,7 @@ export async function logManual(issueId: string, userId: string, dto: ManualTime
       hours: new Decimal(dto.hours),
       note: dto.note,
       logDate: dto.logDate ? new Date(dto.logDate) : new Date(),
-      source: 'HUMAN',
+      source: dto.source ?? 'HUMAN',
     },
   });
 }
@@ -102,12 +102,20 @@ export async function getUserTimeSummary(userId: string) {
   });
 
   const humanHours = groupedHours.find((group) => group.source === 'HUMAN')?._sum.hours;
+  const humanAiHours = groupedHours.find((group) => group.source === 'HUMAN_AI')?._sum.hours;
   const agentHours = groupedHours.find((group) => group.source === 'AGENT')?._sum.hours;
+
+  const humanAiTotals = await prisma.timeLog.aggregate({
+    where: { userId, source: 'HUMAN_AI' },
+    _sum: { costMoney: true },
+  });
 
   return buildUserTimeSummary(userId, {
     humanHours,
+    humanAiHours,
     agentHours,
     agentCost: agentTotals._sum.costMoney,
+    humanAiCost: humanAiTotals._sum.costMoney,
   });
 }
 

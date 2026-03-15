@@ -111,7 +111,7 @@ export default function IssueDetailPage() {
     } catch { message.error('No running timer'); }
   };
 
-  const handleLogManual = async (vals: { hours: number; note?: string }) => {
+  const handleLogManual = async (vals: { hours: number; note?: string; source?: 'HUMAN' | 'HUMAN_AI' }) => {
     if (!id) return;
     await timeApi.logManual(id, vals);
     setTimeModalOpen(false);
@@ -451,6 +451,7 @@ export default function IssueDetailPage() {
                   dataSource={timeLogs}
                   renderItem={(log) => {
                     const isAgent = log.source === 'AGENT';
+                    const isHumanAi = log.source === 'HUMAN_AI';
                     const modelLabel =
                       isAgent && log.agentSession
                         ? `${log.agentSession.model}`
@@ -463,6 +464,10 @@ export default function IssueDetailPage() {
                           {isAgent ? (
                             <Tag color="purple" style={{ marginInlineEnd: 0 }}>
                               AI{modelLabel ? ` · ${modelLabel}` : ''}
+                            </Tag>
+                          ) : isHumanAi ? (
+                            <Tag color="cyan" style={{ marginInlineEnd: 0 }}>
+                              Human+AI
                             </Tag>
                           ) : (
                             <Tag color="blue" style={{ marginInlineEnd: 0 }}>
@@ -507,6 +512,14 @@ export default function IssueDetailPage() {
               max={24}
               step={0.25}
               style={{ width: '100%' }}
+            />
+          </Form.Item>
+          <Form.Item name="source" label="Source" initialValue="HUMAN">
+            <Select
+              options={[
+                { value: 'HUMAN', label: 'Human' },
+                { value: 'HUMAN_AI', label: 'Human + AI' },
+              ]}
             />
           </Form.Item>
           <Form.Item name="note" label="Note">

@@ -94,7 +94,7 @@ export interface TimeLog {
   createdAt: string;
   user?: { id: string; name: string };
   issue?: { id: string; title: string; number: number; project?: { key: string } };
-  source?: 'HUMAN' | 'AGENT';
+  source?: 'HUMAN' | 'HUMAN_AI' | 'AGENT';
   agentSessionId?: string | null;
   costMoney?: number | null;
   agentSession?: { model: string; provider: string };
@@ -103,9 +103,11 @@ export interface TimeLog {
 export interface UserTimeSummary {
   userId: string;
   humanHours: number;
+  humanAiHours: number;
   agentHours: number;
   totalHours: number;
   agentCost: number;
+  humanAiCost: number;
 }
 
 export interface AuditEntry {

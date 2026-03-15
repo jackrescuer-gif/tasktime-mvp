@@ -11,7 +11,7 @@ export async function stopTimer(issueId: string): Promise<TimeLog> {
   return data;
 }
 
-export async function logManual(issueId: string, body: { hours: number; note?: string; logDate?: string }): Promise<TimeLog> {
+export async function logManual(issueId: string, body: { hours: number; note?: string; logDate?: string; source?: 'HUMAN' | 'HUMAN_AI' }): Promise<TimeLog> {
   const { data } = await api.post<TimeLog>(`/issues/${issueId}/time`, body);
   return data;
 }
