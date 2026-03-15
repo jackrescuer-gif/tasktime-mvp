@@ -17,6 +17,7 @@ import teamsRouter from './modules/teams/teams.router.js';
 import adminRouter from './modules/admin/admin.router.js';
 import aiSessionsRouter from './modules/ai/ai-sessions.router.js';
 import telegramRouter from './modules/integrations/telegram/telegram.router.js';
+import gitlabRouter from './modules/integrations/gitlab/gitlab.router.js';
 
 export function createApp() {
   const app = express();
@@ -51,6 +52,7 @@ export function createApp() {
   app.use('/api', adminRouter);
   app.use('/api', aiSessionsRouter);
   app.use('/api', telegramRouter);
+  app.use('/api', gitlabRouter);
 
   // Error handler (must be last)
   app.use(errorHandler);

@@ -62,8 +62,9 @@ model Project {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  issues  Issue[]
-  sprints Sprint[]
+  issues            Issue[]
+  sprints           Sprint[]
+  gitlabIntegration GitLabIntegration?
 
   @@map("projects")
 }
@@ -319,6 +320,20 @@ model TeamMember {
 }
 
 // ===== INTEGRATIONS =====
+
+model GitLabIntegration {
+  id           String   @id @default(uuid())
+  projectId    String   @unique @map("project_id")
+  gitlabUrl    String   @map("gitlab_url")
+  gitlabToken  String   @map("gitlab_token")
+  webhookToken String   @map("webhook_token")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("gitlab_integrations")
+}
 
 model TelegramSubscription {
   id        String   @id @default(uuid())

@@ -9,6 +9,7 @@ import * as projectsApi from '../api/projects';
 import * as sprintsApi from '../api/sprints';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import TelegramSettings from '../components/common/TelegramSettings';
+import GitLabSettings from '../components/common/GitLabSettings';
 
 interface AdminUserRow {
   id: string;
@@ -389,6 +390,13 @@ export default function AdminPage() {
             <div className="tt-panel-header">Telegram Notifications</div>
             <div className="tt-panel-body">
               <TelegramSettings />
+            </div>
+          </div>
+
+          <div className="tt-panel">
+            <div className="tt-panel-header">GitLab Integration</div>
+            <div className="tt-panel-body">
+              <GitLabSettings />
             </div>
           </div>
         </aside>
