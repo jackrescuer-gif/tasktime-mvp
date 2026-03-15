@@ -16,7 +16,7 @@
 | 4.4 | GitLab webhook: автообновление статусов | ✅ DONE | P1 |
 | 4.5 | Экспорт отчётов (CSV, PDF) | ✅ DONE | P1 |
 | 4.6 | Performance optimization | ✅ DONE | P2 |
-| 4.7 | Security audit | 🔲 TODO | P2 |
+| 4.7 | Security audit | ✅ DONE | P2 |
 | 4.8 | Deployment scripts (production) | 🔲 TODO | P2 |
 | 4.9 | Документация API (Swagger) | 🔲 TODO | P3 |
 | 4.10 | User guide обновление | 🔲 TODO | P3 |
