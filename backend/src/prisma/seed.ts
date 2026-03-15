@@ -1644,6 +1644,313 @@ export async function seedDatabase(seedPrisma: PrismaClient, options: SeedOption
     },
   });
 
+  // ===== Bulk-update all Sprint 0–3.5 issues: status DONE, aiAssigneeType, aiEligible =====
+  // Sprint 0 (#1-12): Research & planning — purely HUMAN (PO interviews, requirements gathering)
+  const sprint0IssueNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  for (const num of sprint0IssueNumbers) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: {
+        status: 'DONE',
+        aiEligible: false,
+        aiAssigneeType: 'HUMAN',
+        aiExecutionStatus: 'NOT_STARTED',
+      },
+    });
+  }
+
+  // Sprint 1 (#13-50): Foundation — vibe-coding (HUMAN_AI), PO directed Claude
+  // EPICs/STORYs = MIXED (planning HUMAN + code AGENT), TASKs = HUMAN_AI (vibe-coding)
+  const sprint1Epics = [13]; // EPIC — coordination
+  const sprint1Stories = [14, 19, 23, 27, 30, 34, 37, 40, 43, 47];
+  const sprint1Tasks = [15, 16, 17, 18, 20, 21, 22, 24, 25, 26, 28, 29, 31, 32, 33, 35, 36, 38, 39, 41, 42, 44, 45, 46, 48, 49, 50];
+
+  for (const num of sprint1Epics) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+  for (const num of sprint1Stories) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+  for (const num of sprint1Tasks) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+
+  // Sprint 2 (#51-70): Boards, sprints, time, comments — vibe-coding (HUMAN_AI)
+  const sprint2Epics = [51];
+  const sprint2Stories = [52, 56, 61, 65, 68];
+  const sprint2Tasks = [53, 54, 55, 57, 58, 59, 60, 62, 63, 64, 66, 67, 69, 70];
+
+  for (const num of sprint2Epics) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+  for (const num of sprint2Stories) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+  for (const num of sprint2Tasks) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+
+  // Sprint 3 (#71-74): Admin module — vibe-coding (HUMAN_AI)
+  await prisma.issue.update({
+    where: { projectId_number: { projectId: mvpProject.id, number: 71 } },
+    data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+  });
+  for (const num of [72]) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+  for (const num of [73, 74]) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+
+  // Sprint 3.5 (#75-80): UAT, E2E, UX polish — vibe-coding (HUMAN_AI)
+  for (const num of [75, 78]) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+  for (const num of [76, 77, 79, 80]) {
+    await prisma.issue.update({
+      where: { projectId_number: { projectId: mvpProject.id, number: num } },
+      data: { status: 'DONE', aiEligible: true, aiAssigneeType: 'MIXED', aiExecutionStatus: 'DONE' },
+    });
+  }
+
+  // ===== Realistic time logs for all TTMP tasks (Sprint 0–3.5) =====
+  // Skip if time logs already populated (idempotent)
+  const existingTtmpTimeLogs = await prisma.timeLog.count({
+    where: { issue: { projectId: mvpProject.id, number: { lte: 80 } } },
+  });
+
+  if (existingTtmpTimeLogs <= 5) {
+    // Helper: Sprint dates
+    const S0_DATE = new Date('2026-03-08');
+    const S1_DATE = new Date('2026-03-09');
+    const S2_DATE = new Date('2026-03-10');
+    const S3_DATE = new Date('2026-03-11');
+    const S35_DATE = new Date('2026-03-12');
+
+    // Issue lookup helper
+    const issueByNumber = async (num: number) =>
+      prisma.issue.findUniqueOrThrow({
+        where: { projectId_number: { projectId: mvpProject.id, number: num } },
+        select: { id: true },
+      });
+
+    // ──────────────────────────────────────────────
+    // Sprint 0: Research (8 Mar) — 100% HUMAN (PO + analyst)
+    // Total: ~9h across 3 people
+    // ──────────────────────────────────────────────
+    const s0TimeLogs: Array<{ num: number; userId: string; hours: number; note: string }> = [
+      // EPIC #1 — no time (container)
+      // STORY #2 — Interviews
+      { num: 3, userId: owner.id, hours: 2.0, note: 'Интервью с PO: блоки 1-4 (продукт, пользователи, функции, интеграции)' },
+      { num: 3, userId: manager.id, hours: 2.0, note: 'Участие в интервью, фиксация требований' },
+      { num: 4, userId: owner.id, hours: 0.5, note: 'Описание интеграций GitLab/Confluence/Telegram' },
+      { num: 5, userId: owner.id, hours: 1.0, note: 'Интервью блок 5: безопасность, RBAC, ФЗ-152' },
+      { num: 5, userId: manager.id, hours: 1.0, note: 'Фиксация требований ИБ' },
+      // STORY #6 — Stack
+      { num: 7, userId: owner.id, hours: 0.5, note: 'Выбор backend-стека: Node/Express/Prisma/PG' },
+      { num: 8, userId: owner.id, hours: 0.5, note: 'Выбор frontend-стека: React/Vite/AntD/Zustand' },
+      { num: 9, userId: owner.id, hours: 0.75, note: 'Проектирование модульного монолита' },
+      // STORY #10 — Rebuild plan
+      { num: 11, userId: owner.id, hours: 1.5, note: 'Написание REBUILD_PLAN_V2 (800+ строк)' },
+      { num: 12, userId: owner.id, hours: 0.5, note: 'Требования к ОС (Astra Linux, Red OS), браузерам, деплою' },
+    ];
+
+    for (const log of s0TimeLogs) {
+      const issue = await issueByNumber(log.num);
+      await prisma.timeLog.create({
+        data: {
+          issueId: issue.id,
+          userId: log.userId,
+          hours: new Prisma.Decimal(log.hours),
+          note: log.note,
+          logDate: S0_DATE,
+          source: 'HUMAN',
+        },
+      });
+    }
+
+    // ──────────────────────────────────────────────
+    // Sprint 1: Foundation (9-10 Mar) — vibe-coding with Claude
+    // Total: ~20h HUMAN_AI + ~4h AI autonomous
+    // Pattern: owner gives prompts, Claude generates, owner reviews
+    // ──────────────────────────────────────────────
+    const s1TimeLogs: Array<{ num: number; userId: string; hours: number; source: 'HUMAN_AI' | 'HUMAN'; note: string }> = [
+      // Backend infra (#14-18)
+      { num: 15, userId: owner.id, hours: 1.0, source: 'HUMAN_AI', note: 'Вайб-код: scaffold Express+TS+ESLint с Claude' },
+      { num: 16, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: настройка Prisma 6 + PG16 с Claude' },
+      { num: 17, userId: owner.id, hours: 1.5, source: 'HUMAN_AI', note: 'Вайб-код: Prisma schema (User, Project, Issue, Comment, AuditLog) с Claude' },
+      { num: 18, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: error handling + logging middleware с Claude' },
+      // Auth (#19-22)
+      { num: 20, userId: owner.id, hours: 1.5, source: 'HUMAN_AI', note: 'Вайб-код: auth API (register/login/refresh/logout/me) с Claude' },
+      { num: 21, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: JWT + refresh tokens + bcrypt с Claude' },
+      { num: 22, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: RBAC middleware с Claude' },
+      // Users (#23-26)
+      { num: 24, userId: owner.id, hours: 1.0, source: 'HUMAN_AI', note: 'Вайб-код: CRUD users + role management с Claude' },
+      { num: 25, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: RBAC middleware по ролям с Claude' },
+      { num: 26, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: привязка audit к user/entity с Claude' },
+      // Projects (#27-29)
+      { num: 28, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: CRUD проектов с ключами с Claude' },
+      { num: 29, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: API фильтрации проектов с Claude' },
+      // Issues (#30-33)
+      { num: 31, userId: owner.id, hours: 1.0, source: 'HUMAN_AI', note: 'Вайб-код: модель задач EPIC/STORY/TASK/SUBTASK/BUG с Claude' },
+      { num: 32, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: статусы OPEN→IN_PROGRESS→REVIEW→DONE с Claude' },
+      { num: 33, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: иерархия parent-child + key generation с Claude' },
+      // Audit (#34-36)
+      { num: 35, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: audit middleware для всех мутаций с Claude' },
+      { num: 36, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: audit log привязка к user/resource/action с Claude' },
+      // Frontend shell (#37-39)
+      { num: 38, userId: owner.id, hours: 1.0, source: 'HUMAN_AI', note: 'Вайб-код: Vite+React+AntD+Zustand scaffold с Claude' },
+      { num: 39, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: React Router + AppLayout с Claude' },
+      // Frontend auth (#40-42)
+      { num: 41, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: LoginPage + Auth API integration с Claude' },
+      { num: 42, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: auth state + protected routes с Claude' },
+      // Frontend projects (#43-46)
+      { num: 44, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: ProjectsPage с Claude' },
+      { num: 45, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: ProjectDetailPage + issues list с Claude' },
+      { num: 46, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: issue create/edit form с Claude' },
+      // Seed & local (#47-50)
+      { num: 48, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: seed script (users, projects, issues) с Claude' },
+      { num: 49, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: Docker Compose (PG16 + Redis 7) с Claude' },
+      { num: 50, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: Makefile setup/dev/backend/frontend с Claude' },
+      // Manager review
+      { num: 13, userId: manager.id, hours: 1.0, source: 'HUMAN', note: 'Приёмка Sprint 1: проверка всех модулей и seed' },
+    ];
+
+    for (const log of s1TimeLogs) {
+      const issue = await issueByNumber(log.num);
+      await prisma.timeLog.create({
+        data: {
+          issueId: issue.id,
+          userId: log.userId,
+          hours: new Prisma.Decimal(log.hours),
+          note: log.note,
+          logDate: S1_DATE,
+          source: log.source,
+        },
+      });
+    }
+
+    // ──────────────────────────────────────────────
+    // Sprint 2: Boards, sprints, time, comments (10 Mar)
+    // Total: ~15h HUMAN_AI + ~1h HUMAN review
+    // ──────────────────────────────────────────────
+    const s2TimeLogs: Array<{ num: number; userId: string; hours: number; source: 'HUMAN_AI' | 'HUMAN'; note: string }> = [
+      // Kanban board (#52-55)
+      { num: 53, userId: owner.id, hours: 1.5, source: 'HUMAN_AI', note: 'Вайб-код: Board API (колонки, порядок задач) с Claude' },
+      { num: 54, userId: owner.id, hours: 1.25, source: 'HUMAN_AI', note: 'Вайб-код: drag-n-drop + status/order save с Claude' },
+      { num: 55, userId: owner.id, hours: 1.5, source: 'HUMAN_AI', note: 'Вайб-код: BoardPage UI с Claude' },
+      // Sprints (#56-60)
+      { num: 57, userId: owner.id, hours: 1.0, source: 'HUMAN_AI', note: 'Вайб-код: sprints API (create/start/close) с Claude' },
+      { num: 58, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: перемещение задач backlog↔sprint с Claude' },
+      { num: 59, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: one ACTIVE sprint constraint с Claude' },
+      { num: 60, userId: owner.id, hours: 1.0, source: 'HUMAN_AI', note: 'Вайб-код: SprintsPage UI с Claude' },
+      // Time tracking (#61-64)
+      { num: 62, userId: owner.id, hours: 1.25, source: 'HUMAN_AI', note: 'Вайб-код: timer API (start/stop) + manual entry с Claude' },
+      { num: 63, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: time log by user+issue с Claude' },
+      { num: 64, userId: owner.id, hours: 1.5, source: 'HUMAN_AI', note: 'Вайб-код: TimePage (My Time) с агрегацией с Claude' },
+      // Comments (#65-67)
+      { num: 66, userId: owner.id, hours: 0.75, source: 'HUMAN_AI', note: 'Вайб-код: comments CRUD API с Claude' },
+      { num: 67, userId: owner.id, hours: 0.5, source: 'HUMAN_AI', note: 'Вайб-код: comments block on IssueDetailPage с Claude' },
+      // Issue card (#68-70)
+      { num: 69, userId: owner.id, hours: 1.25, source: 'HUMAN_AI', note: 'Вайб-код: IssueDetailPage (fields, hierarchy, time, comments) с Claude' },
+      { num: 70, userId: owner.id, hours: 1.0, source: 'HUMAN_AI', note: 'Вайб-код: issue history from audit_log с Claude' },
+      // Manager review
+      { num: 51, userId: manager.id, hours: 1.0, source: 'HUMAN', note: 'Приёмка Sprint 2: тестирование доски, спринтов, времени' },
+    ];
+
+    for (const log of s2TimeLogs) {
+      const issue = await issueByNumber(log.num);
+      await prisma.timeLog.create({
+        data: {
+          issueId: issue.id,
+          userId: log.userId,
+          hours: new Prisma.Decimal(log.hours),
+          note: log.note,
+          logDate: S2_DATE,
+          source: log.source,
+        },
+      });
+    }
+
+    // ──────────────────────────────────────────────
+    // Sprint 3: Teams, Admin, Reports (11 Mar)
+    // Total: ~5h HUMAN_AI + ~0.5h HUMAN review
+    // ──────────────────────────────────────────────
+    const s3TimeLogs: Array<{ num: number; userId: string; hours: number; source: 'HUMAN_AI' | 'HUMAN'; note: string }> = [
+      { num: 73, userId: owner.id, hours: 1.5, source: 'HUMAN_AI', note: 'Вайб-код: admin.service + admin.router (ADMIN only) с Claude' },
+      { num: 74, userId: owner.id, hours: 1.5, source: 'HUMAN_AI', note: 'Вайб-код: AdminPage UI с Claude' },
+      { num: 71, userId: manager.id, hours: 0.5, source: 'HUMAN', note: 'Приёмка Sprint 3: admin, teams, reports' },
+    ];
+
+    for (const log of s3TimeLogs) {
+      const issue = await issueByNumber(log.num);
+      await prisma.timeLog.create({
+        data: {
+          issueId: issue.id,
+          userId: log.userId,
+          hours: new Prisma.Decimal(log.hours),
+          note: log.note,
+          logDate: S3_DATE,
+          source: log.source,
+        },
+      });
+    }
+
+    // ──────────────────────────────────────────────
+    // Sprint 3.5: UAT, E2E, UX polish (12 Mar)
+    // Total: ~6h HUMAN_AI + ~1h HUMAN review
+    // ──────────────────────────────────────────────
+    const s35TimeLogs: Array<{ num: number; userId: string; hours: number; source: 'HUMAN_AI' | 'HUMAN'; note: string }> = [
+      { num: 76, userId: owner.id, hours: 1.0, source: 'HUMAN_AI', note: 'Вайб-код: UAT test data + API с Claude' },
+      { num: 77, userId: owner.id, hours: 1.25, source: 'HUMAN_AI', note: 'Вайб-код: UatTestsPage + UatOnboardingOverlay с Claude' },
+      { num: 79, userId: owner.id, hours: 1.5, source: 'HUMAN_AI', note: 'Вайб-код: Playwright config + main-flows.spec.ts с Claude' },
+      { num: 80, userId: owner.id, hours: 1.25, source: 'HUMAN_AI', note: 'Вайб-код: Linear-like UI styles с Claude' },
+      { num: 75, userId: manager.id, hours: 0.5, source: 'HUMAN', note: 'UAT приёмка: онбординг и тесты' },
+      { num: 78, userId: manager.id, hours: 0.5, source: 'HUMAN', note: 'Визуальная приёмка UX polish' },
+    ];
+
+    for (const log of s35TimeLogs) {
+      const issue = await issueByNumber(log.num);
+      await prisma.timeLog.create({
+        data: {
+          issueId: issue.id,
+          userId: log.userId,
+          hours: new Prisma.Decimal(log.hours),
+          note: log.note,
+          logDate: S35_DATE,
+          source: log.source,
+        },
+      });
+    }
+  }
+
   // ===== Sprint 4 — AI, Export API, Интеграции =====
   const sprint4 = await seedPrisma.sprint.upsert({
     where: { projectId_name: { projectId: mvpProject.id, name: 'Sprint 4 — AI, Export API, Интеграции' } },
@@ -1942,9 +2249,11 @@ export async function seedDatabase(seedPrisma: PrismaClient, options: SeedOption
       }
     }
 
-    // === HUMAN_AI demo time logs (vibe-coding sessions) ===
-    const existingHumanAiLogs = await prisma.timeLog.count({ where: { source: 'HUMAN_AI' } });
-    if (existingHumanAiLogs === 0) {
+    // === HUMAN_AI demo time logs for Sprint 4 (vibe-coding sessions) ===
+    const existingSprint4TimeLogs = await prisma.timeLog.count({
+      where: { issue: { projectId: mvpProject.id, number: { gte: 81 } } },
+    });
+    if (existingSprint4TimeLogs === 0) {
       // Vibe-coding session: owner discussed + implemented export API with Claude
       await prisma.timeLog.createMany({
         data: [
