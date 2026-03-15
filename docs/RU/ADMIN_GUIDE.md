@@ -75,6 +75,98 @@
 
 ---
 
+## Переменные окружения Sprint 4
+
+Добавлены в `backend/.env.example`:
+
+| Переменная | Описание |
+|------------|----------|
+| `ANTHROPIC_API_KEY` | API-ключ Anthropic для AI-функций (оценка, декомпозиция). Получить: console.anthropic.com |
+| `TELEGRAM_BOT_TOKEN` | Токен Telegram-бота от @BotFather |
+| `TELEGRAM_WEBHOOK_SECRET` | Произвольная строка для верификации webhook-запросов от Telegram |
+| `TELEGRAM_WEBHOOK_URL` | Публичный URL вашего backend для регистрации webhook (https://example.com/api/integrations/telegram/webhook) |
+| `GITLAB_WEBHOOK_SECRET` | Секретный токен для верификации webhook-запросов от GitLab |
+| `SWAGGER_ENABLED` | `true` для включения /api/docs в production |
+
+---
+
+## Настройка Telegram-бота
+
+### 1. Создание бота
+
+1. Откройте @BotFather в Telegram, отправьте `/newbot`.
+2. Задайте имя и username бота (например `tasktime_notify_bot`).
+3. Скопируйте токен и добавьте в `TELEGRAM_BOT_TOKEN`.
+
+### 2. Регистрация webhook
+
+Telegram должен знать, куда отправлять события. Зарегистрируйте webhook командой:
+
+```bash
+curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-domain.com/api/integrations/telegram/webhook",
+    "secret_token": "<TELEGRAM_WEBHOOK_SECRET>"
+  }'
+```
+
+Убедитесь, что URL доступен из интернета и использует HTTPS.
+
+### 3. Проверка
+
+```bash
+curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getWebhookInfo"
+```
+
+Поле `url` должно совпадать с вашим `TELEGRAM_WEBHOOK_URL`, `pending_update_count` = 0.
+
+### 4. Инструкция для пользователей
+
+Сообщите пользователям: найти бота `@ваш_бот_username` в Telegram и нажать **Start**. Бот пришлёт chat ID. Этот ID нужно вставить в **Admin → Telegram Notifications → Your Telegram chat ID** и нажать **Connect**.
+
+---
+
+## Настройка GitLab-интеграции
+
+### 1. Настройка webhook в GitLab
+
+1. Перейдите в нужный GitLab-репозиторий → **Settings → Webhooks**.
+2. URL: `https://your-domain.com/api/integrations/gitlab/webhook`
+3. Secret token: значение из `GITLAB_WEBHOOK_SECRET`
+4. Включите события: **Push events**, **Merge request events**
+5. Нажмите **Add webhook**.
+
+### 2. Привязка к проекту TaskTime
+
+В разделе **Admin → GitLab Integration**:
+1. Выберите проект TaskTime.
+2. Введите GitLab URL репозитория и токен API (personal access token с правами `api`).
+3. Введите webhook token (тот же, что в `GITLAB_WEBHOOK_SECRET`).
+4. Нажмите **Save**.
+
+### 3. Как работает автообновление статусов
+
+| Событие GitLab | Статус TaskTime |
+|---------------|----------------|
+| Push-коммит с ключом задачи в сообщении | IN_PROGRESS |
+| Открыт Merge Request | IN_PROGRESS |
+| MR влит (merged) | REVIEW |
+| MR закрыт (closed) | DONE |
+
+Ключ задачи должен присутствовать в заголовке коммита или MR (например `PROJ-42`). Задачи в статусе DONE/CANCELLED не понижаются.
+
+---
+
+## AI-функции: производственные требования
+
+- `ANTHROPIC_API_KEY` должен быть настроен. Без него эндпоинты `/api/ai/estimate` и `/api/ai/decompose` вернут 503.
+- Модель: `claude-haiku-4-5-20251001` (быстрая и дешёвая, подходит для оценки).
+- Сетевой доступ: backend должен иметь исходящий доступ к `api.anthropic.com:443`. Проверьте корпоративный прокси/файрвол.
+- Сессии сохраняются в таблице `ai_sessions` для аудита.
+
+---
+
 ## Обновления
 
 - **Staging:** `Deploy Staging` запускается только после успешного `CI` и успешной публикации образов из `main`.

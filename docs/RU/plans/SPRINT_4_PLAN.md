@@ -18,8 +18,8 @@
 | 4.6 | Performance optimization | ✅ DONE | P2 |
 | 4.7 | Security audit | ✅ DONE | P2 |
 | 4.8 | Deployment scripts (production) | ✅ DONE | P2 |
-| 4.9 | Документация API (Swagger) | 🔲 TODO | P3 |
-| 4.10 | User guide обновление | 🔲 TODO | P3 |
+| 4.9 | Документация API (Swagger) | ✅ DONE | P3 |
+| 4.10 | User guide обновление | ✅ DONE | P3 |
 
 Легенда: 🔲 TODO · 🔄 IN PROGRESS · ✅ DONE
 
