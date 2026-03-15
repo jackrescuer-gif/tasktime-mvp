@@ -34,6 +34,7 @@ import * as issuesApi from '../api/issues';
 import * as commentsApi from '../api/comments';
 import * as timeApi from '../api/time';
 import AiEstimateButton from '../components/issues/AiEstimateButton';
+import AiDecomposePanel from '../components/issues/AiDecomposePanel';
 import { useAuthStore } from '../store/auth.store';
 import type { Issue, Comment, TimeLog, AuditEntry, IssueStatus, IssuePriority } from '../types';
 import api from '../api/client';
@@ -424,6 +425,19 @@ export default function IssueDetailPage() {
               />
             </div>
           </div>
+
+          {(issue.type === 'EPIC' || issue.type === 'STORY') && (
+            <div className="tt-panel">
+              <div className="tt-panel-header">AI Decompose</div>
+              <div className="tt-panel-body">
+                <AiDecomposePanel
+                  issueId={issue.id}
+                  issueType={issue.type}
+                  onCreated={() => load()}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="tt-panel">
             <div className="tt-panel-header">
