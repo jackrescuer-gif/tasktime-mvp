@@ -27,6 +27,28 @@ router.post(
   },
 );
 
+/**
+ * @openapi
+ * /ai/estimate/{issueId}:
+ *   post:
+ *     tags: [AI]
+ *     summary: AI effort estimation for an issue
+ *     description: Uses Claude Haiku to estimate hours. Saves result to Issue.estimatedHours and logs AiSession.
+ *     parameters:
+ *       - in: path
+ *         name: issueId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       200:
+ *         description: Estimation result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/EstimateResult'
+ *       503:
+ *         description: ANTHROPIC_API_KEY not configured
+ */
 // POST /api/ai/estimate/:issueId — AI estimate of effort
 router.post(
   '/ai/estimate/:issueId',
@@ -52,6 +74,28 @@ const applyDecomposeDto = z.object({
   ),
 });
 
+/**
+ * @openapi
+ * /ai/decompose/{issueId}:
+ *   post:
+ *     tags: [AI]
+ *     summary: AI decomposition of EPIC/STORY into child issues
+ *     description: Returns suggestions only. Call /apply to create them.
+ *     parameters:
+ *       - in: path
+ *         name: issueId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       200:
+ *         description: Decomposition suggestions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DecomposeResult'
+ *       400:
+ *         description: Issue type must be EPIC or STORY
+ */
 // POST /api/ai/decompose/:issueId — get AI decomposition suggestions
 router.post(
   '/ai/decompose/:issueId',

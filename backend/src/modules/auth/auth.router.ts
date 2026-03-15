@@ -18,6 +18,30 @@ const authLimiter = rateLimit({
   skip: () => process.env.NODE_ENV === 'test',
 });
 
+/**
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Register a new user
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password, name]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               password: { type: string, minLength: 8 }
+ *               name: { type: string }
+ *     responses:
+ *       201:
+ *         description: User created, returns tokens
+ *       429:
+ *         description: Too many requests
+ */
 router.post('/register', authLimiter, validate(registerDto), async (req, res, next) => {
   try {
     const result = await authService.register(req.body);
@@ -27,6 +51,38 @@ router.post('/register', authLimiter, validate(registerDto), async (req, res, ne
   }
 });
 
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Login and get JWT tokens
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string, format: email, example: admin@tasktime.ru }
+ *               password: { type: string, example: password123 }
+ *     responses:
+ *       200:
+ *         description: Returns accessToken and refreshToken
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken: { type: string }
+ *                 refreshToken: { type: string }
+ *       401:
+ *         description: Invalid credentials
+ *       429:
+ *         description: Too many requests
+ */
 router.post('/login', authLimiter, validate(loginDto), async (req, res, next) => {
   try {
     const result = await authService.login(req.body);

@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './shared/swagger.js';
 
 import { errorHandler } from './shared/middleware/error-handler.js';
 import { getReadinessStatus } from './shared/health.js';
@@ -27,6 +29,14 @@ export function createApp() {
   app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173', credentials: true }));
   app.use(express.json());
   app.use(cookieParser());
+
+  // Swagger UI — disabled in production unless SWAGGER_ENABLED=true
+  if (process.env.NODE_ENV !== 'production' || process.env.SWAGGER_ENABLED === 'true') {
+    app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+      customSiteTitle: 'TaskTime API Docs',
+    }));
+    app.get('/api/docs.json', (_req, res) => res.json(swaggerSpec));
+  }
 
   // Health check
   app.get('/api/health', (_req, res) => {

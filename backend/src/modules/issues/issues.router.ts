@@ -19,6 +19,48 @@ const router = Router();
 
 router.use(authenticate);
 
+/**
+ * @openapi
+ * /projects/{projectId}/issues:
+ *   get:
+ *     tags: [Issues]
+ *     summary: List issues for a project (paginated)
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string }
+ *         description: Comma-separated statuses (OPEN,IN_PROGRESS,REVIEW,DONE,CANCELLED)
+ *       - in: query
+ *         name: sprintId
+ *         schema: { type: string }
+ *         description: Sprint UUID or "BACKLOG" for unassigned
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 100, maximum: 200 }
+ *     responses:
+ *       200:
+ *         description: Paginated issues list
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Issue'
+ *                 total: { type: integer }
+ *                 page: { type: integer }
+ *                 limit: { type: integer }
+ *                 pages: { type: integer }
+ */
 // List issues for a project with filters
 router.get('/projects/:projectId/issues', async (req, res, next) => {
   try {
