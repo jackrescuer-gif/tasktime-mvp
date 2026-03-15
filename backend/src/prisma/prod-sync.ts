@@ -9,7 +9,6 @@ import {
   buildProdSyncPlan,
   getAiSessionCompositeKey,
   getIssueKey,
-  getTimeLogCompositeKey,
   type ProdSyncAiSessionRecord,
   type ProdSyncDataSnapshot,
   type ProdSyncIssueRecord,
