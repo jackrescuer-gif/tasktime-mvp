@@ -8,6 +8,7 @@ import type { User, Project, Sprint } from '../types';
 import * as projectsApi from '../api/projects';
 import * as sprintsApi from '../api/sprints';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import TelegramSettings from '../components/common/TelegramSettings';
 
 interface AdminUserRow {
   id: string;
@@ -381,6 +382,13 @@ export default function AdminPage() {
                   </List.Item>
                 )}
               />
+            </div>
+          </div>
+
+          <div className="tt-panel">
+            <div className="tt-panel-header">Telegram Notifications</div>
+            <div className="tt-panel-body">
+              <TelegramSettings />
             </div>
           </div>
         </aside>

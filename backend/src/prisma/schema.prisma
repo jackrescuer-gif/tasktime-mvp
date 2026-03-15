@@ -19,14 +19,15 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  assignedIssues Issue[]        @relation("assignee")
-  createdIssues  Issue[]        @relation("creator")
-  refreshTokens  RefreshToken[]
-  auditLogs      AuditLog[]
-  comments       Comment[]
-  timeLogs       TimeLog[]
-  aiSessions     AiSession[]
-  teamMemberships TeamMember[]
+  assignedIssues       Issue[]               @relation("assignee")
+  createdIssues        Issue[]               @relation("creator")
+  refreshTokens        RefreshToken[]
+  auditLogs            AuditLog[]
+  comments             Comment[]
+  timeLogs             TimeLog[]
+  aiSessions           AiSession[]
+  teamMemberships      TeamMember[]
+  telegramSubscription TelegramSubscription?
 
   @@map("users")
 }
@@ -315,4 +316,19 @@ model TeamMember {
   @@unique([teamId, userId])
   @@index([userId])
   @@map("team_members")
+}
+
+// ===== INTEGRATIONS =====
+
+model TelegramSubscription {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  chatId    String   @map("chat_id")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("telegram_subscriptions")
 }
