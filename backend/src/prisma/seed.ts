@@ -2325,28 +2325,217 @@ export async function seedDatabase(seedPrisma: PrismaClient, options: SeedOption
       });
     }
 
-    // === DevLink demo data ===
+    // === DevLink data for all sprints (Cursor + Claude sessions) ===
     const existingDevLinks = await prisma.devLink.count();
     if (existingDevLinks === 0) {
+      const REPO = 'https://github.com/jackrescuer-gif/tasktime-mvp';
+
+      // Helper to resolve issue IDs
+      const issueId = async (num: number) =>
+        (await prisma.issue.findUniqueOrThrow({
+          where: { projectId_number: { projectId: mvpProject.id, number: num } },
+          select: { id: true },
+        })).id;
+
+      // Sprint 0 — Research & planning (Cursor)
+      const id10 = await issueId(10); // Plan v2
+      const id11 = await issueId(11); // REBUILD_PLAN_V2
+
+      // Sprint 1 — Foundation (Cursor: claude/mvp-project-management-hdAvd)
+      const id13 = await issueId(13); // EPIC Sprint 1
+      const id15 = await issueId(15); // Init backend
+      const id17 = await issueId(17); // Prisma schema
+      const id20 = await issueId(20); // Auth API
+      const id38 = await issueId(38); // Init frontend
+      const id48 = await issueId(48); // Seed script
+
+      // Sprint 2 — Boards (Cursor)
+      const id51 = await issueId(51); // EPIC Sprint 2
+      const id53 = await issueId(53); // Board API
+      const id57 = await issueId(57); // Sprints API
+      const id62 = await issueId(62); // Time API
+      const id69 = await issueId(69); // Issue detail
+
+      // Sprint 3 — Admin (Cursor)
+      const id71 = await issueId(71); // EPIC Admin
+      const id73 = await issueId(73); // Admin service
+
+      // Sprint 3.5 — UAT/UX (Cursor)
+      const id76 = await issueId(76); // UAT tests
+      const id79 = await issueId(79); // Playwright
+      const id80 = await issueId(80); // Linear UI
+
       await prisma.devLink.createMany({
         data: [
+          // ── Sprint 0: docs (Cursor) ──
+          {
+            issueId: id10,
+            type: 'COMMIT',
+            url: `${REPO}/commit/3c1a2fe`,
+            title: 'docs: add comprehensive rebuild plan v2',
+            sha: '3c1a2fe',
+          },
+          {
+            issueId: id11,
+            type: 'COMMIT',
+            url: `${REPO}/commit/9847e42`,
+            title: 'docs: add CLAUDE.md memory + update plan with OS/browser requirements',
+            sha: '9847e42',
+          },
+
+          // ── Sprint 1: Foundation (Cursor → claude/mvp-project-management-hdAvd) ──
+          {
+            issueId: id13,
+            type: 'BRANCH',
+            url: `${REPO}/tree/claude/mvp-project-management-hdAvd`,
+            title: 'claude/mvp-project-management-hdAvd',
+          },
+          {
+            issueId: id15,
+            type: 'COMMIT',
+            url: `${REPO}/commit/9131e07`,
+            title: 'feat: Sprint 1 — complete rebuild with TypeScript stack',
+            sha: '9131e07',
+          },
+          {
+            issueId: id17,
+            type: 'COMMIT',
+            url: `${REPO}/commit/9131e07`,
+            title: 'feat: Sprint 1 — complete rebuild with TypeScript stack',
+            sha: '9131e07',
+          },
+          {
+            issueId: id20,
+            type: 'COMMIT',
+            url: `${REPO}/commit/9131e07`,
+            title: 'feat: Sprint 1 — complete rebuild with TypeScript stack',
+            sha: '9131e07',
+          },
+          {
+            issueId: id38,
+            type: 'COMMIT',
+            url: `${REPO}/commit/9131e07`,
+            title: 'feat: Sprint 1 — complete rebuild with TypeScript stack',
+            sha: '9131e07',
+          },
+          {
+            issueId: id48,
+            type: 'COMMIT',
+            url: `${REPO}/commit/b0d77cb`,
+            title: 'feat: add local dev environment tooling',
+            sha: 'b0d77cb',
+          },
+
+          // ── Sprint 2: Board, Sprints, Time, Comments (Cursor) ──
+          {
+            issueId: id51,
+            type: 'COMMIT',
+            url: `${REPO}/commit/c96a0c3`,
+            title: 'feat: Sprint 2 — Board, Sprints, Time tracking, Comments, Issue detail',
+            sha: 'c96a0c3',
+          },
+          {
+            issueId: id53,
+            type: 'COMMIT',
+            url: `${REPO}/commit/c96a0c3`,
+            title: 'feat: Sprint 2 — Board, Sprints, Time tracking, Comments, Issue detail',
+            sha: 'c96a0c3',
+          },
+          {
+            issueId: id57,
+            type: 'COMMIT',
+            url: `${REPO}/commit/c96a0c3`,
+            title: 'feat: Sprint 2 — Board, Sprints, Time tracking, Comments, Issue detail',
+            sha: 'c96a0c3',
+          },
+          {
+            issueId: id62,
+            type: 'COMMIT',
+            url: `${REPO}/commit/c96a0c3`,
+            title: 'feat: Sprint 2 — Board, Sprints, Time tracking, Comments, Issue detail',
+            sha: 'c96a0c3',
+          },
+          {
+            issueId: id69,
+            type: 'COMMIT',
+            url: `${REPO}/commit/c96a0c3`,
+            title: 'feat: Sprint 2 — Board, Sprints, Time tracking, Comments, Issue detail',
+            sha: 'c96a0c3',
+          },
+
+          // ── Sprint 3: Admin + Teams (Cursor) ──
+          {
+            issueId: id71,
+            type: 'COMMIT',
+            url: `${REPO}/commit/39b1dd4`,
+            title: 'feat: Sprint 3 — teams and admin modules',
+            sha: '39b1dd4',
+          },
+          {
+            issueId: id73,
+            type: 'COMMIT',
+            url: `${REPO}/commit/39b1dd4`,
+            title: 'feat: Sprint 3 — teams and admin modules',
+            sha: '39b1dd4',
+          },
+
+          // ── Sprint 3 release (Cursor) ──
+          {
+            issueId: id71,
+            type: 'COMMIT',
+            url: `${REPO}/commit/3f5056b`,
+            title: 'release 0.1 — merge Sprint 3 and admin/teams',
+            sha: '3f5056b',
+          },
+
+          // ── Sprint 3.5: UAT + UX polish (Cursor) ──
+          {
+            issueId: id76,
+            type: 'COMMIT',
+            url: `${REPO}/commit/2c3340e`,
+            title: 'fix: stabilize CI types and UAT flows',
+            sha: '2c3340e',
+          },
+          {
+            issueId: id79,
+            type: 'COMMIT',
+            url: `${REPO}/commit/62ad6bd`,
+            title: 'test: add backend e2e flows and stabilize admin reports',
+            sha: '62ad6bd',
+          },
+          {
+            issueId: id80,
+            type: 'COMMIT',
+            url: `${REPO}/commit/70e3ed2`,
+            title: 'feat: add AI sessions and sprints polish',
+            sha: '70e3ed2',
+          },
+          {
+            issueId: id76,
+            type: 'COMMIT',
+            url: `${REPO}/commit/dd9738d`,
+            title: 'release 0.2 — add production deploy flow and sprint UX polish',
+            sha: 'dd9738d',
+          },
+
+          // ── Sprint 4: Export API (Claude Code CLI) ──
           {
             issueId: taskExportEndpoints.id,
             type: 'BRANCH',
-            url: 'https://github.com/jackrescuer-gif/tasktime-mvp/tree/claude/export-open-tasks-Z3iJt',
+            url: `${REPO}/tree/claude/export-open-tasks-Z3iJt`,
             title: 'claude/export-open-tasks-Z3iJt',
           },
           {
             issueId: taskExportEndpoints.id,
             type: 'COMMIT',
-            url: 'https://github.com/jackrescuer-gif/tasktime-mvp/commit/36d64ed',
+            url: `${REPO}/commit/36d64ed`,
             title: 'feat: add Export Open Tasks API + 3-way time analytics',
             sha: '36d64ed',
           },
           {
             issueId: taskTimeAnalytics.id,
             type: 'COMMIT',
-            url: 'https://github.com/jackrescuer-gif/tasktime-mvp/commit/36d64ed',
+            url: `${REPO}/commit/36d64ed`,
             title: 'feat: add Export Open Tasks API + 3-way time analytics',
             sha: '36d64ed',
           },
