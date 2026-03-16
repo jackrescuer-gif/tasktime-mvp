@@ -61,10 +61,10 @@
   /* === TYPOGRAPHY & SPACING SCALE (Linear-like) === */
   --font-sans: 'Inter', -apple-system, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  --fs-xs: 11px;
-  --fs-sm: 12px;
-  --fs-md: 13px;
-  --fs-lg: 14px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --fs-lg: 15px;
   --lh-tight: 1.3;
   --lh-normal: 1.5;
   --lh-relaxed: 1.6;
@@ -91,7 +91,10 @@ body {
   min-height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  font-variant-numeric: tabular-nums;
   color-scheme: dark;
 }
 
@@ -189,7 +192,7 @@ body {
 .ant-table-thead > tr > th {
   background-color: #14141a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.2px;
@@ -206,7 +209,7 @@ body {
   background-color: var(--bg-el);
   border-color: var(--b2);
   color: var(--t1);
-  font-size: 11px;
+  font-size: 12px;
   padding: 0 6px;
   border-radius: var(--r3);
 }
@@ -226,13 +229,13 @@ body {
 
 .tt-admin-activity-date {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
   font-family: ui-monospace, 'SF Mono', monospace;
 }
 
 .tt-admin-activity-user {
-  font-size: 11px !important;
+  font-size: 12px !important;
   color: var(--t2) !important;
   white-space: normal;
   word-break: break-all;
@@ -292,7 +295,7 @@ body {
 }
 
 .tt-sidebar-workspace-name {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--t1);
 }
@@ -300,7 +303,7 @@ body {
 .tt-sidebar-menu {
   background-color: var(--bg-sb) !important;
   color: var(--t2);
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 .tt-sidebar .ant-menu-item {
@@ -366,7 +369,7 @@ body {
 }
 
 .tt-topbar-user {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--t2);
 }
 
@@ -448,14 +451,14 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--t3);
 }
 
 .tt-page-breadcrumb-back {
   padding: 2px 6px !important;
   height: 24px !important;
-  font-size: 11.5px !important;
+  font-size: 13px !important;
   color: var(--t2) !important;
 }
 
@@ -489,7 +492,7 @@ body {
 
 .tt-page-key {
   font-family: ui-monospace, SF Mono, Menlo, monospace;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--t3);
   padding: 2px 6px;
@@ -549,7 +552,7 @@ body {
   background: transparent;
   color: var(--t2);
   padding: 4px 10px 5px;
-  font-size: 11.5px;
+  font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.08s ease-out, color 0.08s ease-out, border-color 0.08s ease-out;
@@ -599,7 +602,7 @@ body {
 .tt-table .ant-table-thead > tr > th {
   background-color: #14141a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.35px;
@@ -610,7 +613,7 @@ body {
 .tt-table .ant-table-tbody > tr > td {
   border-bottom: 1px solid var(--b);
   padding: 7px 10px;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--t2);
 }
 
@@ -650,7 +653,7 @@ body {
 }
 
 .tt-stats-label {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -675,7 +678,7 @@ body {
 }
 
 .tt-stats-sprint-name {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--t2);
 }
 
@@ -685,7 +688,7 @@ body {
 }
 
 .tt-stats-trend {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--t2);
 }
@@ -728,7 +731,7 @@ body {
   justify-content: space-between;
   padding: 8px 14px;
   border-bottom: 1px solid var(--b);
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--t2);
   min-height: 32px;
 }
@@ -743,7 +746,7 @@ body {
 
 .tt-panel-empty {
   padding: 10px 14px;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--t3);
 }
 
@@ -798,7 +801,7 @@ body {
 }
 
 .tt-team-card-eyebrow {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.35px;
@@ -825,7 +828,7 @@ body {
   border: 1px solid rgba(123, 134, 255, 0.24);
   background: rgba(123, 134, 255, 0.1);
   color: #d9ddff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -853,7 +856,7 @@ body {
 }
 
 .tt-team-meta-label {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -906,7 +909,7 @@ body {
 }
 
 .tt-team-footer-label {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -948,12 +951,12 @@ body {
 
 .tt-flow-issue-id {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
 }
 
 .tt-flow-issue-title {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--t1);
 }
 
@@ -1047,7 +1050,7 @@ body {
 }
 
 .tt-sprint-drawer-title-eyebrow {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.35px;
@@ -1145,7 +1148,7 @@ body {
   padding: 3px 10px;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.25px;
   text-transform: uppercase;
@@ -1187,7 +1190,7 @@ body {
 }
 
 .tt-sprint-drawer-metric-label {
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1207,7 +1210,7 @@ body {
 }
 
 .tt-sprint-drawer-table-count {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
 }
 
@@ -1272,7 +1275,7 @@ body {
   padding: 3px 10px;
   border-radius: 999px;
   border: 1px solid transparent;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -1374,7 +1377,7 @@ body {
 
 .tt-sprint-card-meta {
   margin-top: 2px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
 }
 
@@ -1383,7 +1386,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
 }
 
@@ -1394,7 +1397,7 @@ body {
 
 .tt-sprint-card-side-label,
 .tt-sprint-card-side-meta {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
 }
 
@@ -1445,7 +1448,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--t3);
 }
 
@@ -1462,7 +1465,7 @@ body {
   border-radius: 999px;
   border: 1px solid var(--b2);
   background-color: rgba(255, 255, 255, 0.02);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--t2);
 }
@@ -1617,12 +1620,12 @@ body {
 }
 
 .tt-comment-date {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
 }
 
 .tt-comment-body {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--t2);
   white-space: pre-wrap;
 }
@@ -1836,18 +1839,18 @@ body {
 }
 
 .tt-aside-label {
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--t3);
 }
 
 .tt-aside-value {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--t1);
 }
 
 .tt-aside-mono {
   font-family: ui-monospace, SF Mono, Menlo, monospace;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .tt-aside-muted {
@@ -1932,7 +1935,7 @@ body {
 }
 
 .tt-filter-field .ant-select-selection-item {
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--t1);
 }
 
@@ -1984,7 +1987,7 @@ body {
   gap: 6px;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   background-color: var(--bg-hover);
   color: var(--t2);
@@ -2037,7 +2040,7 @@ body {
   gap: 6px;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -2526,7 +2529,7 @@ body {
 .tt-board-key {
   font-family: ui-monospace, SF Mono, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
   padding: 1px 6px 2px;
   border-radius: 999px;
@@ -2592,7 +2595,7 @@ body {
 }
 
 .tt-board-column-chip {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.3px;
   text-transform: uppercase;
@@ -2634,7 +2637,7 @@ body {
 }
 
 .tt-board-column-count {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   padding: 2px 6px;
   border-radius: 999px;
@@ -2686,7 +2689,7 @@ body {
 .tt-board-card-id {
   font-family: ui-monospace, SF Mono, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
 }
 
@@ -2753,7 +2756,7 @@ body {
 }
 
 .tt-board-card-assignee {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t2);
 }
 
@@ -2786,7 +2789,7 @@ body {
 }
 
 .tt-time-summary-muted {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t4);
 }
 

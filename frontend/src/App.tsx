@@ -43,6 +43,7 @@ export default function App() {
       colorTextBase: 'var(--t1)',
       borderRadius: 4,
       fontFamily: 'Inter, -apple-system, system-ui, sans-serif',
+      fontSize: 14,
     },
   };
 
