@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskTime — доступ открыт</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0c10;
+      --bg2:       #0f1117;
+      --bg3:       #161b27;
+      --border:    rgba(255,255,255,0.07);
+      --acc:       #6b5cf6;
+      --acc2:      #8b5cf6;
+      --acc-glow:  rgba(107,92,246,0.25);
+      --green:     #22c55e;
+      --blue:      #3b82f6;
+      --orange:    #f59e0b;
+      --t1:        #f0f1f5;
+      --t2:        #9ca3b0;
+      --t3:        #5c6478;
+      --r:         12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── STARFIELD ── */
+    #stars {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(107,92,246,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(59,130,246,.08) 0%, transparent 55%);
+    }
+    #stars canvas { position: absolute; inset: 0; }
+
+    /* ── LAYOUT ── */
+    .wrap {
+      position: relative; z-index: 1;
+      max-width: 860px; margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 80px 0 56px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(107,92,246,.15);
+      border: 1px solid rgba(107,92,246,.35);
+      border-radius: 99px;
+      padding: 6px 16px; margin-bottom: 32px;
+      font-size: 12px; font-weight: 500; letter-spacing: .06em;
+      color: #a78bfa; text-transform: uppercase;
+    }
+    .hero-badge span { width: 6px; height: 6px; background: #6b5cf6; border-radius: 50%;
+      box-shadow: 0 0 8px #6b5cf6; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 700; line-height: 1.1;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #f0f1f5 30%, #a78bfa 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+    }
+    .hero-sub {
+      font-size: 17px; color: var(--t2); line-height: 1.7;
+      max-width: 540px; margin: 0 auto 40px;
+    }
+
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, #6b5cf6, #8b5cf6);
+      color: #fff; font-size: 15px; font-weight: 600;
+      padding: 14px 32px; border-radius: 10px;
+      text-decoration: none;
+      box-shadow: 0 0 32px rgba(107,92,246,.4);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 0 48px rgba(107,92,246,.55); }
+    .hero-cta svg { width: 18px; height: 18px; }
+
+    /* ── SECTION TITLES ── */
+    .section { margin-top: 64px; }
+    .section-label {
+      font-size: 11px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--acc2);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 26px; font-weight: 700; letter-spacing: -.01em;
+      margin-bottom: 24px; color: var(--t1);
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 24px;
+      transition: border-color .2s;
+    }
+    .card:hover { border-color: rgba(107,92,246,.3); }
+
+    /* ── ACCESS CARD ── */
+    .access-card {
+      background: linear-gradient(135deg, #0f1117 0%, #13101f 100%);
+      border: 1px solid rgba(107,92,246,.3);
+      border-radius: var(--r);
+      padding: 32px;
+      box-shadow: 0 0 60px rgba(107,92,246,.12);
+      margin-bottom: 16px;
+    }
+    .access-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px; font-weight: 500;
+      color: #a78bfa;
+      background: rgba(107,92,246,.1);
+      border: 1px solid rgba(107,92,246,.2);
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin: 12px 0 28px;
+      display: inline-block;
+    }
+
+    /* ── ACCOUNTS TABLE ── */
+    .accounts { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .accounts th {
+      text-align: left; font-size: 11px; font-weight: 600;
+      letter-spacing: .06em; text-transform: uppercase;
+      color: var(--t3); padding: 8px 12px; border-bottom: 1px solid var(--border);
+    }
+    .accounts td { padding: 12px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .accounts tr:last-child td { border-bottom: none; }
+    .accounts tr:hover td { background: rgba(255,255,255,.02); }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; color: #a78bfa;
+      background: rgba(107,92,246,.12);
+      padding: 2px 7px; border-radius: 5px;
+    }
+
+    .role-badge {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      letter-spacing: .04em; padding: 3px 10px; border-radius: 99px;
+    }
+    .role-admin  { background: rgba(239,68,68,.15);  color: #f87171; }
+    .role-manager{ background: rgba(107,92,246,.15); color: #a78bfa; }
+    .role-user   { background: rgba(34,197,94,.12);  color: #4ade80; }
+    .role-viewer { background: rgba(156,163,176,.1); color: #9ca3af; }
+
+    /* ── SPRINT TIMELINE ── */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .tl-item {
+      display: grid; grid-template-columns: 120px 1px 1fr;
+      gap: 0 24px; position: relative;
+    }
+    .tl-date {
+      text-align: right; font-size: 12px; color: var(--t3);
+      padding: 20px 0; line-height: 1.4;
+    }
+    .tl-line {
+      display: flex; flex-direction: column; align-items: center;
+      position: relative;
+    }
+    .tl-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--acc); flex-shrink: 0; margin-top: 22px;
+      box-shadow: 0 0 12px var(--acc-glow);
+      position: relative; z-index: 1;
+    }
+    .tl-connector {
+      flex: 1; width: 1px; background: var(--border); margin-top: 2px;
+    }
+    .tl-item:last-child .tl-connector { display: none; }
+    .tl-body { padding: 16px 0 24px; }
+    .tl-tag {
+      font-size: 11px; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--acc2); margin-bottom: 6px;
+    }
+    .tl-title { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+    .tl-items { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .tl-items li {
+      font-size: 13px; color: var(--t2);
+      display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
+    }
+    .tl-items li::before { content: '→'; color: var(--t3); flex-shrink: 0; margin-top: 0; }
+
+    /* ── FEATURE GRID ── */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .feat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px;
+      transition: border-color .2s, transform .15s;
+    }
+    .feat-card:hover { border-color: rgba(107,92,246,.3); transform: translateY(-2px); }
+    .feat-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; margin-bottom: 12px;
+    }
+    .feat-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .feat-card p  { font-size: 13px; color: var(--t2); line-height: 1.5; }
+
+    /* ── INFRA STACK ── */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .stack-item {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .stack-layer { font-size: 10px; color: var(--t3); text-transform: uppercase; letter-spacing: .06em; }
+    .stack-name  { font-size: 14px; font-weight: 600; }
+    .stack-ver   { font-size: 12px; color: var(--acc2); }
+
+    /* ── ROLES TABLE ── */
+    .roles-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+    }
+    .role-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 20px;
+    }
+    .role-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .role-card p  { font-size: 13px; color: var(--t2); line-height: 1.5; }
+    .role-icon { font-size: 22px; margin-bottom: 10px; }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: 80px; padding-top: 32px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px; color: var(--t3);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .footer strong { color: var(--t2); }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px; background: var(--border); margin: 48px 0 0;
+    }
+
+    /* responsive */
+    @media (max-width: 600px) {
+      .tl-item { grid-template-columns: 80px 1px 1fr; gap: 0 16px; }
+      .roles-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="stars"><canvas id="c"></canvas></div>
+
+<div class="wrap">
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="hero-badge">
+      <span></span>
+      Ознакомительный доступ открыт
+    </div>
+    <h1>TaskTime MVP</h1>
+    <p class="hero-sub">
+      Отечественная система управления проектами и задачами
+      для финансового сектора. Альтернатива Jira.
+      Sprint 4 завершён — система готова к ознакомлению.
+    </p>
+    <a href="#access" class="hero-cta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      Получить доступ
+    </a>
+  </div>
+
+  <!-- ── ACCESS ── -->
+  <div id="access" class="section">
+    <div class="section-label">Доступ</div>
+    <div class="section-title">Вход в систему</div>
+
+    <div class="access-card">
+      <div style="font-size:13px;color:var(--t3);margin-bottom:4px;">URL системы</div>
+      <div class="access-url">[URL будет здесь после деплоя]</div>
+
+      <div style="font-size:13px;color:var(--t3);margin-bottom:12px;">Тестовые учётные записи</div>
+      <table class="accounts">
+        <thead>
+          <tr>
+            <th>Логин (email)</th>
+            <th>Пароль</th>
+            <th>Роль</th>
+            <th>Рекомендуется</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>admin@tasktime.ru</code></td>
+            <td><code>password123</code></td>
+            <td><span class="role-badge role-admin">Admin</span></td>
+            <td style="color:var(--t3);font-size:13px;">Полный доступ</td>
+          </tr>
+          <tr>
+            <td><code>manager@tasktime.ru</code></td>
+            <td><code>password123</code></td>
+            <td><span class="role-badge role-manager">Manager</span></td>
+            <td style="color:var(--green);font-size:13px;">★ Начать отсюда</td>
+          </tr>
+          <tr>
+            <td><code>dev@tasktime.ru</code></td>
+            <td><code>password123</code></td>
+            <td><span class="role-badge role-user">User</span></td>
+            <td style="color:var(--t3);font-size:13px;">Взгляд разработчика</td>
+          </tr>
+          <tr>
+            <td><code>viewer@tasktime.ru</code></td>
+            <td><code>password123</code></td>
+            <td><span class="role-badge role-viewer">Viewer</span></td>
+            <td style="color:var(--t3);font-size:13px;">Режим CIO (только чтение)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="font-size:12px;color:var(--t3);padding:0 4px;">
+      Браузеры: Chrome 90+, Yandex Browser 22+, Edge 90+, Safari 15+
+    </div>
+  </div>
+
+  <!-- ── FEATURES ── -->
+  <div class="section">
+    <div class="section-label">Функциональность</div>
+    <div class="section-title">Что есть в системе</div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(107,92,246,.15);">📋</div>
+        <h3>Задачи и иерархия</h3>
+        <p>EPIC → STORY → TASK → SUBTASK, BUG. Ключи проекта (TTMP-42), статусы, приоритеты, история изменений.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(59,130,246,.15);">🗂️</div>
+        <h3>Kanban-доска</h3>
+        <p>Колонки по статусам, drag-and-drop, мгновенное сохранение порядка и статуса задач.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(34,197,94,.12);">🏃</div>
+        <h3>Спринты (Scrum)</h3>
+        <p>Создание, старт, закрытие спринтов. Перемещение задач из бэклога. Один активный спринт на проект.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(245,158,11,.12);">⏱️</div>
+        <h3>Учёт времени</h3>
+        <p>Таймер в один клик + ручной ввод. Страница My Time с аналитикой по дням. Трёхуровневая сегментация: HUMAN / HUMAN_AI / AGENT.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(239,68,68,.12);">🤖</div>
+        <h3>AI-модуль</h3>
+        <p>Оценка трудоёмкости задачи по описанию. Автоматическая декомпозиция EPIC/STORY на подзадачи.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(16,185,129,.12);">📊</div>
+        <h3>Отчёты и экспорт</h3>
+        <p>Отчёты по задачам и времени. Экспорт в CSV и PDF. API выгрузки открытых задач.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(107,92,246,.15);">💬</div>
+        <h3>Комментарии</h3>
+        <p>CRUD-комментарии к задачам с проверкой прав. История изменений карточки из audit log.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(59,130,246,.15);">👥</div>
+        <h3>Команды и Admin</h3>
+        <p>Управление командами и участниками. Панель администратора: пользователи, роли, системные настройки.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:rgba(245,158,11,.12);">🔗</div>
+        <h3>Интеграции</h3>
+        <p>GitLab webhook — автообновление статусов при push/merge. Telegram-бот — уведомления о задачах и статусах.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SPRINT HISTORY ── -->
+  <div class="section">
+    <div class="section-label">История разработки</div>
+    <div class="section-title">Что и когда было сделано</div>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-date">10 марта<br/>2026</div>
+        <div class="tl-line"><div class="tl-dot"></div><div class="tl-connector"></div></div>
+        <div class="tl-body">
+          <div class="tl-tag">Sprint 1</div>
+          <div class="tl-title">Фундамент — Auth, Projects, Issues</div>
+          <ul class="tl-items">
+            <li>Полная пересборка на TypeScript + React + Prisma (старый прототип удалён)</li>
+            <li>Auth: регистрация, вход, refresh tokens, RBAC (Admin/Manager/User/Viewer)</li>
+            <li>Проекты, задачи с иерархией EPIC→STORY→TASK→SUBTASK, статусы, приоритеты</li>
+            <li>Audit log всех мутаций, Zod-валидация, Docker Compose, seed-данные</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">10 марта<br/>2026</div>
+        <div class="tl-line"><div class="tl-dot"></div><div class="tl-connector"></div></div>
+        <div class="tl-body">
+          <div class="tl-tag">Sprint 2</div>
+          <div class="tl-title">Kanban, Спринты, Тайм-трекинг</div>
+          <ul class="tl-items">
+            <li>Kanban-доска с drag-and-drop, сохранение статусов и порядка</li>
+            <li>Спринты: создание, старт, закрытие, перемещение задач</li>
+            <li>Учёт времени: таймер + ручной ввод, страница My Time</li>
+            <li>Комментарии к задачам, детальная карточка задачи, история изменений</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">11 марта<br/>2026</div>
+        <div class="tl-line"><div class="tl-dot"></div><div class="tl-connector"></div></div>
+        <div class="tl-body">
+          <div class="tl-tag">Sprint 3</div>
+          <div class="tl-title">Команды, Admin, Отчёты, Redis</div>
+          <ul class="tl-items">
+            <li>Модуль Teams: команды, участники, права</li>
+            <li>Admin-панель: управление пользователями и ролями</li>
+            <li>Отчёты по задачам и времени</li>
+            <li>Redis: кэш, сессии, очереди — полная интеграция</li>
+            <li>GitHub Actions CI/CD — первый production-деплой (Release 0.1)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">14 марта<br/>2026</div>
+        <div class="tl-line"><div class="tl-dot"></div><div class="tl-connector"></div></div>
+        <div class="tl-body">
+          <div class="tl-tag">Release 0.2</div>
+          <div class="tl-title">Production-деплой, Super Admin</div>
+          <ul class="tl-items">
+            <li>Super Admin: отдельная роль с расширенными правами, bootstrap через env</li>
+            <li>Полный CI/CD pipeline: CI → Build → Staging → ручное одобрение → Prod</li>
+            <li>Nginx hardening: rate limiting, security headers</li>
+            <li>Sprint UX polish, health endpoint, graceful startup</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-date">15–16 марта<br/>2026</div>
+        <div class="tl-line"><div class="tl-dot" style="background:var(--green);box-shadow:0 0 14px rgba(34,197,94,.4);"></div><div class="tl-connector"></div></div>
+        <div class="tl-body">
+          <div class="tl-tag" style="color:var(--green);">Sprint 4 — текущий</div>
+          <div class="tl-title">AI, Интеграции, Security, Export</div>
+          <ul class="tl-items">
+            <li>AI оценка трудоёмкости + декомпозиция задач (EPIC/STORY → подзадачи)</li>
+            <li>GitLab webhook: push → IN_PROGRESS, merge → DONE</li>
+            <li>Telegram-бот: уведомления о задачах, комментариях, статусах</li>
+            <li>CSV/PDF экспорт отчётов, API выгрузки открытых задач</li>
+            <li>Аналитика времени HUMAN / HUMAN_AI / AGENT</li>
+            <li>Security hardening, performance optimization, Swagger/OpenAPI</li>
+            <li>UAT checklist + Playwright e2e тесты</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ROLES ── -->
+  <div class="section">
+    <div class="section-label">Безопасность и доступ</div>
+    <div class="section-title">Роли в системе</div>
+    <div class="roles-grid">
+      <div class="role-card">
+        <div class="role-icon">🔑</div>
+        <h3><span class="role-badge role-admin" style="margin-right:8px;">Admin</span></h3>
+        <p style="margin-top:10px;">Полный доступ: управление пользователями, ролями, всеми проектами, системными настройками. Audit log.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-icon">📐</div>
+        <h3><span class="role-badge role-manager" style="margin-right:8px;">Manager</span></h3>
+        <p style="margin-top:10px;">Управление проектами и задачами. Создание спринтов, назначение исполнителей, просмотр всех задач команды.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-icon">💻</div>
+        <h3><span class="role-badge role-user" style="margin-right:8px;">User</span></h3>
+        <p style="margin-top:10px;">Работа со своими задачами: создание, изменение статусов, трекинг времени, комментарии.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-icon">👁️</div>
+        <h3><span class="role-badge role-viewer" style="margin-right:8px;">Viewer</span></h3>
+        <p style="margin-top:10px;">Только чтение — все проекты, задачи и отчёты. Режим для CIO и наблюдателей без права редактирования.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INFRA ── -->
+  <div class="section">
+    <div class="section-label">Инфраструктура</div>
+    <div class="section-title">Технический стек</div>
+    <div class="stack-grid">
+      <div class="stack-item">
+        <div class="stack-layer">Frontend</div>
+        <div class="stack-name">React 18</div>
+        <div class="stack-ver">+ Vite 6 + Ant Design 5</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-layer">Backend</div>
+        <div class="stack-name">Node.js 20</div>
+        <div class="stack-ver">+ Express 4 + TypeScript 5</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-layer">ORM</div>
+        <div class="stack-name">Prisma 6</div>
+        <div class="stack-ver">миграции + типогенерация</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-layer">Database</div>
+        <div class="stack-name">PostgreSQL 16</div>
+        <div class="stack-ver">в реестре РФ ПО</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-layer">Cache</div>
+        <div class="stack-name">Redis 7</div>
+        <div class="stack-ver">сессии, кэш, очереди</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-layer">Proxy</div>
+        <div class="stack-name">Nginx</div>
+        <div class="stack-ver">SSL + rate limiting</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-layer">Containers</div>
+        <div class="stack-name">Docker</div>
+        <div class="stack-ver">Compose, 4 сервиса</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-layer">CI/CD</div>
+        <div class="stack-name">GitHub Actions</div>
+        <div class="stack-ver">push → deploy</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-layer">Auth</div>
+        <div class="stack-name">JWT</div>
+        <div class="stack-ver">+ refresh tokens</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="margin-top:32px;">
+      <div style="font-size:13px;color:var(--t3);margin-bottom:16px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;font-size:11px;">Схема деплоя</div>
+      <div class="card" style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:2;color:var(--t2);">
+        git push → main<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;↓<br/>
+        GitHub Actions CI &nbsp;<span style="color:var(--t3)">(lint + typecheck + build + tests)</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;↓<br/>
+        Build Docker Images → GHCR<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;↓<br/>
+        Deploy Staging &nbsp;<span style="color:var(--t3)">(автоматически)</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;↓ &nbsp;<span style="color:var(--orange)">[ручное одобрение]</span><br/>
+        Deploy Production
+      </div>
+    </div>
+
+    <div style="margin-top:20px;font-size:13px;color:var(--t3);line-height:1.7;">
+      Все компоненты — open source (MIT/Apache). Без проприетарных зависимостей.<br/>
+      Совместимо с <strong style="color:var(--t2);">Astra Linux SE 1.7+</strong> и <strong style="color:var(--t2);">Red OS 7.3+</strong>.
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="footer">
+    <div><strong>TaskTime MVP</strong> — Sprint 4 завершён · 16 марта 2026</div>
+    <div>Импортозамещение Jira · Финансовый сектор РФ</div>
+    <div style="margin-top:8px;font-size:12px;">По вопросам и обратной связи — в рабочий чат</div>
+  </div>
+
+</div>
+
+<script>
+  // Starfield canvas
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function init() {
+    stars = Array.from({length: 120}, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random(),
+      da: (Math.random() - 0.5) * 0.004,
+      dy: Math.random() * 0.08 + 0.01
+    }));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,195,255,${Math.max(0, s.a)})`;
+      ctx.fill();
+      s.a += s.da;
+      if (s.a > 1 || s.a < 0) s.da *= -1;
+      s.y -= s.dy;
+      if (s.y < -2) { s.y = H + 2; s.x = Math.random() * W; }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', () => { resize(); init(); });
+  resize(); init(); draw();
+</script>
+
+</body>
+</html>
