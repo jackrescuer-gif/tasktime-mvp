@@ -2168,85 +2168,261 @@ export async function seedDatabase(seedPrisma: PrismaClient, options: SeedOption
     },
   });
 
-  // Demo time tracking data for My Time (Pavel + AI)
+  // ================================================================
+  // AI SESSIONS — retroactive data for ALL sprints (Cursor + Claude Code)
+  // ================================================================
+  // Pricing: Sonnet 4.6 $3/1M in, $15/1M out; Haiku 4.5 $0.80/1M in, $4/1M out;
+  //          Opus 4.6 $15/1M in, $75/1M out
+  // Per hour Cursor vibe-coding: ~120K input, ~40K output → ~$0.96/h (Sonnet)
+  // ================================================================
   if (isFullDevSeed) {
     const existingAiSessions = await prisma.aiSession.count();
     if (existingAiSessions === 0) {
-      const demoIssueMyTime = await prisma.issue.findUnique({
-        where: { projectId_number: { projectId: mvpProject.id, number: 64 } },
+      const issueByNum = async (num: number) =>
+        prisma.issue.findUniqueOrThrow({
+          where: { projectId_number: { projectId: mvpProject.id, number: num } },
+          select: { id: true },
+        });
+
+      // ── Sprint 1 (9 Mar): 5 Cursor sessions, ~16.5h AI side ──
+      // Session 1: Backend scaffold (Express+TS+Prisma+middleware) — 3h
+      const s1sess1 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(15)).id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-09T09:00:00Z'),
+          finishedAt: new Date('2026-03-09T12:00:00Z'),
+          tokensInput: 350000,
+          tokensOutput: 120000,
+          costMoney: new Prisma.Decimal(2.85),
+          notes: 'Cursor auto: Express+TS scaffold, Prisma 6 schema (User/Project/Issue/Comment/AuditLog), error handling, Zod DTOs',
+        },
       });
-      const demoIssueBoard = await prisma.issue.findUnique({
-        where: { projectId_number: { projectId: mvpProject.id, number: 55 } },
+
+      // Session 2: Auth+RBAC+Users modules — 3.25h
+      const s1sess2 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(20)).id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-09T12:30:00Z'),
+          finishedAt: new Date('2026-03-09T15:45:00Z'),
+          tokensInput: 400000,
+          tokensOutput: 140000,
+          costMoney: new Prisma.Decimal(3.30),
+          notes: 'Cursor auto: auth API (register/login/refresh/logout/me), JWT+refresh, bcrypt, RBAC middleware, users CRUD',
+        },
       });
 
-      if (demoIssueMyTime && demoIssueBoard) {
-        // Human time logs for the owner/admin demo account
-        await prisma.timeLog.createMany({
-          data: [
-            {
-              issueId: demoIssueMyTime.id,
-              userId: owner.id,
-              hours: new Prisma.Decimal(1.5),
-              note: 'Обсуждение требований к отчётам My Time',
-              logDate: new Date(),
-              source: 'HUMAN',
-            },
-            {
-              issueId: demoIssueBoard.id,
-              userId: owner.id,
-              hours: new Prisma.Decimal(0.75),
-              note: 'Ручное тестирование доски и спринтов',
-              logDate: new Date(),
-              source: 'HUMAN',
-            },
-          ],
-        });
+      // Session 3: Projects+Issues modules (hierarchy) — 3.5h
+      const s1sess3 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(31)).id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-09T16:00:00Z'),
+          finishedAt: new Date('2026-03-09T19:30:00Z'),
+          tokensInput: 450000,
+          tokensOutput: 160000,
+          costMoney: new Prisma.Decimal(3.75),
+          notes: 'Cursor auto: projects CRUD+keys, issues CRUD, EPIC→STORY→TASK→SUBTASK/BUG hierarchy, statuses, key generation',
+        },
+      });
 
-        // One AI session split between two tasks
-        const aiSession = await prisma.aiSession.create({
-          data: {
-            issueId: demoIssueMyTime.id,
-            userId: owner.id,
-            model: 'gpt-5.1',
-            provider: 'openai',
-            startedAt: new Date(Date.now() - 45 * 60 * 1000),
-            finishedAt: new Date(),
-            tokensInput: 12000,
-            tokensOutput: 8000,
-            costMoney: new Prisma.Decimal(0.8),
-            notes: 'Проектирование учёта времени HUMAN vs AGENT и UI My Time',
-          },
-        });
+      // Session 4: Frontend scaffold + all pages — 5h
+      const s1sess4 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(38)).id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-09T20:00:00Z'),
+          finishedAt: new Date('2026-03-10T01:00:00Z'),
+          tokensInput: 600000,
+          tokensOutput: 200000,
+          costMoney: new Prisma.Decimal(4.80),
+          notes: 'Cursor auto: Vite+React+AntD+Zustand scaffold, Router, LoginPage, Dashboard, Projects list/detail, Issue form',
+        },
+      });
 
-        const startedAt = aiSession.startedAt;
-        const finishedAt = aiSession.finishedAt;
-        const totalMs = finishedAt.getTime() - startedAt.getTime();
-        const totalHours = totalMs / 3_600_000;
+      // Session 5: Seed+Docker+Makefile — 1.75h (Haiku — simpler tasks)
+      const s1sess5 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(48)).id,
+          userId: owner.id,
+          model: 'claude-haiku-4-5',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-10T01:15:00Z'),
+          finishedAt: new Date('2026-03-10T03:00:00Z'),
+          tokensInput: 200000,
+          tokensOutput: 80000,
+          costMoney: new Prisma.Decimal(0.48),
+          notes: 'Cursor auto (Haiku): seed script, Docker Compose (PG16+Redis7), Makefile',
+        },
+      });
 
-        const splits = [
-          { issue: demoIssueMyTime, ratio: 0.6 },
-          { issue: demoIssueBoard, ratio: 0.4 },
-        ];
+      // ── Sprint 2 (10 Mar): 3 Cursor sessions, ~13h AI side ──
+      // Session 1: Board API + drag-n-drop UI — 4.25h
+      const s2sess1 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(53)).id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-10T09:00:00Z'),
+          finishedAt: new Date('2026-03-10T13:15:00Z'),
+          tokensInput: 500000,
+          tokensOutput: 170000,
+          costMoney: new Prisma.Decimal(4.05),
+          notes: 'Cursor auto: Board API (columns, ordering), drag-n-drop, status/order persistence, BoardPage UI',
+        },
+      });
 
-        await prisma.timeLog.createMany({
-          data: splits.map((split) => {
-            const hours = totalHours * split.ratio;
-            const cost = 0.8 * split.ratio;
-            return {
-              issueId: split.issue.id,
-              userId: owner.id,
-              hours: new Prisma.Decimal(Math.round(hours * 100) / 100),
-              note: 'AI: помощь в проектировании и UI',
-              logDate: finishedAt,
-              source: 'AGENT' as const,
-              agentSessionId: aiSession.id,
-              startedAt,
-              stoppedAt: finishedAt,
-              costMoney: new Prisma.Decimal(Math.round(cost * 10_000) / 10_000),
-            };
-          }),
-        });
-      }
+      // Session 2: Sprints + Time tracking — 5.25h
+      const s2sess2 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(57)).id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-10T13:45:00Z'),
+          finishedAt: new Date('2026-03-10T19:00:00Z'),
+          tokensInput: 650000,
+          tokensOutput: 220000,
+          costMoney: new Prisma.Decimal(5.25),
+          notes: 'Cursor auto: sprints API (create/start/close), backlog↔sprint, ACTIVE constraint, timer API (start/stop), manual entry, My Time UI',
+        },
+      });
+
+      // Session 3: Comments + IssueDetailPage — 3.5h
+      const s2sess3 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(66)).id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-10T19:30:00Z'),
+          finishedAt: new Date('2026-03-10T23:00:00Z'),
+          tokensInput: 420000,
+          tokensOutput: 150000,
+          costMoney: new Prisma.Decimal(3.51),
+          notes: 'Cursor auto: comments CRUD API+UI, IssueDetailPage (fields, hierarchy, time, comments, history)',
+        },
+      });
+
+      // ── Sprint 3 (11 Mar): 1 Cursor session, Sonnet, ~3h ──
+      const s3sess1 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(73)).id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-11T09:00:00Z'),
+          finishedAt: new Date('2026-03-11T12:00:00Z'),
+          tokensInput: 360000,
+          tokensOutput: 130000,
+          costMoney: new Prisma.Decimal(3.03),
+          notes: 'Cursor auto: admin.service + admin.router (ADMIN only), AdminPage UI, teams module',
+        },
+      });
+
+      // ── Sprint 3.5 (12 Mar): 2 Cursor sessions — ~5h total ──
+      // Session 1: UAT + Playwright — Sonnet (2.5h)
+      const s35sess1 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(76)).id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-12T09:00:00Z'),
+          finishedAt: new Date('2026-03-12T11:30:00Z'),
+          tokensInput: 300000,
+          tokensOutput: 110000,
+          costMoney: new Prisma.Decimal(2.55),
+          notes: 'Cursor auto: UAT test data + API, UatTestsPage, UatOnboardingOverlay, Playwright config + main-flows.spec.ts',
+        },
+      });
+
+      // Session 2: UX polish — Haiku (simpler CSS/style work, 2.5h)
+      const s35sess2 = await prisma.aiSession.create({
+        data: {
+          issueId: (await issueByNum(80)).id,
+          userId: owner.id,
+          model: 'claude-haiku-4-5',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-12T12:00:00Z'),
+          finishedAt: new Date('2026-03-12T14:30:00Z'),
+          tokensInput: 280000,
+          tokensOutput: 100000,
+          costMoney: new Prisma.Decimal(0.62),
+          notes: 'Cursor auto (Haiku): Linear-like UI styles, CSS polish, layout refinements',
+        },
+      });
+
+      // ── Sprint 4 (15 Mar): Cursor + Claude Code CLI ──
+      // Cursor session: Export API vibe-coding — Sonnet (5h combined)
+      const s4sess1 = await prisma.aiSession.create({
+        data: {
+          issueId: taskExportEndpoints.id,
+          userId: owner.id,
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-15T08:00:00Z'),
+          finishedAt: new Date('2026-03-15T13:00:00Z'),
+          tokensInput: 580000,
+          tokensOutput: 195000,
+          costMoney: new Prisma.Decimal(4.67),
+          notes: 'Cursor auto: Export API architecture + implementation, 3-way analytics design, DTO code review',
+        },
+      });
+
+      // Claude Code CLI autonomous session — Opus (35 min)
+      const s4sess2 = await prisma.aiSession.create({
+        data: {
+          issueId: taskExportEndpoints.id,
+          userId: owner.id,
+          model: 'claude-opus-4-6',
+          provider: 'anthropic',
+          startedAt: new Date('2026-03-15T10:00:00Z'),
+          finishedAt: new Date('2026-03-15T10:35:00Z'),
+          tokensInput: 45000,
+          tokensOutput: 18000,
+          costMoney: new Prisma.Decimal(2.03),
+          notes: 'Claude Code CLI: Prisma migration + export module scaffold + time module extension',
+        },
+      });
+
+      // ── Summary log ──
+      const allSessions = [
+        s1sess1, s1sess2, s1sess3, s1sess4, s1sess5,
+        s2sess1, s2sess2, s2sess3,
+        s3sess1,
+        s35sess1, s35sess2,
+        s4sess1, s4sess2,
+      ];
+      const totalCost = allSessions.reduce((sum, s) => sum + Number(s.costMoney), 0);
+      const totalTokens = allSessions.reduce((sum, s) => sum + s.tokensInput + s.tokensOutput, 0);
+      console.log(`AI sessions seeded: ${allSessions.length} sessions, ${totalTokens.toLocaleString()} tokens, $${totalCost.toFixed(2)} total cost`);
+
+      // ── AGENT TimeLog for Sprint 4 autonomous session ──
+      await prisma.timeLog.create({
+        data: {
+          issueId: taskExportEndpoints.id,
+          userId: null,
+          hours: new Prisma.Decimal(0.58),
+          note: 'AI: автономная реализация Export API module (schema + dto + service + router)',
+          logDate: new Date('2026-03-15'),
+          source: 'AGENT',
+          agentSessionId: s4sess2.id,
+          startedAt: s4sess2.startedAt,
+          stoppedAt: s4sess2.finishedAt,
+          costMoney: new Prisma.Decimal(2.03),
+        },
+      });
     }
 
     // === HUMAN_AI demo time logs for Sprint 4 (vibe-coding sessions) ===
@@ -2254,7 +2430,6 @@ export async function seedDatabase(seedPrisma: PrismaClient, options: SeedOption
       where: { issue: { projectId: mvpProject.id, number: { gte: 81 } } },
     });
     if (existingSprint4TimeLogs === 0) {
-      // Vibe-coding session: owner discussed + implemented export API with Claude
       await prisma.timeLog.createMany({
         data: [
           {
@@ -2281,7 +2456,6 @@ export async function seedDatabase(seedPrisma: PrismaClient, options: SeedOption
             logDate: new Date('2026-03-15'),
             source: 'HUMAN_AI',
           },
-          // Pure human review
           {
             issueId: taskExportEndpoints.id,
             userId: manager.id,
@@ -2291,37 +2465,6 @@ export async function seedDatabase(seedPrisma: PrismaClient, options: SeedOption
             source: 'HUMAN',
           },
         ],
-      });
-
-      // Claude autonomous session for subtask 85 (migration)
-      const aiSession2 = await prisma.aiSession.create({
-        data: {
-          issueId: taskExportEndpoints.id,
-          userId: owner.id,
-          model: 'claude-opus-4-6',
-          provider: 'anthropic',
-          startedAt: new Date('2026-03-15T10:00:00Z'),
-          finishedAt: new Date('2026-03-15T10:35:00Z'),
-          tokensInput: 45000,
-          tokensOutput: 18000,
-          costMoney: new Prisma.Decimal(2.43),
-          notes: 'Autonomous: Prisma migration + export module scaffold + time module extension',
-        },
-      });
-
-      await prisma.timeLog.create({
-        data: {
-          issueId: taskExportEndpoints.id,
-          userId: null,
-          hours: new Prisma.Decimal(0.58),
-          note: 'AI: автономная реализация Export API module (schema + dto + service + router)',
-          logDate: new Date('2026-03-15'),
-          source: 'AGENT',
-          agentSessionId: aiSession2.id,
-          startedAt: aiSession2.startedAt,
-          stoppedAt: aiSession2.finishedAt,
-          costMoney: new Prisma.Decimal(2.43),
-        },
       });
     }
 
