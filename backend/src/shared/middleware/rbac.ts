@@ -8,6 +8,9 @@ export function requireRole(...roles: UserRole[]) {
     if (!req.user) {
       return next(new AppError(401, 'Authentication required'));
     }
+    if (req.user.role === 'SUPER_ADMIN') {
+      return next();
+    }
     if (!roles.includes(req.user.role)) {
       return next(new AppError(403, 'Insufficient permissions'));
     }
