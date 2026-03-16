@@ -1,21 +1,52 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { pathToFileURL } from 'node:url';
 
-import { BOOTSTRAP_USERS, bootstrapDefaultUsers } from './bootstrap.js';
+import { PrismaClient, Prisma, type User } from '@prisma/client';
+
+import { bootstrapDefaultUsers, getBootstrapUsers } from './bootstrap.js';
 
 const prisma = new PrismaClient();
+
+export function resolveSeedActors(users: Pick<User, 'id' | 'email' | 'name' | 'role'>[], ownerAdminEmail?: string) {
+  const usersByEmail = new Map(users.map((user) => [user.email.toLowerCase(), user]));
+
+  const admin = usersByEmail.get('admin@tasktime.ru');
+  const manager = usersByEmail.get('manager@tasktime.ru');
+  const dev = usersByEmail.get('dev@tasktime.ru');
+  const viewer = usersByEmail.get('viewer@tasktime.ru');
+
+  if (!admin || !manager || !dev || !viewer) {
+    throw new Error('Seed requires built-in bootstrap users to exist.');
+  }
+
+  const normalizedOwnerAdminEmail = ownerAdminEmail?.trim().toLowerCase();
+  const owner = (normalizedOwnerAdminEmail && usersByEmail.get(normalizedOwnerAdminEmail)) || admin;
+
+  return {
+    admin,
+    owner,
+    manager,
+    dev,
+    viewer,
+  };
+}
 
 async function main() {
   console.log('Seeding database...');
 
   const defaultPassword = 'password123';
-  await bootstrapDefaultUsers(prisma, defaultPassword);
+  const bootstrapUsers = getBootstrapUsers();
+  await bootstrapDefaultUsers(prisma, defaultPassword, bootstrapUsers);
 
-  const [admin, pavel, manager, dev, viewer] = await Promise.all(
-    BOOTSTRAP_USERS.map((user) =>
+  const seededUsers = await Promise.all(
+    bootstrapUsers.map((user) =>
       prisma.user.findUniqueOrThrow({
         where: { email: user.email },
       }),
     ),
+  );
+  const { admin, owner, manager, dev, viewer } = resolveSeedActors(
+    seededUsers,
+    process.env.BOOTSTRAP_OWNER_ADMIN_EMAIL,
   );
 
   // Create projects
@@ -1583,7 +1614,7 @@ async function main() {
         data: [
           {
             issueId: demoIssueMyTime.id,
-            userId: pavel.id,
+            userId: owner.id,
             hours: new Prisma.Decimal(1.5),
             note: 'Обсуждение требований к отчётам My Time',
             logDate: new Date(),
@@ -1591,7 +1622,7 @@ async function main() {
           },
           {
             issueId: demoIssueBoard.id,
-            userId: pavel.id,
+            userId: owner.id,
             hours: new Prisma.Decimal(0.75),
             note: 'Ручное тестирование доски и спринтов',
             logDate: new Date(),
@@ -1604,7 +1635,7 @@ async function main() {
       const aiSession = await prisma.aiSession.create({
         data: {
           issueId: demoIssueMyTime.id,
-          userId: pavel.id,
+          userId: owner.id,
           model: 'gpt-5.1',
           provider: 'openai',
           startedAt: new Date(Date.now() - 45 * 60 * 1000),
@@ -1632,7 +1663,7 @@ async function main() {
           const cost = 0.8 * split.ratio;
           return {
             issueId: split.issue.id,
-            userId: pavel.id,
+            userId: owner.id,
             hours: new Prisma.Decimal(Math.round(hours * 100) / 100),
             note: 'AI: помощь в проектировании и UI',
             logDate: finishedAt,
@@ -1648,11 +1679,16 @@ async function main() {
   }
 
   console.log('Seed complete.');
-  console.log(`Users: ${admin.email}, ${manager.email}, ${dev.email}, ${viewer.email}, ${pavel.email}`);
+  console.log(`Users: ${admin.email}, ${manager.email}, ${dev.email}, ${viewer.email}, ${owner.email}`);
   console.log(`Password for all: ${defaultPassword}`);
   console.log(`Projects: ${project.key}, ${backendProject.key}`);
 }
 
-main()
-  .catch((e) => { console.error(e); process.exit(1); })
-  .finally(() => prisma.$disconnect());
+const isExecutedDirectly = process.argv[1] !== undefined
+  && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isExecutedDirectly) {
+  main()
+    .catch((e) => { console.error(e); process.exit(1); })
+    .finally(() => prisma.$disconnect());
+}
