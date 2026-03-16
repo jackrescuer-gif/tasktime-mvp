@@ -62,8 +62,8 @@ describe('seedDatabase', () => {
         name: 'TaskTime MVP (vibe-code)',
       },
     ]);
-    expect(await prisma.sprint.count()).toBe(5);
-    expect(await prisma.issue.count()).toBe(80);
+    expect(await prisma.sprint.count()).toBe(6);
+    expect(await prisma.issue.count()).toBe(96);
     expect(await prisma.aiSession.count()).toBe(0);
     expect(await prisma.timeLog.count()).toBe(0);
 
