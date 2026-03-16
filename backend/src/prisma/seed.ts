@@ -148,6 +148,19 @@ async function main() {
     },
   });
 
+  await prisma.sprint.upsert({
+    where: { projectId_name: { projectId: mvpProject.id, name: 'Sprint 4 — AI + Интеграции + Polish' } },
+    update: {},
+    create: {
+      projectId: mvpProject.id,
+      name: 'Sprint 4 — AI + Интеграции + Polish',
+      goal: 'AI-оценка трудоёмкости, декомпозиция задач, GitLab webhook, Telegram-бот, финальный polish',
+      startDate: new Date('2026-03-17T09:00:00Z'),
+      endDate: new Date('2026-03-31T18:00:00Z'),
+      state: 'PLANNING',
+    },
+  });
+
   // Create issues with hierarchy
   const epic = await prisma.issue.upsert({
     where: { projectId_number: { projectId: project.id, number: 1 } },
