@@ -30,12 +30,15 @@ export function resolveSeedActors(users: Pick<User, 'id' | 'email' | 'name' | 'r
   };
 }
 
-async function main() {
-  console.log('Seeding database...');
+async function main(scope?: string) {
+  const ttmpOnly = scope === 'TTMP_ONLY';
+  console.log(`Seeding database${ttmpOnly ? ' (TTMP_ONLY)' : ''}...`);
 
   const defaultPassword = 'password123';
   const bootstrapUsers = getBootstrapUsers();
-  await bootstrapDefaultUsers(prisma, defaultPassword, bootstrapUsers);
+  if (!ttmpOnly) {
+    await bootstrapDefaultUsers(prisma, defaultPassword, bootstrapUsers);
+  }
 
   const seededUsers = await Promise.all(
     bootstrapUsers.map((user) =>
@@ -50,17 +53,17 @@ async function main() {
   );
 
   // Create projects
-  const project = await prisma.project.upsert({
+  const project = !ttmpOnly ? await prisma.project.upsert({
     where: { key: 'DEMO' },
     update: {},
     create: { name: 'Demo Project', key: 'DEMO', description: 'Demo project for testing' },
-  });
+  }) : null;
 
-  const backendProject = await prisma.project.upsert({
+  const backendProject = !ttmpOnly ? await prisma.project.upsert({
     where: { key: 'BACK' },
     update: {},
     create: { name: 'Backend Services', key: 'BACK', description: 'Backend microservices' },
-  });
+  }) : null;
 
   const mvpProject = await prisma.project.upsert({
     where: { key: 'TTMP' },
@@ -72,7 +75,7 @@ async function main() {
     },
   });
 
-  const liveCodeProject = await prisma.project.upsert({
+  const liveCodeProject = !ttmpOnly ? await prisma.project.upsert({
     where: { key: 'LIVE' },
     update: {},
     create: {
@@ -80,7 +83,7 @@ async function main() {
       key: 'LIVE',
       description: 'Живой проект: задачи для разработки TaskTime MVP (vibe-code) самим TaskTime и агентами',
     },
-  });
+  }) : null;
 
   // Historical sprints for TaskTime MVP (TTMP)
   const sprint0 = await prisma.sprint.upsert({
@@ -149,6 +152,7 @@ async function main() {
   });
 
   // Create issues with hierarchy
+  if (!ttmpOnly && project) {
   const epic = await prisma.issue.upsert({
     where: { projectId_number: { projectId: project.id, number: 1 } },
     update: {},
@@ -201,8 +205,10 @@ async function main() {
       parentId: epic.id,
     },
   });
+  } // end if (!ttmpOnly && project)
 
   // MVP LiveCode meta issues (agent vs human work)
+  if (!ttmpOnly && liveCodeProject) {
   await prisma.issue.upsert({
     where: { projectId_number: { projectId: liveCodeProject.id, number: 1 } },
     update: {},
@@ -256,6 +262,7 @@ async function main() {
       aiAssigneeType: 'AGENT',
     },
   });
+  } // end if (!ttmpOnly && liveCodeProject)
 
   // Backlog (MVP project): EPIC — Исследование и планирование MVP
   const epicResearch = await prisma.issue.upsert({
@@ -1599,6 +1606,7 @@ async function main() {
   });
 
   // Demo time tracking data for My Time (Pavel + AI)
+  if (!ttmpOnly) {
   const existingAiSessions = await prisma.aiSession.count();
   if (existingAiSessions === 0) {
     const demoIssueMyTime = await prisma.issue.findUnique({
@@ -1677,18 +1685,36 @@ async function main() {
       });
     }
   }
+  } // end if (!ttmpOnly)
 
   console.log('Seed complete.');
   console.log(`Users: ${admin.email}, ${manager.email}, ${dev.email}, ${viewer.email}, ${owner.email}`);
   console.log(`Password for all: ${defaultPassword}`);
-  console.log(`Projects: ${project.key}, ${backendProject.key}`);
+  if (!ttmpOnly && project && backendProject) {
+    console.log(`Projects: ${project.key}, ${backendProject.key}`);
+  }
+}
+
+/**
+ * Public API for programmatic seeding. For TTMP_ONLY scope the full TTMP project
+ * (5 sprints, 80 issues, no AI sessions / time-logs) is seeded using the module-level
+ * PrismaClient so that both the caller's client and this module see the same database.
+ *
+ * TODO: refactor main() to accept a prismaClient parameter so the caller's client is used
+ * directly instead of the module-level one.
+ */
+export async function seedDatabase(
+  _prismaClient: PrismaClient | Prisma.TransactionClient,
+  options: { scope?: 'TTMP_ONLY' | 'ALL' } = {},
+): Promise<void> {
+  await main(options.scope);
 }
 
 const isExecutedDirectly = process.argv[1] !== undefined
   && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isExecutedDirectly) {
-  main()
+  main(process.env.SEED_SCOPE === 'TTMP_ONLY' ? 'TTMP_ONLY' : undefined)
     .catch((e) => { console.error(e); process.exit(1); })
     .finally(() => prisma.$disconnect());
 }
