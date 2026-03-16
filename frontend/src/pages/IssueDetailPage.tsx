@@ -39,6 +39,7 @@ import * as aiApi from '../api/ai';
 import { useAuthStore } from '../store/auth.store';
 import type { Issue, Comment, TimeLog, AuditEntry, IssueStatus, IssuePriority } from '../types';
 import api from '../api/client';
+import { hasAnyRequiredRole, hasRequiredRole } from '../lib/roles';
 
 const PRIORITY_COLORS: Record<IssuePriority, string> = { CRITICAL: 'red', HIGH: 'orange', MEDIUM: 'blue', LOW: 'default' };
 const STATUS_COLORS: Record<IssueStatus, string> = { OPEN: 'default', IN_PROGRESS: 'processing', REVIEW: 'warning', DONE: 'success', CANCELLED: 'error' };
@@ -58,7 +59,7 @@ export default function IssueDetailPage() {
   const [timeForm] = Form.useForm();
   const [aiEstimateLoading, setAiEstimateLoading] = useState(false);
   const [aiDecomposeLoading, setAiDecomposeLoading] = useState(false);
-  const canEditAi = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  const canEditAi = hasAnyRequiredRole(user?.role, ['ADMIN', 'MANAGER']);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -287,7 +288,7 @@ export default function IssueDetailPage() {
                         </div>
                         <div className="tt-comment-body">{c.body}</div>
                       </div>
-                      {(c.authorId === user?.id || user?.role === 'ADMIN') && (
+                      {(c.authorId === user?.id || hasRequiredRole(user?.role, 'ADMIN')) && (
                         <div className="tt-comment-actions">
                           <Popconfirm
                             title="Delete comment?"

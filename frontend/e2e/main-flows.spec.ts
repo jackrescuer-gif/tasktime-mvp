@@ -2,9 +2,64 @@ import { test, expect, type APIRequestContext } from '@playwright/test';
 
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || 'admin@tasktime.ru';
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || 'password123';
+const API_BASE_URL = process.env.E2E_API_BASE_URL || 'http://localhost:3000/api';
 
-async function getAccessToken(request: APIRequestContext) {
-  const authRes = await request.post('/api/auth/login', {
+function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
+}
+
+interface AuthSession {
+  accessToken: string;
+  userId: string;
+}
+
+interface TimeSummaryResponse {
+  userId: string;
+  humanHours: number;
+  agentHours: number;
+  totalHours: number;
+  agentCost: number;
+}
+
+async function createAiSession(
+  request: APIRequestContext,
+  accessToken: string,
+  userId: string,
+  issueId: string,
+  {
+    startedAt,
+    finishedAt,
+    costMoney,
+    notes,
+  }: {
+    startedAt: string;
+    finishedAt: string;
+    costMoney: number;
+    notes: string;
+  },
+) {
+  const aiSessionRes = await request.post(apiUrl('/ai-sessions'), {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    data: {
+      issueId,
+      userId,
+      model: 'claude-3-7-sonnet',
+      provider: 'anthropic',
+      startedAt,
+      finishedAt,
+      tokensInput: 1000,
+      tokensOutput: 500,
+      costMoney,
+      notes,
+      issueSplits: [{ issueId, ratio: 1 }],
+    },
+  });
+  expect(aiSessionRes.ok()).toBeTruthy();
+  return await aiSessionRes.json();
+}
+
+async function getAuthSession(request: APIRequestContext): Promise<AuthSession> {
+  const authRes = await request.post(apiUrl('/auth/login'), {
     data: {
       email: ADMIN_EMAIL,
       password: ADMIN_PASSWORD,
@@ -12,8 +67,23 @@ async function getAccessToken(request: APIRequestContext) {
   });
   expect(authRes.ok()).toBeTruthy();
 
-  const { accessToken } = await authRes.json();
-  return accessToken as string;
+  const { accessToken, user } = await authRes.json();
+  return {
+    accessToken: accessToken as string,
+    userId: (user as { id: string }).id,
+  };
+}
+
+async function getUserTimeSummary(
+  request: APIRequestContext,
+  accessToken: string,
+  userId: string,
+): Promise<TimeSummaryResponse> {
+  const summaryRes = await request.get(apiUrl(`/users/${userId}/time/summary`), {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  expect(summaryRes.ok()).toBeTruthy();
+  return await summaryRes.json() as TimeSummaryResponse;
 }
 
 async function createProjectAndIssue(
@@ -31,7 +101,7 @@ async function createProjectAndIssue(
     issueDescription?: string;
   },
 ) {
-  const projectRes = await request.post('/api/projects', {
+  const projectRes = await request.post(apiUrl('/projects'), {
     headers: { Authorization: `Bearer ${accessToken}` },
     data: {
       name: projectName,
@@ -41,7 +111,7 @@ async function createProjectAndIssue(
   expect(projectRes.ok()).toBeTruthy();
   const project = await projectRes.json();
 
-  const issueRes = await request.post(`/api/projects/${project.id}/issues`, {
+  const issueRes = await request.post(apiUrl(`/projects/${project.id}/issues`), {
     headers: { Authorization: `Bearer ${accessToken}` },
     data: {
       title: issueTitle,
@@ -74,7 +144,7 @@ test.describe('Основные пользовательские сценари�
   });
 
   test('Projects & Issues: создание задачи из проекта', async ({ page, request }) => {
-    const accessToken = await getAccessToken(request);
+    const { accessToken } = await getAuthSession(request);
     const suffix = Date.now().toString().slice(-6);
     const projectKey = `U${suffix}`;
     const projectName = `UI Project ${suffix}`;
@@ -105,7 +175,7 @@ test.describe('Основные пользовательские сценари�
   });
 
   test('Board: статус задачи отражается на доске после reorder', async ({ page, request }) => {
-    const accessToken = await getAccessToken(request);
+    const { accessToken } = await getAuthSession(request);
     const suffix = Date.now().toString().slice(-6);
     const projectKey = `B${suffix}`;
     const issueTitle = `Board issue ${suffix}`;
@@ -148,7 +218,7 @@ test.describe('Основные пользовательские сценари�
   });
 
   test('Time tracking и комментарии на задаче', async ({ page, request }) => {
-    const accessToken = await getAccessToken(request);
+    const { accessToken } = await getAuthSession(request);
     const suffix = Date.now().toString().slice(-6);
     const issueTitle = `Time issue ${suffix}`;
     await createProjectAndIssue(request, accessToken, {
@@ -182,28 +252,77 @@ test.describe('Основные пользовательские сценари�
   });
 
   test('My Time: просмотр залогированного времени', async ({ page, request }) => {
-    const accessToken = await getAccessToken(request);
+    const { accessToken, userId } = await getAuthSession(request);
     const suffix = Date.now().toString().slice(-6);
+    const beforeSummary = await getUserTimeSummary(request, accessToken, userId);
     const { issue } = await createProjectAndIssue(request, accessToken, {
       projectKey: `M${suffix}`,
       projectName: `My Time Project ${suffix}`,
       issueTitle: `My Time issue ${suffix}`,
     });
 
-    const logRes = await request.post(`/api/issues/${issue.id}/time`, {
+    const humanNote = `E2E recent human ${suffix}`;
+    const backdatedHumanNote = `E2E backdated human ${suffix}`;
+    const aiNote = `E2E ai work ${suffix}`;
+    const backdatedLogDate = '2024-01-02';
+
+    const recentHumanRes = await request.post(apiUrl(`/issues/${issue.id}/time`), {
       headers: { Authorization: `Bearer ${accessToken}` },
       data: {
         hours: 1.5,
-        note: `E2E log ${suffix}`,
+        note: humanNote,
       },
     });
-    expect(logRes.ok()).toBeTruthy();
+    expect(recentHumanRes.ok()).toBeTruthy();
+
+    const backdatedHumanRes = await request.post(apiUrl(`/issues/${issue.id}/time`), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      data: {
+        hours: 0.5,
+        note: backdatedHumanNote,
+        logDate: backdatedLogDate,
+      },
+    });
+    expect(backdatedHumanRes.ok()).toBeTruthy();
+
+    const aiFinishedAt = new Date();
+    const aiStartedAt = new Date(aiFinishedAt.getTime() - 2 * 60 * 60 * 1000);
+
+    await createAiSession(request, accessToken, userId, issue.id, {
+      startedAt: aiStartedAt.toISOString(),
+      finishedAt: aiFinishedAt.toISOString(),
+      costMoney: 12.34,
+      notes: aiNote,
+    });
+
+    const afterSummary = await getUserTimeSummary(request, accessToken, userId);
+
+    expect(afterSummary.humanHours).toBeCloseTo(beforeSummary.humanHours + 2, 5);
+    expect(afterSummary.agentHours).toBeCloseTo(beforeSummary.agentHours + 2, 5);
+    expect(afterSummary.agentCost).toBeCloseTo(beforeSummary.agentCost + 12.34, 5);
+    expect(afterSummary.totalHours).toBeCloseTo(beforeSummary.totalHours + 4, 5);
 
     await page.getByRole('menuitem', { name: /My Time/i }).click();
     await expect(page).toHaveURL(/\/time$/);
     await expect(page.getByText('My Time')).toBeVisible();
-    await expect(page.getByText('Total logged')).toBeVisible();
-    await expect(page.getByText(`E2E log ${suffix}`)).toBeVisible();
+    await expect(page.getByText('All-time summary')).toBeVisible();
+    await expect(page.getByText('Filters below affect the log table only.')).toBeVisible();
+    await expect(page.getByTestId('time-summary-human')).toContainText('Human');
+    await expect(page.getByTestId('time-summary-human')).toContainText(`${afterSummary.humanHours.toFixed(2)}h`);
+    await expect(page.getByTestId('time-summary-ai')).toContainText('AI');
+    await expect(page.getByTestId('time-summary-ai')).toContainText(`${afterSummary.agentHours.toFixed(2)}h`);
+    await expect(page.getByTestId('time-summary-ai-cost')).toContainText('AI cost');
+    await expect(page.getByTestId('time-summary-ai-cost')).toContainText(afterSummary.agentCost.toFixed(4));
+    await expect(page.getByTestId('time-summary-total')).toContainText('Total');
+    await expect(page.getByTestId('time-summary-total')).toContainText(`${afterSummary.totalHours.toFixed(2)}h`);
+    await expect(page.getByText(humanNote)).toBeVisible();
+    await expect(page.getByText(aiNote)).toBeVisible();
+    await expect(page.getByText(backdatedHumanNote)).not.toBeVisible();
+
+    await page.getByRole('button', { name: 'All time' }).click();
+    const backdatedRow = page.getByRole('row').filter({ hasText: backdatedHumanNote }).first();
+    await expect(backdatedRow).toBeVisible();
+    await expect(backdatedRow).toContainText(backdatedLogDate);
   });
 
   test('Sprints: drawer opens from project and global pages with summary and issue table', async ({

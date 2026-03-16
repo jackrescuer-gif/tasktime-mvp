@@ -4,20 +4,60 @@ import { ClockCircleOutlined, PauseCircleOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import * as timeApi from '../api/time';
 import { useAuthStore } from '../store/auth.store';
-import type { TimeLog } from '../types';
+import type { TimeLog, UserTimeSummary } from '../types';
+
+function emptySummary(userId?: string): UserTimeSummary {
+  return {
+    userId: userId ?? '',
+    humanHours: 0,
+    agentHours: 0,
+    totalHours: 0,
+    agentCost: 0,
+  };
+}
+
+function getBusinessDateText(logDate: string): string {
+  return logDate.slice(0, 10);
+}
+
+function getBusinessDate(logDate: string): Date {
+  return new Date(`${getBusinessDateText(logDate)}T00:00:00`);
+}
 
 export default function TimePage() {
   const { user } = useAuthStore();
   const [logs, setLogs] = useState<TimeLog[]>([]);
+  const [summary, setSummary] = useState<UserTimeSummary>(emptySummary());
   const [active, setActive] = useState<TimeLog | null>(null);
   const [elapsed, setElapsed] = useState('00:00:00');
   const [period, setPeriod] = useState<'all' | 'today' | 'week' | 'month'>('week');
   const [projectKey, setProjectKey] = useState<string | 'all'>('all');
 
+  const loadUserLogs = async (userId: string) => {
+    try {
+      const nextLogs = await timeApi.getUserLogs(userId);
+      setLogs(nextLogs);
+    } catch {
+      message.error('Failed to load time logs');
+    }
+  };
+
+  const loadUserSummary = async (userId: string) => {
+    try {
+      const nextSummary = await timeApi.getUserTimeSummary(userId);
+      setSummary(nextSummary);
+    } catch {
+      setSummary(emptySummary(userId));
+      message.error('Failed to load time summary');
+    }
+  };
+
   useEffect(() => {
     if (user) {
-      timeApi.getUserLogs(user.id).then(setLogs);
-      timeApi.getActiveTimer().then(setActive);
+      setSummary(emptySummary(user.id));
+      void loadUserLogs(user.id);
+      void loadUserSummary(user.id);
+      void timeApi.getActiveTimer().then(setActive);
     }
   }, [user]);
 
@@ -39,7 +79,12 @@ export default function TimePage() {
     try {
       await timeApi.stopTimer(active.issueId);
       setActive(null);
-      if (user) timeApi.getUserLogs(user.id).then(setLogs);
+      if (user) {
+        await Promise.all([
+          loadUserLogs(user.id),
+          loadUserSummary(user.id),
+        ]);
+      }
       message.success('Timer stopped');
     } catch { message.error('Error'); }
   };
@@ -58,8 +103,8 @@ export default function TimePage() {
 
     return logs.filter((log) => {
       if (from) {
-        const created = new Date(log.createdAt as unknown as string);
-        if (created < from) return false;
+        const businessDate = getBusinessDate(log.logDate);
+        if (businessDate < from) return false;
       }
       if (projectKey !== 'all') {
         const key = log.issue?.project?.key;
@@ -68,17 +113,6 @@ export default function TimePage() {
       return true;
     });
   }, [logs, period, projectKey]);
-
-  const totalHours = filteredLogs.reduce((sum, l) => sum + Number(l.hours), 0);
-  const humanHours = filteredLogs
-    .filter((l) => l.source === 'HUMAN' || !l.source)
-    .reduce((sum, l) => sum + Number(l.hours), 0);
-  const agentHours = filteredLogs
-    .filter((l) => l.source === 'AGENT')
-    .reduce((sum, l) => sum + Number(l.hours), 0);
-  const agentCost = filteredLogs
-    .filter((l) => l.source === 'AGENT' && l.costMoney != null)
-    .reduce((sum, l) => sum + Number(l.costMoney || 0), 0);
 
   const projectOptions = useMemo(() => {
     const keys = Array.from(
@@ -147,14 +181,10 @@ export default function TimePage() {
     { title: 'Note', dataIndex: 'note', width: 200, render: (n: string) => n || '-' },
     {
       title: 'Date',
-      dataIndex: 'createdAt',
+      dataIndex: 'logDate',
       width: 120,
       render: (d: string) => {
-        const dt = new Date(d);
-        const y = dt.getFullYear();
-        const m = String(dt.getMonth() + 1).padStart(2, '0');
-        const day = String(dt.getDate()).padStart(2, '0');
-        return <span className="tt-mono">{`${y}-${m}-${day}`}</span>;
+        return <span className="tt-mono">{getBusinessDateText(d)}</span>;
       },
     },
   ];
@@ -231,28 +261,57 @@ export default function TimePage() {
         </Card>
       )}
 
+      <div style={{ marginBottom: 12 }}>
+        <Typography.Title level={5} style={{ marginBottom: 4 }}>
+          All-time summary
+        </Typography.Title>
+        <Typography.Text type="secondary">
+          Filters below affect the log table only.
+        </Typography.Text>
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gap: 12,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+          marginBottom: 16,
+        }}
+      >
+        <Card size="small" data-testid="time-summary-human">
+          <Typography.Text type="secondary">Human</Typography.Text>
+          <div className="tt-mono" style={{ fontSize: 24, marginTop: 8 }}>
+            {summary.humanHours.toFixed(2)}h
+          </div>
+        </Card>
+        <Card size="small" data-testid="time-summary-ai">
+          <Typography.Text type="secondary">AI</Typography.Text>
+          <div className="tt-mono" style={{ fontSize: 24, marginTop: 8 }}>
+            {summary.agentHours.toFixed(2)}h
+          </div>
+        </Card>
+        <Card size="small" data-testid="time-summary-ai-cost">
+          <Typography.Text type="secondary">AI cost</Typography.Text>
+          <div className="tt-mono" style={{ fontSize: 24, marginTop: 8 }}>
+            {summary.agentCost.toFixed(4)}
+          </div>
+        </Card>
+        <Card size="small" data-testid="time-summary-total">
+          <Typography.Text type="secondary">Total</Typography.Text>
+          <div className="tt-mono" style={{ fontSize: 24, marginTop: 8 }}>
+            {summary.totalHours.toFixed(2)}h
+          </div>
+        </Card>
+      </div>
+
       <div className="tt-time-summary-row">
-        <span className="tt-time-summary-label">Total logged</span>
-        <span className="tt-time-summary-value tt-mono">{totalHours.toFixed(2)}h</span>
+        <span className="tt-time-summary-label">Visible log entries</span>
+        <span className="tt-time-summary-value tt-mono">{filteredLogs.length}</span>
         {filteredLogs.length !== logs.length && (
           <span className="tt-time-summary-muted">
             ({filteredLogs.length} of {logs.length} entries)
           </span>
         )}
-      </div>
-
-      <div className="tt-time-summary-row">
-        <span className="tt-time-summary-label">By source</span>
-        <span className="tt-time-summary-muted">
-          Human: <span className="tt-mono">{humanHours.toFixed(2)}h</span> · AI:{' '}
-          <span className="tt-mono">{agentHours.toFixed(2)}h</span>
-          {agentCost > 0 && (
-            <>
-              {' '}
-              · AI cost: <span className="tt-mono">{agentCost.toFixed(4)}</span>
-            </>
-          )}
-        </span>
       </div>
 
       <div className="tt-table tt-time-table">

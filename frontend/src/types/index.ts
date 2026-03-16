@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'MANAGER' | 'USER' | 'VIEWER';
+export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'USER' | 'VIEWER';
 export type IssueType = 'EPIC' | 'STORY' | 'TASK' | 'SUBTASK' | 'BUG';
 export type IssueStatus = 'OPEN' | 'IN_PROGRESS' | 'REVIEW' | 'DONE' | 'CANCELLED';
 export type IssuePriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
@@ -117,6 +117,14 @@ export interface TimeLog {
   agentSessionId?: string | null;
   costMoney?: number | null;
   agentSession?: { model: string; provider: string };
+}
+
+export interface UserTimeSummary {
+  userId: string;
+  humanHours: number;
+  agentHours: number;
+  totalHours: number;
+  agentCost: number;
 }
 
 export interface AuditEntry {

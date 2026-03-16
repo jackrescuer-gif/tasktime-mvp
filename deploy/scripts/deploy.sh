@@ -101,3 +101,9 @@ for i in $(seq 1 "$MAX_RETRIES"); do
 done
 
 docker compose --env-file "$COMPOSE_ENV_FILE" -f "$COMPOSE_FILE" ps
+curl --fail --silent --show-error "$HEALTH_URL" >/dev/null
+
+echo "Deploy completed for $ENVIRONMENT."
+echo "Prod-to-dev sync is a separate operation and is not run by deploy.sh."
+echo "If you need it, run the sync wrapper with a non-production target env file, for example:"
+echo "  ./deploy/scripts/sync-prod-to-dev.sh deploy/env/backend.staging.env --confirm-import"

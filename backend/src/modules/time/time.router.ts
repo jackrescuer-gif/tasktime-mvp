@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate } from '../../shared/middleware/auth.js';
+import { AppError } from '../../shared/middleware/error-handler.js';
 import { validate } from '../../shared/middleware/validate.js';
 import { manualTimeDto } from './time.dto.js';
 import * as timeService from './time.service.js';
@@ -45,6 +46,23 @@ router.get('/users/:userId/time', async (req, res, next) => {
   try {
     const logs = await timeService.getUserLogs(req.params.userId as string);
     res.json(logs);
+  } catch (err) { next(err); }
+});
+
+// Time summary for user
+router.get('/users/:userId/time/summary', async (req: AuthRequest, res, next) => {
+  try {
+    const requester = req.user!;
+    const targetUserId = req.params.userId as string;
+    const canReadOtherUsers =
+      requester.role === 'ADMIN' || requester.role === 'MANAGER';
+
+    if (targetUserId !== requester.userId && !canReadOtherUsers) {
+      throw new AppError(403, 'Insufficient permissions');
+    }
+
+    const summary = await timeService.getUserTimeSummary(targetUserId);
+    res.json(summary);
   } catch (err) { next(err); }
 });
 
