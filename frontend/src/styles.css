@@ -1674,7 +1674,7 @@ body {
   inset-inline-start: auto !important;
   width: min(860px, calc(100vw - 40px)) !important;
   max-width: min(860px, calc(100vw - 40px));
-  border-radius: 12px 0 0 12px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: -24px 0 60px rgba(0, 0, 0, 0.72);
 }
@@ -1682,14 +1682,15 @@ body {
 .tt-issue-preview-drawer .ant-drawer-content {
   background: rgba(14, 16, 26, 0.98);
   border-left: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px 0 0 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
 }
 
 .tt-issue-preview-drawer .ant-drawer-header {
   padding: 16px 18px 14px;
   background: rgba(14, 16, 26, 0.98);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px 0 0 0;
+  border-radius: 12px 12px 0 0;
 }
 
 .tt-issue-preview-drawer .ant-drawer-title {
