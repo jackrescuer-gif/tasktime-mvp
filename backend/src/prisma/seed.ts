@@ -15,7 +15,17 @@ export function resolveSeedActors(users: Pick<User, 'id' | 'email' | 'name' | 'r
   const viewer = usersByEmail.get('viewer@tasktime.ru');
 
   if (!admin || !manager || !dev || !viewer) {
-    throw new Error('Seed requires built-in bootstrap users to exist.');
+    const missing = [
+      !admin && 'admin@tasktime.ru',
+      !manager && 'manager@tasktime.ru',
+      !dev && 'dev@tasktime.ru',
+      !viewer && 'viewer@tasktime.ru',
+    ].filter(Boolean).join(', ');
+    throw new Error(
+      `Seed requires built-in bootstrap users to exist in the DB, but these are missing: ${missing}. ` +
+      'Run bootstrap first (set BOOTSTRAP_ENABLED=true in your env and run npm run db:bootstrap), ' +
+      'or run the full seed without TTMP_ONLY scope.',
+    );
   }
 
   const normalizedOwnerAdminEmail = ownerAdminEmail?.trim().toLowerCase();

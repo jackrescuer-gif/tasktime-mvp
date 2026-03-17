@@ -306,3 +306,62 @@ CI (push/PR) → Build & Publish (workflow_run, main only) → Deploy Staging (a
 2. Health-check возвращал 200 на пустую БД (проверял `SELECT 1` вместо наличия таблиц) — фикс `20970f0`
 3. Bootstrap-скрипт не вызывался при деплое — фикс `20970f0`
 4. Секреты production environment не были настроены при первом деплое — фикс вручную в GitHub Settings
+5. Дрейф schema/migrations: `schema.prisma` редактировался без создания migration-файла → `prisma migrate deploy` не применял изменения → seed/runtime падал на несуществующих колонках — фикс: добавлен `prisma migrate diff --exit-code` в CI (шаг после `db:migrate:deploy`)
+
+## Правила работы с Prisma (обязательно)
+
+> **Нарушение любого из этих правил = падение деплоя.**
+
+### Изменения схемы БД
+
+**ЗАПРЕЩЕНО** редактировать `schema.prisma` без создания migration-файла:
+
+```bash
+# НЕВЕРНО — изменяет только локальную БД, migration-файл не создаётся:
+npx prisma db push
+
+# ВЕРНО — создаёт migration-файл, который применится в CI и на проде:
+npx prisma migrate dev --name <описание-изменения>
+```
+
+**Обязательный порядок при изменении схемы:**
+1. Отредактировать `schema.prisma`
+2. `cd backend && npx prisma migrate dev --name <описание>` — создаёт файл в `src/prisma/migrations/`
+3. Закоммитить `schema.prisma` + новый migration-файл вместе
+4. `npm run db:generate` — регенерировать Prisma-клиент
+5. Убедиться, что TypeScript компилируется: `npm run typecheck`
+
+### Проверка дрейфа перед коммитом
+
+Если есть сомнения, что миграция создана — проверить вручную:
+
+```bash
+cd backend && npx prisma migrate diff \
+  --from-schema-datasource src/prisma/schema.prisma \
+  --to-schema-datamodel src/prisma/schema.prisma \
+  --exit-code
+# exit 0 = OK, exit 1 = в schema.prisma есть изменения без migration-файла
+```
+
+CI автоматически выполняет эту проверку после `db:migrate:deploy` и падает если есть дрейф.
+
+### TTMP_ONLY seed
+
+`npm run db:seed:ttmp` работает только на БД с уже существующими bootstrap-пользователями. На чистой БД сначала выполнить:
+
+```bash
+# В backend.*.env: BOOTSTRAP_ENABLED=true, BOOTSTRAP_DEFAULT_PASSWORD=...
+npm run db:bootstrap
+# Затем:
+npm run db:seed:ttmp
+```
+
+### ALTER TYPE в миграциях
+
+При добавлении значения в PostgreSQL enum использовать `IF NOT EXISTS`:
+
+```sql
+ALTER TYPE "MyEnum" ADD VALUE IF NOT EXISTS 'NEW_VALUE';
+```
+
+На PostgreSQL 16 это допустимо внутри транзакции. На PG < 12 нужно добавить `-- no transaction` первой строкой файла.
