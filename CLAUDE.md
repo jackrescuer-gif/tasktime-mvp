@@ -57,7 +57,7 @@ TaskTime — импортозамещение Jira для российского
 
 **Фаза:** Пересборка с нуля (v2). Старый прототип удалён.
 **План:** утверждён в `docs/RU/REBUILD_PLAN_V2.md`
-**Статус:** Sprints 1–3 ЗАВЕРШЕНЫ. В работе Sprint 4.
+**Статус:** Sprints 1–4 ЗАВЕРШЕНЫ. Sprint 5 в работе (claude/agitated-hugle).
 
 ### Sprint 1 — DONE (2026-03-10)
 
@@ -284,7 +284,31 @@ PO выбрал:
 - Sprints 1–3 ЗАВЕРШЕНЫ и работают.
 - Ветка: `claude/mvp-project-management-hdAvd`
 - Старый прототип полностью удалён
-- **Следующий шаг:** Sprint 4 (AI + интеграции + polish)
+- **Следующий шаг:** Sprint 5 (AI Dev Loop) — в работе
+
+## MCP-прокси для Claude Desktop (Sprint 5)
+
+**Запуск MCP:**
+```bash
+MCP_SERVICE_TOKEN=<jwt> docker compose --profile mcp up -d mcp-tasktime
+```
+
+**Подключить Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "tasktime": {
+      "url": "http://localhost:3002/mcp",
+      "transport": "http"
+    }
+  }
+}
+```
+
+После подключения Claude Desktop видит инструменты TaskTime и может управлять задачами через natural language.
+
+**Swagger UI:** `GET /api/docs` — интерактивная документация API.
+**OpenAPI JSON:** `GET /api/docs/json` — для openapi-to-mcp и других клиентов.
 
 ## Экономия токенов (Token Economy)
 
