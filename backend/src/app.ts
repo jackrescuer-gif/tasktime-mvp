@@ -2,10 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 
 import { errorHandler } from './shared/middleware/error-handler.js';
 import { getReadinessStatus } from './shared/health.js';
 import { features } from './shared/features.js';
+import { swaggerSpec } from './shared/openapi.js';
 import authRouter from './modules/auth/auth.router.js';
 import usersRouter from './modules/users/users.router.js';
 import projectsRouter from './modules/projects/projects.router.js';
@@ -44,6 +46,13 @@ export function createApp() {
   // Feature flags endpoint — фронт и агенты читают что включено
   app.get('/api/features', (_req, res) => {
     res.json(features);
+  });
+
+  // OpenAPI docs
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get('/api/docs/json', (_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.json(swaggerSpec);
   });
 
   // Core routes (always enabled)
