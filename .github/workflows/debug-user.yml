@@ -1,0 +1,35 @@
+name: Debug User (temp)
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        required: true
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.PRODUCTION_DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.PRODUCTION_DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Query user from DB
+        env:
+          EMAIL: ${{ github.event.inputs.email }}
+          DEPLOY_PATH: ${{ secrets.PRODUCTION_DEPLOY_PATH }}
+        run: |
+          ssh "${{ secrets.PRODUCTION_DEPLOY_USER }}@${{ secrets.PRODUCTION_DEPLOY_HOST }}" \
+            bash -s "$EMAIL" "$DEPLOY_PATH" << 'REMOTE'
+          EMAIL="$1"
+          DEPLOY_PATH="$2"
+          set -a; . "$DEPLOY_PATH/deploy/env/.env.production"; set +a
+          SQL="SELECT email, role, is_active, length(password_hash) as hash_len, left(password_hash, 20) as hash_prefix FROM users WHERE email = '$EMAIL';"
+          cd "$DEPLOY_PATH"
+          docker compose --env-file deploy/env/.env.production -f deploy/docker-compose.production.yml exec -T postgres \
+            psql -U "${POSTGRES_USER:-tasktime}" -d "${POSTGRES_DB:-tasktime}" -c "$SQL"
+          REMOTE
