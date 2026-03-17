@@ -55,6 +55,8 @@ jobs:
       - run: cd backend && npm run typecheck
       - run: cd backend && npm run build
       - run: cd backend && npm run db:migrate:deploy
+      - name: Check schema/migration drift
+        run: cd backend && npx prisma migrate diff --from-schema-datasource src/prisma/schema.prisma --to-schema-datamodel src/prisma/schema.prisma --exit-code
       - run: cd backend && npm test
 
   frontend:
