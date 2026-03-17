@@ -48,12 +48,12 @@ export function createApp() {
     res.json(features);
   });
 
-  // OpenAPI docs
-  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  // OpenAPI JSON must be registered before the swagger UI middleware
   app.get('/api/docs/json', (_req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.json(swaggerSpec);
   });
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // Core routes (always enabled)
   app.use('/api/auth', authRouter);
