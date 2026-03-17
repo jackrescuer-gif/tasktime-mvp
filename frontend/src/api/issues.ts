@@ -102,6 +102,22 @@ export async function updateAiStatus(
   return data;
 }
 
+export interface IssueSearchResult {
+  id: string;
+  number: number;
+  title: string;
+  type: IssueType;
+  status: IssueStatus;
+  project: { key: string };
+}
+
+export async function searchIssuesGlobal(q: string, excludeId?: string): Promise<IssueSearchResult[]> {
+  const { data } = await api.get<IssueSearchResult[]>('/issues/search', {
+    params: { q, ...(excludeId && { excludeId }) },
+  });
+  return data;
+}
+
 export async function listMvpLivecodeActiveIssues(params?: {
   onlyAiEligible?: boolean;
   assigneeType?: AiAssigneeType | 'ALL';

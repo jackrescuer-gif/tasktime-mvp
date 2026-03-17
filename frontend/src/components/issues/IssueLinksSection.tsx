@@ -23,11 +23,10 @@ const TYPE_COLORS: Record<IssueType, string> = {
 
 interface Props {
   issueId: string;
-  projectId: string;
   readonly?: boolean;
 }
 
-export default function IssueLinksSection({ issueId, projectId, readonly = false }: Props) {
+export default function IssueLinksSection({ issueId, readonly = false }: Props) {
   const [links, setLinks] = useState<linksApi.IssueLinksResponse>({ outbound: [], inbound: [] });
   const [linkTypes, setLinkTypes] = useState<IssueLinkType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,14 +64,12 @@ export default function IssueLinksSection({ issueId, projectId, readonly = false
     }
     setSearchLoading(true);
     try {
-      const issues = await issuesApi.listIssues(projectId, { search: value });
+      const issues = await issuesApi.searchIssuesGlobal(value, issueId);
       setSearchResults(
-        issues
-          .filter((i) => i.id !== issueId)
-          .map((i) => ({
-            value: i.id,
-            label: `${i.project?.key ?? ''}-${i.number}: ${i.title}`,
-          })),
+        issues.map((i) => ({
+          value: i.id,
+          label: `${i.project.key}-${i.number}: ${i.title}`,
+        })),
       );
     } finally {
       setSearchLoading(false);
