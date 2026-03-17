@@ -20,7 +20,7 @@ export class HeuristicProvider implements LlmProvider {
   async decomposeIssue(
     _title: string,
     description: string | null,
-    _type: string,
+    _issueType: string,
   ): Promise<DecomposeResult> {
     if (!description?.trim()) return { subtasks: ['Уточнить требования'] };
     const lines = description.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
