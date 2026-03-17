@@ -280,7 +280,7 @@ export default function IssueDetailPage() {
             </section>
           )}
 
-          <IssueLinksSection issueId={issue.id} projectId={issue.projectId} />
+          <IssueLinksSection issueId={issue.id} />
 
           <section className="tt-issue-activity">
             <h3 className="tt-issue-section-title">
