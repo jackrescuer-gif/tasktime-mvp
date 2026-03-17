@@ -17,11 +17,8 @@ export class HeuristicProvider implements LlmProvider {
     };
   }
 
-  async decomposeIssue(
-    _title: string,
-    description: string | null,
-    _issueType: string,
-  ): Promise<DecomposeResult> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async decomposeIssue(_title: string, description: string | null, _issueType: string): Promise<DecomposeResult> {
     if (!description?.trim()) return { subtasks: ['Уточнить требования'] };
     const lines = description.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
     const subtasks: string[] = [];
