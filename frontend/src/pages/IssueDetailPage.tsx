@@ -258,6 +258,17 @@ export default function IssueDetailPage() {
             </section>
           )}
 
+          {issue.acceptanceCriteria && (
+            <section>
+              <h3 className="tt-issue-section-title">Acceptance Criteria</h3>
+              <div className="tt-issue-description">
+                <div className="markdown-body">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{issue.acceptanceCriteria}</ReactMarkdown>
+                </div>
+              </div>
+            </section>
+          )}
+
           {issue.children && issue.children.length > 0 && (
             <section>
               <h3 className="tt-issue-section-title">

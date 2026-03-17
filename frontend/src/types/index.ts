@@ -29,6 +29,7 @@ export interface Issue {
   number: number;
   title: string;
   description?: string;
+  acceptanceCriteria?: string | null;
   type: IssueType;
   status: IssueStatus;
   priority: IssuePriority;

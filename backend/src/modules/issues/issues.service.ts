@@ -290,6 +290,7 @@ export async function createIssue(projectId: string, creatorId: string, dto: Cre
       number,
       title: dto.title,
       description: dto.description,
+      acceptanceCriteria: dto.acceptanceCriteria,
       type: dto.type,
       priority: dto.priority,
       parentId: dto.parentId,

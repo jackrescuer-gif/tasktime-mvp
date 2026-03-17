@@ -100,7 +100,8 @@ model Issue {
   releaseId String? @map("release_id")
   release   Release? @relation(fields: [releaseId], references: [id])
 
-  estimatedHours Decimal? @map("estimated_hours") @db.Decimal(6, 2)
+  estimatedHours      Decimal? @map("estimated_hours") @db.Decimal(6, 2)
+  acceptanceCriteria  String?  @map("acceptance_criteria")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

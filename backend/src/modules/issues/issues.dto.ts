@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const createIssueDto = z.object({
   title: z.string().min(1).max(500),
   description: z.string().max(10000).optional(),
+  acceptanceCriteria: z.string().max(10000).optional(),
   type: z.enum(['EPIC', 'STORY', 'TASK', 'SUBTASK', 'BUG']).default('TASK'),
   priority: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']).default('MEDIUM'),
   parentId: z.string().uuid().optional(),
@@ -12,6 +13,7 @@ export const createIssueDto = z.object({
 export const updateIssueDto = z.object({
   title: z.string().min(1).max(500).optional(),
   description: z.string().max(10000).optional(),
+  acceptanceCriteria: z.string().max(10000).nullable().optional(),
   priority: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']).optional(),
   assigneeId: z.string().uuid().nullable().optional(),
   parentId: z.string().uuid().nullable().optional(),
