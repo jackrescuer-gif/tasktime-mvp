@@ -2,9 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 
 import { errorHandler } from './shared/middleware/error-handler.js';
 import { getReadinessStatus } from './shared/health.js';
+import { features } from './shared/features.js';
+import { swaggerSpec } from './shared/openapi.js';
 import authRouter from './modules/auth/auth.router.js';
 import usersRouter from './modules/users/users.router.js';
 import projectsRouter from './modules/projects/projects.router.js';
@@ -40,7 +43,19 @@ export function createApp() {
     res.status(readiness.status === 'ok' ? 200 : 503).json(readiness);
   });
 
-  // Routes
+  // Feature flags endpoint — фронт и агенты читают что включено
+  app.get('/api/features', (_req, res) => {
+    res.json(features);
+  });
+
+  // OpenAPI docs
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get('/api/docs/json', (_req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.json(swaggerSpec);
+  });
+
+  // Core routes (always enabled)
   app.use('/api/auth', authRouter);
   app.use('/api/users', usersRouter);
   app.use('/api/projects', projectsRouter);
@@ -53,9 +68,18 @@ export function createApp() {
   app.use('/api', timeRouter);
   app.use('/api', teamsRouter);
   app.use('/api', adminRouter);
-  app.use('/api', aiSessionsRouter);
-  app.use('/api', aiRouter);
-  app.use('/api', webhooksRouter);
+
+  // AI routes (feature-gated)
+  if (features.ai) {
+    app.use('/api', aiSessionsRouter);
+    app.use('/api', aiRouter);
+  }
+
+  // GitLab webhook (feature-gated)
+  if (features.gitlab) {
+    app.use('/api', webhooksRouter);
+  }
+
   app.use('/api', linksRouter);
 
   // Error handler (must be last)

@@ -465,6 +465,9 @@ export default function ProjectDetailPage() {
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={4} />
           </Form.Item>
+          <Form.Item name="acceptanceCriteria" label="Acceptance Criteria">
+            <Input.TextArea rows={3} placeholder="What conditions must be met for this issue to be considered done?" />
+          </Form.Item>
         </Form>
       </Modal>
     </div>
