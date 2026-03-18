@@ -36,13 +36,38 @@ export default function App() {
   const darkTheme = {
     algorithm: antdTheme.darkAlgorithm,
     token: {
-      colorPrimary: 'var(--acc)',
-      colorBgBase: 'var(--bg)',
-      colorBgContainer: 'var(--bg)',
-      colorBorder: 'var(--b2)',
-      colorTextBase: 'var(--t1)',
-      borderRadius: 4,
-      fontFamily: 'Inter, -apple-system, system-ui, sans-serif',
+      // Передаём конкретные hex-значения, а не CSS-переменные —
+      // Ant Design разрешает токены в JS, CSS vars там не работают
+      colorPrimary: '#7b86ff',
+      colorPrimaryHover: '#9aa4ff',
+      colorBgBase: '#111117',
+      colorBgContainer: '#181821',
+      colorBgElevated: '#1e1e2a',      // фон выпадающих списков, модалок, поповеров
+      colorBgSpotlight: '#252535',     // тултипы
+      colorBorder: 'rgba(255,255,255,0.10)',
+      colorBorderSecondary: 'rgba(255,255,255,0.07)',
+      colorTextBase: '#e2e2e8',
+      colorText: '#e2e2e8',
+      colorTextSecondary: '#8c8c9e',
+      colorTextTertiary: '#555566',
+      colorTextQuaternary: '#3a3a4a',
+      colorTextPlaceholder: '#3a3a4a',
+      colorFillSecondary: 'rgba(255,255,255,0.06)',
+      colorFill: 'rgba(255,255,255,0.04)',
+      colorFillTertiary: 'rgba(255,255,255,0.03)',
+      colorSplit: 'rgba(255,255,255,0.07)',
+      borderRadius: 6,
+      borderRadiusSM: 4,
+      borderRadiusLG: 10,
+      fontFamily: "Inter, -apple-system, system-ui, sans-serif",
+      fontSize: 13,
+      fontSizeSM: 12,
+      controlHeight: 32,
+      controlHeightSM: 26,
+      controlHeightLG: 38,
+      lineWidth: 1,
+      motionDurationMid: '0.12s',
+      motionDurationSlow: '0.18s',
     },
   };
 
