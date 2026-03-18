@@ -1,7 +1,12 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { prisma } from '../../prisma/client.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
 import * as issuesService from '../issues/issues.service.js';
 import type { AiEstimateDto, AiDecomposeDto } from './ai.dto.js';
+
+const anthropic = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
 
 const MIN_ESTIMATE_HOURS = 0.5;
 const MAX_ESTIMATE_HOURS = 40;
@@ -69,18 +74,78 @@ export async function estimateIssue(dto: AiEstimateDto) {
 }
 
 /**
- * Extract list items from description (bullets or numbered lines).
- * MVP: simple regex; no external LLM.
+ * Decompose an issue into subtasks using Claude AI.
+ * Falls back to a capped heuristic if no API key is configured.
  */
-function extractSubtasksFromDescription(description: string | null): string[] {
-  if (!description?.trim()) return [];
-  const lines = description.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-  const items: string[] = [];
-  for (const line of lines) {
-    const bullet = line.replace(/^[\s]*[-*•]\s*/, '').replace(/^[\s]*\d+[.)]\s*/, '');
-    if (bullet.length > 2) items.push(bullet);
+async function generateSubtasks(
+  title: string,
+  description: string | null,
+  issueType: string,
+): Promise<string[]> {
+  if (anthropic) {
+    return decomposeWithClaude(title, description, issueType);
   }
-  return items.length > 0 ? items : [];
+  return decomposeHeuristic(description);
+}
+
+async function decomposeWithClaude(
+  title: string,
+  description: string | null,
+  issueType: string,
+): Promise<string[]> {
+  const descSection = description?.trim()
+    ? `\nОписание:\n${description.trim()}`
+    : '';
+
+  const message = await anthropic!.messages.create({
+    model: 'claude-haiku-4-5',
+    max_tokens: 1024,
+    messages: [
+      {
+        role: 'user',
+        content: `Ты — опытный проджект-менеджер. Декомпозируй задачу типа ${issueType} на конкретные подзадачи.
+
+Задача: ${title}${descSection}
+
+Требования:
+- Верни от 3 до 8 подзадач
+- Каждая подзадача — конкретный, самостоятельный блок работы
+- Группируй по смыслу (анализ, проектирование, реализация, тестирование и т.д.)
+- Не дроби текст механически — думай о сути работы
+- Заголовок каждой подзадачи до 120 символов
+- Ответ — ТОЛЬКО JSON-массив строк, без пояснений
+
+Пример: ["Проанализировать требования", "Спроектировать схему БД", "Реализовать API", "Написать тесты", "Обновить документацию"]`,
+      },
+    ],
+  });
+
+  const text = message.content.find((b) => b.type === 'text')?.text ?? '';
+
+  // Strip markdown code fences if present
+  const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+
+  const parsed: unknown = JSON.parse(cleaned);
+  if (Array.isArray(parsed) && parsed.every((t) => typeof t === 'string')) {
+    return (parsed as string[]).filter((t) => t.trim().length > 0).slice(0, 10);
+  }
+  throw new Error('Unexpected response format from Claude');
+}
+
+/**
+ * Heuristic fallback when no API key is set.
+ * Extracts bullet/numbered list items from description, capped at 10.
+ */
+function decomposeHeuristic(description: string | null): string[] {
+  if (!description?.trim()) return [];
+  const bullets: string[] = [];
+  for (const raw of description.split(/\r?\n/)) {
+    const line = raw.trim();
+    const m = line.match(/^[-*•]\s+(.+)/) ?? line.match(/^\d+[.)]\s+(.+)/);
+    if (m) bullets.push(m[1].trim());
+  }
+  // Cap at 10 so we never create 64 subtasks from a wall of text
+  return bullets.slice(0, 10);
 }
 
 export async function decomposeIssue(dto: AiDecomposeDto, creatorId: string) {
@@ -100,8 +165,8 @@ export async function decomposeIssue(dto: AiDecomposeDto, creatorId: string) {
       throw new AppError(400, `Issue type ${issue.type} cannot be decomposed into subtasks`);
     }
 
-    const titles = extractSubtasksFromDescription(issue.description);
-    const subtaskTitles = titles.length > 0 ? titles : ['Уточнить требования'];
+    const titles = await generateSubtasks(issue.title, issue.description, issue.type);
+    const subtaskTitles = titles.length > 0 ? titles : ['Уточнить требования и план реализации'];
 
     const created: Array<{ id: string; title: string; type: string; number: number }> = [];
 
