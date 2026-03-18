@@ -1,25 +1,11 @@
 import { useEffect, useState } from 'react';
-import { List, Button, Select, Tag, Space, Popconfirm, Typography, message, Spin } from 'antd';
+import { List, Button, Select, Space, Popconfirm, Typography, message, Spin } from 'antd';
 import { PlusOutlined, DeleteOutlined, LinkOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import * as linksApi from '../../api/links';
 import * as issuesApi from '../../api/issues';
-import type { IssueLink, IssueLinkType, IssueStatus, IssueType } from '../../types';
-
-const STATUS_COLORS: Record<IssueStatus, string> = {
-  OPEN: 'default',
-  IN_PROGRESS: 'processing',
-  REVIEW: 'warning',
-  DONE: 'success',
-  CANCELLED: 'error',
-};
-const TYPE_COLORS: Record<IssueType, string> = {
-  EPIC: '#8b5cf6',
-  STORY: '#22c55e',
-  TASK: '#3b82f6',
-  SUBTASK: '#6b7280',
-  BUG: '#ef4444',
-};
+import type { IssueLink, IssueLinkType } from '../../types';
+import { IssueStatusTag, IssueTypeBadge } from '../../lib/issue-kit';
 
 interface Props {
   issueId: string;
@@ -144,12 +130,8 @@ export default function IssueLinksSection({ issueId, readonly = false }: Props) 
           <Typography.Text type="secondary" style={{ fontSize: 12, minWidth: 90, display: 'inline-block' }}>
             {relationLabel}
           </Typography.Text>
-          <Tag color={TYPE_COLORS[relatedIssue.type]} style={{ fontSize: 11 }}>
-            {relatedIssue.type}
-          </Tag>
-          <Tag color={STATUS_COLORS[relatedIssue.status]} style={{ fontSize: 11 }}>
-            {relatedIssue.status}
-          </Tag>
+          <IssueTypeBadge type={relatedIssue.type} showLabel />
+          <IssueStatusTag status={relatedIssue.status} size="small" />
           <Link to={`/issues/${relatedIssue.id}`} style={{ fontSize: 13 }}>
             {relatedIssue.project.key}-{relatedIssue.number}: {relatedIssue.title}
           </Link>

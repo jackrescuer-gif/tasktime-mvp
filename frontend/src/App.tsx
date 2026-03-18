@@ -37,6 +37,7 @@ export default function App() {
     loadUser();
   }, [loadUser]);
 
+  const primary = isLight ? '#5e6ad2' : '#7b86ff';
   const antTheme = {
     algorithm: isLight ? antdTheme.defaultAlgorithm : antdTheme.darkAlgorithm,
     token: {
@@ -45,6 +46,7 @@ export default function App() {
       // для Select/Dropdown/Modal/Popover попапов
       colorPrimary: isLight ? '#5e6ad2' : '#7b86ff',
       colorPrimaryHover: isLight ? '#7b86ff' : '#9aa4ff',
+      colorInfo: primary,
       colorBgBase: isLight ? '#f5f5f7' : '#111117',
       colorBgContainer: isLight ? '#ffffff' : '#181821',
       colorBgElevated: isLight ? '#ffffff' : '#1e1e2a',   // попапы, модалки, дропдауны
@@ -62,18 +64,55 @@ export default function App() {
       colorSplit: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)',
       colorBorder: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.10)',
       colorBorderSecondary: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.07)',
+      colorSuccess: '#4caf7d',
+      colorWarning: '#e8b84a',
+      colorError: '#e5534b',
       borderRadius: 6,
       borderRadiusSM: 4,
       borderRadiusLG: 10,
       fontFamily: 'Inter, -apple-system, system-ui, sans-serif',
       fontSize: 13,
       fontSizeSM: 12,
+      lineHeight: 1.5,
       controlHeight: 32,
       controlHeightSM: 26,
       controlHeightLG: 38,
       lineWidth: 1,
       motionDurationMid: '0.12s',
       motionDurationSlow: '0.18s',
+    },
+    components: {
+      Button: {
+        fontWeight: 500,
+        paddingInline: 14,
+      },
+      Tag: {
+        borderRadiusSM: 3,
+        fontSizeSM: 11,
+      },
+      Table: {
+        headerBg: isLight ? '#f0f0f4' : '#14141c',
+        headerColor: isLight ? '#5a5a72' : '#8c8c9e',
+        headerSplitColor: 'transparent',
+        rowHoverBg: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
+        cellPaddingBlock: 8,
+        cellPaddingInline: 12,
+      },
+      Modal: {
+        borderRadiusLG: 8,
+        paddingContentHorizontalLG: 24,
+      },
+      Drawer: {
+        paddingLG: 20,
+      },
+      Select: {
+        optionHeight: 32,
+      },
+      Menu: {
+        itemHeight: 34,
+        itemBorderRadius: 4,
+        subMenuItemBorderRadius: 4,
+      },
     },
   };
 
