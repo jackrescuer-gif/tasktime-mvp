@@ -1,4 +1,4 @@
-import { Layout, Menu, Button, Typography } from 'antd';
+import { Layout, Menu } from 'antd';
 import {
   ProjectOutlined,
   LogoutOutlined,
@@ -16,7 +16,7 @@ import { useAuthStore } from '../../store/auth.store';
 import UatOnboardingOverlay from '../uat/UatOnboardingOverlay';
 import { hasRequiredRole } from '../../lib/roles';
 
-const { Header, Sider, Content } = Layout;
+const { Sider, Content } = Layout;
 
 export default function AppLayout() {
   const navigate = useNavigate();
@@ -83,9 +83,7 @@ export default function AppLayout() {
       >
         <div className="tt-sidebar-header">
           <div className="tt-workspace-dot" />
-          <Typography.Text className="tt-sidebar-workspace-name">
-            TaskTime
-          </Typography.Text>
+          <span className="tt-sidebar-workspace-name">TaskTime</span>
         </div>
         <Menu
           theme="dark"
@@ -99,21 +97,20 @@ export default function AppLayout() {
             }
           }}
         />
+        <div className="tt-sidebar-user">
+          <div className="tt-sidebar-user-avatar">
+            {user?.name?.slice(0, 2).toUpperCase() ?? 'U'}
+          </div>
+          <div className="tt-sidebar-user-info">
+            <span className="tt-sidebar-user-name">{user?.name}</span>
+            <span className="tt-sidebar-user-role">{user?.role}</span>
+          </div>
+          <button className="tt-sidebar-logout-btn" onClick={handleLogout} title="Logout">
+            <LogoutOutlined />
+          </button>
+        </div>
       </Sider>
       <Layout className="tt-main">
-        <Header className="tt-topbar">
-          <Typography.Text className="tt-topbar-user">
-            {user?.name} ({user?.role})
-          </Typography.Text>
-          <Button
-            size="small"
-            icon={<LogoutOutlined />}
-            className="tt-topbar-logout"
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
-        </Header>
         <Content className="tt-content">
           <Outlet />
           <UatOnboardingOverlay />

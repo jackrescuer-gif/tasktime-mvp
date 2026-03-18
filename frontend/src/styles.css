@@ -270,8 +270,15 @@ body {
   width: var(--sidebar-w);
   flex-shrink: 0;
   background-color: var(--bg-sb);
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+}
+
+.tt-sidebar .ant-layout-sider-children {
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .tt-sidebar-header {
@@ -297,10 +304,78 @@ body {
   color: var(--t1);
 }
 
+.tt-sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 12px;
+  border-top: 1px solid var(--b);
+  margin-top: auto;
+}
+
+.tt-sidebar-user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4F6EF7, #7C3AED);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.tt-sidebar-user-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tt-sidebar-user-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--t1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tt-sidebar-user-role {
+  font-size: 10.5px;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tt-sidebar-logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--t3);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.tt-sidebar-logout-btn:hover {
+  color: var(--t1);
+  background: var(--bg-hover);
+}
+
 .tt-sidebar-menu {
   background-color: var(--bg-sb) !important;
   color: var(--t2);
   font-size: 12.5px;
+  flex: 1 !important;
+  overflow-y: auto !important;
 }
 
 .tt-sidebar .ant-menu-item {
@@ -327,8 +402,9 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-  overflow: visible;
+  overflow: hidden;
   z-index: 0;
+  min-width: 0;
 }
 
 .tt-main::before {
@@ -2795,8 +2871,8 @@ body {
    ============================================================ */
 
 .tt-projects-page {
-  padding: 28px 32px;
-  max-width: 1200px;
+  padding: 0 0 48px 0;
+  width: 100%;
 }
 
 .tt-projects-header {
