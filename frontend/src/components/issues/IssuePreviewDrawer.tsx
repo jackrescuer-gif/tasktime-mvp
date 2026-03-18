@@ -7,12 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import * as issuesApi from '../../api/issues';
 import type { Issue } from '../../types';
-import {
-  STATUS_LABEL, STATUS_TONE, STATUS_TAG_COLOR,
-  PRIORITY_LABEL, PRIORITY_TAG_COLOR,
-  TYPE_LABEL, TYPE_COLOR,
-  IssueStatusTag, IssuePriorityTag, IssueTypeBadge,
-} from '../../lib/issue-kit';
+import { IssueStatusTag, IssuePriorityTag, IssueTypeBadge } from '../../lib/issue-kit';
 
 type IssuePreviewDrawerProps = {
   open: boolean;
