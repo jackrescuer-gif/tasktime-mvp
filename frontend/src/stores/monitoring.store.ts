@@ -49,7 +49,7 @@ export const useMonitoringStore = create<MonitoringState>((set, get) => ({
     try {
       const result = await monitoringApi.getEndpointMetrics(minutes);
       set({ endpointMetrics: result.endpoints, endpointLoading: false });
-    } catch (_error) {
+    } catch {
       set({ endpointLoading: false });
     }
   },
