@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Card, Statistic, Table, Spin, Space, Button, message } from 'antd';
+import { useEffect } from 'react';
+import { Card, Statistic, Table, Spin, Button, message } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useMonitoringStore } from '../../stores/monitoring.store.js';
 import type { AggregatedMetrics } from '../../api/monitoring.js';
@@ -7,8 +7,6 @@ import type { AggregatedMetrics } from '../../api/monitoring.js';
 export default function AdminMonitoringTab() {
   const { systemMetrics, pageMetrics, endpointMetrics, systemLoading, endpointLoading, fetchSystemMetrics, fetchEndpointMetrics, clearMetrics } =
     useMonitoringStore();
-  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
-
   useEffect(() => {
     // Initial load
     void fetchSystemMetrics();
@@ -20,10 +18,8 @@ export default function AdminMonitoringTab() {
       void fetchEndpointMetrics();
     }, 30000);
 
-    setRefreshInterval(interval);
-
     return () => {
-      if (interval) clearInterval(interval);
+      clearInterval(interval);
     };
   }, [fetchSystemMetrics, fetchEndpointMetrics]);
 
