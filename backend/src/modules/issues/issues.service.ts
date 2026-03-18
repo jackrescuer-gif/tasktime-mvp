@@ -107,6 +107,45 @@ export async function listIssues(projectId: string, filters?: ListIssuesFilters)
   });
 }
 
+export async function searchIssuesGlobal(q: string, excludeId?: string) {
+  const where: Prisma.IssueWhereInput = {};
+
+  if (excludeId) {
+    where.id = { not: excludeId };
+  }
+
+  const keyNumberMatch = q.match(/^([A-Za-z]+)-(\d+)$/);
+  if (keyNumberMatch) {
+    const [, keyPart, numberPart] = keyNumberMatch;
+    where.OR = [
+      { title: { contains: q, mode: 'insensitive' } },
+      {
+        project: { key: { equals: keyPart.toUpperCase() } },
+        number: parseInt(numberPart, 10),
+      },
+    ];
+  } else {
+    where.OR = [
+      { title: { contains: q, mode: 'insensitive' } },
+      { project: { key: { startsWith: q.toUpperCase() } } },
+    ];
+  }
+
+  return prisma.issue.findMany({
+    where,
+    select: {
+      id: true,
+      number: true,
+      title: true,
+      type: true,
+      status: true,
+      project: { select: { key: true } },
+    },
+    take: 20,
+    orderBy: [{ project: { key: 'asc' } }, { number: 'asc' }],
+  });
+}
+
 type MvpLivecodeFilters = {
   onlyAiEligible?: boolean;
   assigneeType?: AiAssigneeType | 'ALL';
@@ -251,6 +290,7 @@ export async function createIssue(projectId: string, creatorId: string, dto: Cre
       number,
       title: dto.title,
       description: dto.description,
+      acceptanceCriteria: dto.acceptanceCriteria,
       type: dto.type,
       priority: dto.priority,
       parentId: dto.parentId,

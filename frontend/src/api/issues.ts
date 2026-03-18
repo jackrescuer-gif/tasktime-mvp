@@ -48,6 +48,7 @@ export async function getIssueByKey(key: string): Promise<Issue> {
 export interface CreateIssueBody {
   title: string;
   description?: string;
+  acceptanceCriteria?: string;
   type?: IssueType;
   priority?: IssuePriority;
   parentId?: string;
@@ -59,7 +60,7 @@ export async function createIssue(projectId: string, body: CreateIssueBody): Pro
   return data;
 }
 
-export async function updateIssue(id: string, body: Partial<CreateIssueBody>): Promise<Issue> {
+export async function updateIssue(id: string, body: Partial<CreateIssueBody & { acceptanceCriteria: string | null }>): Promise<Issue> {
   const { data } = await api.patch<Issue>(`/issues/${id}`, body);
   return data;
 }
@@ -99,6 +100,22 @@ export async function updateAiStatus(
   aiExecutionStatus: AiExecutionStatus,
 ): Promise<Issue> {
   const { data } = await api.patch<Issue>(`/issues/${id}/ai-status`, { aiExecutionStatus });
+  return data;
+}
+
+export interface IssueSearchResult {
+  id: string;
+  number: number;
+  title: string;
+  type: IssueType;
+  status: IssueStatus;
+  project: { key: string };
+}
+
+export async function searchIssuesGlobal(q: string, excludeId?: string): Promise<IssueSearchResult[]> {
+  const { data } = await api.get<IssueSearchResult[]>('/issues/search', {
+    params: { q, ...(excludeId && { excludeId }) },
+  });
   return data;
 }
 

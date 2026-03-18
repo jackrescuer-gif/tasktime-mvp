@@ -25,5 +25,20 @@ services:
       timeout: 3s
       retries: 5
 
+  # MCP-прокси для TaskTime API (openapi-to-mcp)
+  # Запуск: docker compose --profile mcp up mcp-tasktime
+  # Claude Desktop config: { "mcpServers": { "tasktime": { "url": "http://localhost:3002/mcp", "transport": "http" } } }
+  mcp-tasktime:
+    image: evilfreelancer/openapi-to-mcp:latest
+    profiles: ["mcp"]
+    environment:
+      OPENAPI_URL: http://backend:3000/api/docs/json
+      BACKEND_URL: http://backend:3000
+      BEARER_TOKEN: ${MCP_SERVICE_TOKEN:-}
+    ports:
+      - "3002:3000"
+    depends_on:
+      - backend
+
 volumes:
   pgdata:

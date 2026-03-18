@@ -76,6 +76,59 @@
   --space-6: 16px;
 }
 
+/* ============================================================
+   TTMP-83 — Светлая тема: белый фон, тёмные шрифты
+   ============================================================ */
+[data-theme='light'] {
+  /* === BACKGROUNDS === */
+  --bg: #f5f5f7;
+  --bg-sb: #eaeaed;
+  --bg-el: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(0, 0, 0, 0.06);
+  --bg-sel: rgba(94, 106, 210, 0.1);
+  --bg-input: #ffffff;
+  --bg-modal: #ffffff;
+
+  /* === BORDERS === */
+  --b: rgba(0, 0, 0, 0.08);
+  --b2: rgba(0, 0, 0, 0.12);
+  --b3: rgba(0, 0, 0, 0.16);
+  --b-focus: #5e6ad2;
+
+  /* === TEXT === */
+  --t1: #1a1a2e;
+  --t2: #5a5a72;
+  --t3: #9a9aaa;
+  --t4: #c0c0cc;
+
+  /* === ACCENT === */
+  --acc: #5e6ad2;
+  --acc-h: #4a56c4;
+  --acc-bg: rgba(94, 106, 210, 0.12);
+
+  /* === STATUS COLORS === */
+  --s-todo: #8888a0;
+  --s-inprog: #d4a017;
+  --s-done: #5e6ad2;
+  --s-cancelled: #aaaabc;
+  --s-urgent: #d94040;
+  --s-high: #d46a20;
+  --s-medium: #d4a017;
+
+  /* === LABEL COLORS === */
+  --lbl-bug: #d94040;
+  --lbl-feat: #5e6ad2;
+  --lbl-imp: #7c3aed;
+  --lbl-perf: #2e8a5a;
+
+  /* === SHADOWS === */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-err: 0 0 0 2px rgba(217, 64, 64, 0.25);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -96,6 +149,11 @@ body {
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   font-variant-numeric: tabular-nums;
   color-scheme: dark;
+}
+
+[data-theme='light'] body,
+[data-theme='light'] {
+  color-scheme: light;
 }
 
 /* === Ant Design base overrides for dark Linear theme === */
@@ -363,17 +421,64 @@ body {
   background-color: transparent;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   padding: 0 16px;
   gap: 10px;
 }
 
-.tt-topbar-logout {
-  border-color: var(--b2);
-  background: transparent;
-  font-size: 12px;
-  font-weight: 500;
+/* Гамбургер — по умолчанию скрыт, появляется только на мобиле */
+.tt-mobile-hamburger {
+  display: none !important;
+  color: var(--t2) !important;
+  border: none !important;
+  background: transparent !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  flex-shrink: 0;
+}
+
+.tt-mobile-hamburger:hover {
+  color: var(--t1) !important;
+  background: var(--bg-hover) !important;
+}
+
+/* Правая часть топбара */
+.tt-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.tt-topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tt-topbar-user-name {
+  font-size: 13px;
   color: var(--t2);
+}
+
+.tt-topbar-role {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--t3);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--b);
+  border-radius: 4px;
+  padding: 1px 5px;
+  letter-spacing: 0.2px;
+}
+
+.tt-topbar-logout {
+  border-color: var(--b2) !important;
+  background: transparent !important;
+  font-size: 12px !important;
+  font-weight: 500;
+  color: var(--t2) !important;
+  height: 26px !important;
 }
 
 .tt-topbar-logout:hover {
@@ -2865,12 +2970,8 @@ body {
 }
 
 /* =========================================================
-   MOBILE HAMBURGER — hidden on desktop
+   MOBILE HAMBURGER + SIDEBAR OVERLAY
    ========================================================= */
-
-.tt-mobile-hamburger {
-  display: none !important;
-}
 
 .tt-sidebar-close-btn {
   display: none;
@@ -2878,28 +2979,21 @@ body {
   flex-shrink: 0;
 }
 
-/* =========================================================
-   SIDEBAR BACKDROP — hidden by default
-   ========================================================= */
-
 .tt-sidebar-backdrop {
   display: none;
 }
 
 /* =========================================================
-   RESPONSIVE ≤ 768px — mobile layout
+   RESPONSIVE ≤ 768px
    ========================================================= */
 
 @media (max-width: 768px) {
 
-  /* --- Hamburger: show on mobile --- */
   .tt-mobile-hamburger {
     display: flex !important;
     flex-shrink: 0;
-    color: var(--t2);
   }
 
-  /* --- Topbar: hamburger left, actions right --- */
   .tt-topbar {
     justify-content: flex-start;
     padding: 0 10px;
@@ -2912,24 +3006,19 @@ body {
     gap: 6px;
   }
 
-  /* Hide user name text on narrow screens */
   .tt-topbar-user-name {
     display: none;
   }
 
-  /* Keep role badge or hide too */
   .tt-topbar-role {
     display: none;
   }
 
-  /* Hide logout label text — icon only */
   .tt-topbar-logout-label {
     display: none;
   }
 
-  /* --- Ant Design Layout: collapse sider to 0 in flex flow --- */
-  /* The sidebar is position:fixed so it's out of flow;
-     we tell the parent flex container it takes 0 width */
+  /* Collapse Ant Design sider in flex layout */
   .tt-app-shell > .ant-layout-sider {
     flex: 0 0 0 !important;
     min-width: 0 !important;
@@ -2938,7 +3027,7 @@ body {
     overflow: visible !important;
   }
 
-  /* --- Sidebar: fixed overlay, hidden off-screen by default --- */
+  /* Sidebar as fixed overlay */
   .tt-sidebar {
     position: fixed !important;
     top: 0 !important;
@@ -2956,13 +3045,11 @@ body {
     box-shadow: 8px 0 40px rgba(0, 0, 0, 0.75) !important;
   }
 
-  /* Show close button inside sidebar */
   .tt-sidebar-close-btn {
     display: flex !important;
     color: var(--t2);
   }
 
-  /* --- Backdrop overlay --- */
   .tt-sidebar-backdrop {
     display: block;
     position: fixed;
@@ -2974,27 +3061,21 @@ body {
     animation: tt-fade-in 0.18s ease;
   }
 
-  /* --- Main content: use full screen width --- */
   .tt-main {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
   }
 
-  /* --- Content padding: less on mobile --- */
   .tt-content {
     padding: 14px 14px 20px;
   }
 
-  /* --- Main decorative bg: no border radius on mobile --- */
   .tt-main::before {
     left: 0;
     border-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
   }
 
-  /* --- Tables: horizontal scroll, don't overflow viewport --- */
   .tt-table,
   .ant-table-wrapper {
     width: 100%;
@@ -3009,7 +3090,7 @@ body {
 }
 
 /* =========================================================
-   RESPONSIVE ≤ 480px — extra narrow
+   RESPONSIVE ≤ 480px
    ========================================================= */
 
 @media (max-width: 480px) {
@@ -3018,7 +3099,6 @@ body {
     padding: 10px 10px 16px;
   }
 
-  /* Login page: single column */
   .moex-shell {
     min-width: 0;
     flex-direction: column;

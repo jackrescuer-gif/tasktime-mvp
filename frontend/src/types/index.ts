@@ -14,12 +14,26 @@ export interface User {
   createdAt: string;
 }
 
+export interface ProjectCategory {
+  id: string;
+  name: string;
+  description?: string | null;
+  projects?: { id: string; name: string; key: string }[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Project {
   id: string;
   name: string;
   key: string;
   description?: string;
+  ownerId?: string | null;
+  categoryId?: string | null;
+  owner?: { id: string; name: string; email: string } | null;
+  category?: { id: string; name: string } | null;
   createdAt: string;
+  updatedAt: string;
   _count?: { issues: number };
 }
 
@@ -29,6 +43,7 @@ export interface Issue {
   number: number;
   title: string;
   description?: string;
+  acceptanceCriteria?: string | null;
   type: IssueType;
   status: IssueStatus;
   priority: IssuePriority;
@@ -48,6 +63,26 @@ export interface Issue {
   _count?: { children: number };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface IssueLinkType {
+  id: string;
+  name: string;
+  outboundName: string;
+  inboundName: string;
+  isActive: boolean;
+  isSystem: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IssueLink {
+  id: string;
+  createdAt: string;
+  linkType: Pick<IssueLinkType, 'id' | 'name' | 'outboundName' | 'inboundName'>;
+  sourceIssue: { id: string; number: number; title: string; type: IssueType; status: IssueStatus; project: { key: string } };
+  targetIssue: { id: string; number: number; title: string; type: IssueType; status: IssueStatus; project: { key: string } };
+  createdBy: { id: string; name: string };
 }
 
 export type SprintState = 'PLANNED' | 'ACTIVE' | 'CLOSED';
