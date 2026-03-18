@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Tag, Select, Space, Button, Modal, Form, Input, message } from 'antd';
+import { Select, Space, Button, Modal, Form, Input, message } from 'antd';
 import { AppstoreOutlined, ThunderboltOutlined, PlusOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import * as boardApi from '../api/board';
@@ -10,6 +10,7 @@ import * as issuesApi from '../api/issues';
 import type { Issue, IssueStatus, Sprint, Project, IssueType, IssuePriority } from '../types';
 import { useAuthStore } from '../store/auth.store';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { IssueTypeBadge } from '../lib/issue-kit';
 
 const STATUS_ORDER: IssueStatus[] = ['OPEN', 'IN_PROGRESS', 'REVIEW', 'DONE', 'CANCELLED'];
 const COLUMN_LABELS: Record<IssueStatus, string> = {
@@ -18,7 +19,6 @@ const COLUMN_LABELS: Record<IssueStatus, string> = {
 const COLUMN_COLORS: Record<IssueStatus, string> = {
   OPEN: '#e6f7ff', IN_PROGRESS: '#fff7e6', REVIEW: '#f6ffed', DONE: '#f9f0ff', CANCELLED: '#fff1f0',
 };
-const TYPE_COLORS: Record<string, string> = { EPIC: '#8b5cf6', STORY: '#22c55e', TASK: '#3b82f6', SUBTASK: '#6b7280', BUG: '#ef4444' };
 
 export default function BoardPage() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -214,12 +214,7 @@ export default function BoardPage() {
                             <span className="tt-board-card-id">
                               {project.key}-{issue.number}
                             </span>
-                            <Tag
-                              color={TYPE_COLORS[issue.type]}
-                              className="tt-board-card-type"
-                            >
-                              {issue.type}
-                            </Tag>
+                            <IssueTypeBadge type={issue.type} />
                           </div>
                           <Link to={`/issues/${issue.id}`} className="tt-board-card-title">
                             {issue.title}

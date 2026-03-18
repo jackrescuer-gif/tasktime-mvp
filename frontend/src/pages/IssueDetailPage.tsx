@@ -42,10 +42,7 @@ import { useAuthStore } from '../store/auth.store';
 import type { Issue, Comment, TimeLog, AuditEntry, IssueStatus, IssuePriority, IssueType, User } from '../types';
 import api from '../api/client';
 import { hasAnyRequiredRole, hasRequiredRole } from '../lib/roles';
-
-const PRIORITY_COLORS: Record<IssuePriority, string> = { CRITICAL: 'red', HIGH: 'orange', MEDIUM: 'blue', LOW: 'default' };
-const STATUS_COLORS: Record<IssueStatus, string> = { OPEN: 'default', IN_PROGRESS: 'processing', REVIEW: 'warning', DONE: 'success', CANCELLED: 'error' };
-const TYPE_COLORS: Record<string, string> = { EPIC: '#8b5cf6', STORY: '#22c55e', TASK: '#3b82f6', SUBTASK: '#6b7280', BUG: '#ef4444' };
+import { IssueStatusTag, IssuePriorityTag, IssueTypeBadge } from '../lib/issue-kit';
 
 export default function IssueDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -261,7 +258,7 @@ export default function IssueDetailPage() {
             <div className="tt-issue-id-badge">
               <span>{issueKey}</span>
             </div>
-            <Tag color={TYPE_COLORS[issue.type]}>{issue.type}</Tag>
+            <IssueTypeBadge type={issue.type} showLabel />
           </div>
           <div className="tt-issue-header-meta">
             <span>
@@ -322,8 +319,8 @@ export default function IssueDetailPage() {
                 renderItem={(child) => (
                   <List.Item>
                     <Link to={`/issues/${child.id}`}>
-                      <Tag color={TYPE_COLORS[child.type]}>{child.type}</Tag>{' '}
-                      <Tag color={STATUS_COLORS[child.status]}>{child.status}</Tag>{' '}
+                      <IssueTypeBadge type={child.type} />{' '}
+                      <IssueStatusTag status={child.status} size="small" />{' '}
                       {child.title}
                     </Link>
                   </List.Item>
@@ -450,7 +447,7 @@ export default function IssueDetailPage() {
               </div>
               <div className="tt-panel-row">
                 <span>Priority</span>
-                <Tag color={PRIORITY_COLORS[issue.priority]}>{issue.priority}</Tag>
+                <IssuePriorityTag priority={issue.priority} size="small" />
               </div>
               <div className="tt-panel-row">
                 <span>Assignee</span>
