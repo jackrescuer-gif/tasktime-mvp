@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Typography, Switch, Tooltip } from 'antd';
+import { Layout, Menu, Button, Typography, Tooltip } from 'antd';
 import {
   ProjectOutlined,
   LogoutOutlined,
