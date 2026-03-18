@@ -80,7 +80,7 @@ if [ "${BOOTSTRAP_ENABLED:-}" = "true" ]; then
 else
   echo "Skipping bootstrap: BOOTSTRAP_ENABLED is not true in $BACKEND_ENV_FILE"
 fi
-docker compose --env-file "$COMPOSE_ENV_FILE" -f "$COMPOSE_FILE" up -d
+docker compose --env-file "$COMPOSE_ENV_FILE" -f "$COMPOSE_FILE" up -d --force-recreate
 
 MAX_RETRIES=12
 RETRY_INTERVAL=5

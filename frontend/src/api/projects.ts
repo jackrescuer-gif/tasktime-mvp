@@ -11,12 +11,21 @@ export async function getProject(id: string): Promise<Project> {
   return data;
 }
 
-export async function createProject(body: { name: string; key: string; description?: string }): Promise<Project> {
+export async function createProject(body: {
+  name: string;
+  key: string;
+  description?: string;
+  ownerId?: string | null;
+  categoryId?: string | null;
+}): Promise<Project> {
   const { data } = await api.post<Project>('/projects', body);
   return data;
 }
 
-export async function updateProject(id: string, body: { name?: string; description?: string }): Promise<Project> {
+export async function updateProject(
+  id: string,
+  body: { name?: string; description?: string; ownerId?: string | null; categoryId?: string | null },
+): Promise<Project> {
   const { data } = await api.patch<Project>(`/projects/${id}`, body);
   return data;
 }
