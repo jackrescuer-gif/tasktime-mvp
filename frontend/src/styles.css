@@ -3192,3 +3192,58 @@ body {
   to   { opacity: 1; }
 }
 
+/* =========================================================
+   THEME TOGGLE BUTTON
+   ========================================================= */
+
+.tt-theme-toggle {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 6px !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-size: 16px !important;
+  padding: 0 !important;
+}
+
+/* Light mode styles */
+.tt-theme-toggle {
+  background-color: #f0f2f5 !important;
+  color: #faad14 !important;
+}
+
+.tt-theme-toggle:hover {
+  background-color: #e6e8eb !important;
+}
+
+/* Dark mode styles */
+[data-theme='dark'] .tt-theme-toggle {
+  background-color: #262c35 !important;
+  color: #faad14 !important;
+}
+
+[data-theme='dark'] .tt-theme-toggle:hover {
+  background-color: #3c434c !important;
+}
+
+/* Animation on click */
+.tt-theme-toggle.animating {
+  animation: theme-toggle-spin 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes theme-toggle-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(90deg) scale(1.15);
+  }
+  100% {
+    transform: rotate(180deg) scale(1);
+  }
+}
+

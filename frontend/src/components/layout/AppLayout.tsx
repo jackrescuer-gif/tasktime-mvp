@@ -13,8 +13,8 @@ import {
   DeploymentUnitOutlined,
   MenuOutlined,
   CloseOutlined,
-  BulbOutlined,
-  BulbFilled,
+  SunFilled,
+  MoonFilled,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
@@ -32,6 +32,7 @@ export default function AppLayout() {
   const isLight = mode === 'light';
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [animatingTheme, setAnimatingTheme] = useState(false);
 
   // Закрываем сайдбар при смене маршрута
   useEffect(() => {
@@ -47,6 +48,12 @@ export default function AppLayout() {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
+  };
+
+  const handleThemeToggle = () => {
+    setAnimatingTheme(true);
+    toggle();
+    setTimeout(() => setAnimatingTheme(false), 600);
   };
 
   const handleNav = (key: string) => {
@@ -155,13 +162,12 @@ export default function AppLayout() {
 
           <div className="tt-topbar-right">
             <Tooltip title={isLight ? 'Тёмная тема' : 'Светлая тема'}>
-              <Switch
-                size="small"
-                checked={isLight}
-                onChange={toggle}
-                checkedChildren={<BulbFilled />}
-                unCheckedChildren={<BulbOutlined />}
-                className="tt-theme-switch"
+              <Button
+                type="text"
+                icon={isLight ? <SunFilled /> : <MoonFilled />}
+                onClick={handleThemeToggle}
+                className={`tt-theme-toggle${animatingTheme ? ' animating' : ''}`}
+                aria-label={isLight ? 'Переключить на тёмную тему' : 'Переключить на светлую тему'}
               />
             </Tooltip>
 
