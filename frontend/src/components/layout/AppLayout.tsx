@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Typography } from 'antd';
+import { Layout, Menu, Button, Typography, Switch, Tooltip } from 'antd';
 import {
   ProjectOutlined,
   LogoutOutlined,
@@ -13,9 +13,12 @@ import {
   DeploymentUnitOutlined,
   MenuOutlined,
   CloseOutlined,
+  BulbOutlined,
+  BulbFilled,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
+import { useThemeStore } from '../../store/theme.store';
 import UatOnboardingOverlay from '../uat/UatOnboardingOverlay';
 import { hasRequiredRole } from '../../lib/roles';
 
@@ -25,20 +28,19 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
+  const { mode, toggle } = useThemeStore();
+  const isLight = mode === 'light';
+
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Закрываем сайдбар при изменении маршрута
+  // Закрываем сайдбар при смене маршрута
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  // Блокируем скролл body когда сайдбар открыт на мобиле
+  // Блокируем скролл body пока мобильный сайдбар открыт
   useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
@@ -73,6 +75,7 @@ export default function AppLayout() {
     ...(hasRequiredRole(user?.role, 'ADMIN')
       ? [{ key: '/admin', icon: <SettingOutlined />, label: 'Admin' } as const]
       : []),
+    { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' } as const,
   ];
 
   const toolsItems = [
@@ -111,7 +114,7 @@ export default function AppLayout() {
 
       <Sider
         width={220}
-        theme="dark"
+        theme={isLight ? 'light' : 'dark'}
         className={`tt-sidebar${mobileOpen ? ' tt-sidebar--open' : ''}`}
       >
         <div className="tt-sidebar-header">
@@ -130,7 +133,7 @@ export default function AppLayout() {
           />
         </div>
         <Menu
-          theme="dark"
+          theme={isLight ? 'light' : 'dark'}
           mode="inline"
           selectedKeys={[location.pathname]}
           items={menuItems}
@@ -141,7 +144,7 @@ export default function AppLayout() {
 
       <Layout className="tt-main">
         <Header className="tt-topbar">
-          {/* Гамбургер — видна только на мобиле */}
+          {/* Гамбургер — виден только на мобиле */}
           <Button
             className="tt-mobile-hamburger"
             type="text"
@@ -151,10 +154,22 @@ export default function AppLayout() {
           />
 
           <div className="tt-topbar-right">
+            <Tooltip title={isLight ? 'Тёмная тема' : 'Светлая тема'}>
+              <Switch
+                size="small"
+                checked={isLight}
+                onChange={toggle}
+                checkedChildren={<BulbFilled />}
+                unCheckedChildren={<BulbOutlined />}
+                className="tt-theme-switch"
+              />
+            </Tooltip>
+
             <Typography.Text className="tt-topbar-user">
               <span className="tt-topbar-user-name">{user?.name}</span>
               <span className="tt-topbar-role">{user?.role}</span>
             </Typography.Text>
+
             <Button
               size="small"
               icon={<LogoutOutlined />}

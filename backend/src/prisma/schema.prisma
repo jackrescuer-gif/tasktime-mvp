@@ -27,6 +27,8 @@ model User {
   timeLogs       TimeLog[]
   aiSessions     AiSession[]
   teamMemberships TeamMember[]
+  createdLinks    IssueLink[]
+  ownedProjects   Project[]      @relation("project_owner")
 
   @@map("users")
 }
@@ -53,14 +55,30 @@ model RefreshToken {
 
 // ===== PROJECTS =====
 
+model ProjectCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  projects Project[]
+
+  @@map("project_categories")
+}
+
 model Project {
   id          String   @id @default(uuid())
   name        String
   key         String   @unique
   description String?
+  ownerId     String?  @map("owner_id")
+  categoryId  String?  @map("category_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  owner    User?            @relation("project_owner", fields: [ownerId], references: [id], onDelete: SetNull)
+  category ProjectCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   issues   Issue[]
   sprints  Sprint[]
   releases Release[]
@@ -99,7 +117,8 @@ model Issue {
   releaseId String? @map("release_id")
   release   Release? @relation(fields: [releaseId], references: [id])
 
-  estimatedHours Decimal? @map("estimated_hours") @db.Decimal(6, 2)
+  estimatedHours      Decimal? @map("estimated_hours") @db.Decimal(6, 2)
+  acceptanceCriteria  String?  @map("acceptance_criteria")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -108,6 +127,8 @@ model Issue {
   comments Comment[]
   timeLogs TimeLog[]
   aiSessions AiSession[]
+  sourceLinks IssueLink[] @relation("linkSource")
+  targetLinks IssueLink[] @relation("linkTarget")
 
   @@unique([projectId, number])
   @@index([projectId, status])
@@ -319,6 +340,42 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ===== ISSUE LINKS =====
+
+model IssueLinkType {
+  id           String      @id @default(uuid())
+  name         String      @unique
+  outboundName String      @map("outbound_name")
+  inboundName  String      @map("inbound_name")
+  isActive     Boolean     @default(true) @map("is_active")
+  isSystem     Boolean     @default(false) @map("is_system")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  links IssueLink[]
+
+  @@map("issue_link_types")
+}
+
+model IssueLink {
+  id            String   @id @default(uuid())
+  sourceIssueId String   @map("source_issue_id")
+  targetIssueId String   @map("target_issue_id")
+  linkTypeId    String   @map("link_type_id")
+  createdById   String   @map("created_by_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  sourceIssue Issue         @relation("linkSource", fields: [sourceIssueId], references: [id], onDelete: Cascade)
+  targetIssue Issue         @relation("linkTarget", fields: [targetIssueId], references: [id], onDelete: Cascade)
+  linkType    IssueLinkType @relation(fields: [linkTypeId], references: [id])
+  createdBy   User          @relation(fields: [createdById], references: [id])
+
+  @@unique([sourceIssueId, targetIssueId, linkTypeId])
+  @@index([sourceIssueId])
+  @@index([targetIssueId])
+  @@map("issue_links")
 }
 
 // ===== TEAMS =====

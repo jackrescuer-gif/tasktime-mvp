@@ -15,7 +15,17 @@ export function resolveSeedActors(users: Pick<User, 'id' | 'email' | 'name' | 'r
   const viewer = usersByEmail.get('viewer@tasktime.ru');
 
   if (!admin || !manager || !dev || !viewer) {
-    throw new Error('Seed requires built-in bootstrap users to exist.');
+    const missing = [
+      !admin && 'admin@tasktime.ru',
+      !manager && 'manager@tasktime.ru',
+      !dev && 'dev@tasktime.ru',
+      !viewer && 'viewer@tasktime.ru',
+    ].filter(Boolean).join(', ');
+    throw new Error(
+      `Seed requires built-in bootstrap users to exist in the DB, but these are missing: ${missing}. ` +
+      'Run bootstrap first (set BOOTSTRAP_ENABLED=true in your env and run npm run db:bootstrap), ' +
+      'or run the full seed without TTMP_ONLY scope.',
+    );
   }
 
   const normalizedOwnerAdminEmail = ownerAdminEmail?.trim().toLowerCase();
@@ -62,12 +72,12 @@ async function main(prismaClient?: PrismaClient, scope?: string) {
     project = await client.project.upsert({
       where: { key: 'DEMO' },
       update: {},
-      create: { name: 'Demo Project', key: 'DEMO', description: 'Demo project for testing' },
+      create: { name: 'Demo Project', key: 'DEMO', description: 'Demo project for testing', ownerId: admin.id },
     });
     backendProject = await client.project.upsert({
       where: { key: 'BACK' },
       update: {},
-      create: { name: 'Backend Services', key: 'BACK', description: 'Backend microservices' },
+      create: { name: 'Backend Services', key: 'BACK', description: 'Backend microservices', ownerId: admin.id },
     });
   }
 
@@ -78,6 +88,7 @@ async function main(prismaClient?: PrismaClient, scope?: string) {
       name: 'TaskTime MVP (vibe-code)',
       key: 'TTMP',
       description: 'MVP системы управления проектами и задачами на vibe-code',
+      ownerId: admin.id,
     },
   });
 
@@ -90,9 +101,13 @@ async function main(prismaClient?: PrismaClient, scope?: string) {
         name: 'TaskTime MVP LiveCode',
         key: 'LIVE',
         description: 'Живой проект: задачи для разработки TaskTime MVP (vibe-code) самим TaskTime и агентами',
+        ownerId: admin.id,
       },
     });
   }
+
+  // TTMP-132: set admin as owner for any projects still missing an owner
+  await client.project.updateMany({ where: { ownerId: null }, data: { ownerId: admin.id } });
 
   // Historical sprints for TaskTime MVP (TTMP)
   const sprint0 = await client.sprint.upsert({

@@ -29,9 +29,20 @@ description: MCP/skill facade for TaskTime issue control (TTMP/LIVE), used by ag
   - `PATCH /api/issues/:id` — обновить `title`, `description`, `priority`, `assigneeId`, `parentId`.
   - `POST /api/issues/:issueId/comments` — добавить комментарий (`{ body: string }`).
 
-- **AI‑эндпоинты для задач (Sprint 4)**
-  - `POST /api/ai/estimate` — `{ issueId?: string; issueKey?: string }` → `{ issueId, estimatedHours }` + выставление `aiExecutionStatus`.
+- **AI‑эндпоинты для задач (Sprint 4+)**
+  - `POST /api/ai/estimate` — `{ issueId?: string; issueKey?: string }` → `{ issueId, estimatedHours, reasoning }` + выставление `aiExecutionStatus`.
+    - `reasoning` — объяснение оценки от LLM (показать пользователю при AI_PROVIDER=anthropic).
   - `POST /api/ai/decompose` — `{ issueId?: string; issueKey?: string }` → `{ issueId, createdCount, children[] }` + выставление `aiExecutionStatus`.
+  - `GET /api/features` — текущие feature flags (`ai`, `mcp`, `gitlab`, `telegram`, `aiProvider`). Публичный, без авторизации.
+
+- **OpenAPI / Swagger (Sprint 5)**
+  - `GET /api/docs` — Swagger UI с интерактивной документацией всех эндпоинтов.
+  - `GET /api/docs/json` — OpenAPI 3.0 JSON (используется openapi-to-mcp).
+
+- **MCP-прокси (опционально, если запущен)**
+  - Адрес: `http://localhost:3002/mcp` (dev) или `http://<host>:3002/mcp` (production).
+  - Запуск: `docker compose --profile mcp up mcp-tasktime`.
+  - Claude Desktop config: `{ "mcpServers": { "tasktime": { "url": "http://localhost:3002/mcp", "transport": "http" } } }`
 
 - **Учёт времени и cost для ИИ**
   - `POST /api/ai-sessions` — создать `AiSession` с полями:
@@ -107,13 +118,18 @@ description: MCP/skill facade for TaskTime issue control (TTMP/LIVE), used by ag
 
    - `docs/plans/YYYY-MM-DD-<KEY>-plan.md`, например `docs/plans/2026-03-16-TTMP-83-plan.md`.
 
-2. Структура плана (как в `writing-plans`):
+2. **Обязательно прочитать `acceptanceCriteria` из задачи** (поле `acceptanceCriteria` в ответе `GET /api/issues/key/:key`):
+   - Если поле заполнено — использовать его как **Definition of Done** при составлении плана и UAT-чеклиста.
+   - Если поле пустое — самостоятельно определить критерии готовности по `description`.
+
+3. Структура плана (как в `writing-plans`):
 
    - заголовок `# [KEY] Implementation Plan`;
    - блоки **Goal / Architecture / Tech Stack**;
+   - блок **Definition of Done** (из `acceptanceCriteria` или выведенный самостоятельно);
    - декомпозиция на Task 1..N c шагами:
      - тест → запуск теста (ожидаемый FAIL) → минимальная реализация → запуск теста (PASS) → коммит;
-   - блок **UAT / Приёмочные тесты** c чек‑листом ручной проверки.
+   - блок **UAT / Приёмочные тесты** c чек‑листом ручной проверки (соответствует DoD).
 
 3. Для специальных задач TTMP-81..84 использовать готовый флоу:
 
