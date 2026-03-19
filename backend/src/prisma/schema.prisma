@@ -204,6 +204,7 @@ model Issue {
   @@index([parentId])
   @@index([sprintId])
   @@index([releaseId])
+  @@index([issueTypeConfigId])
   @@map("issues")
 }
 
