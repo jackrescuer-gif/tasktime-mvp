@@ -82,6 +82,16 @@ export async function bulkUpdateIssues(
   return data;
 }
 
+export async function bulkDeleteIssues(
+  projectId: string,
+  issueIds: string[],
+): Promise<{ deletedCount: number }> {
+  const { data } = await api.delete<{ deletedCount: number }>(`/projects/${projectId}/issues/bulk`, {
+    data: { issueIds },
+  });
+  return data;
+}
+
 export async function assignIssue(id: string, assigneeId: string | null): Promise<Issue> {
   const { data } = await api.patch<Issue>(`/issues/${id}/assign`, { assigneeId });
   return data;

@@ -172,6 +172,17 @@ export default function IssueDetailPage() {
     }
   };
 
+  const handleDeleteIssue = async () => {
+    if (!id) return;
+    try {
+      await issuesApi.deleteIssue(id);
+      message.success('Issue deleted');
+      navigate(-1);
+    } catch {
+      message.error('Failed to delete issue');
+    }
+  };
+
   const handleEditOpen = () => {
     if (!issue) return;
     editForm.setFieldsValue({
@@ -279,6 +290,20 @@ export default function IssueDetailPage() {
           <Button size="small" icon={<EditOutlined />} onClick={handleEditOpen}>
             Edit
           </Button>
+          {user?.role === 'ADMIN' && (
+            <Popconfirm
+              title={`Удалить задачу ${issueKey}?`}
+              description="Это действие нельзя отменить."
+              okText="Удалить"
+              okButtonProps={{ danger: true }}
+              cancelText="Отмена"
+              onConfirm={handleDeleteIssue}
+            >
+              <Button size="small" danger icon={<DeleteOutlined />}>
+                Delete
+              </Button>
+            </Popconfirm>
+          )}
           <Button size="small" icon={<MoreOutlined />} />
         </div>
       </header>

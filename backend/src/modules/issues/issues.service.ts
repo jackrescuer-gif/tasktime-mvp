@@ -432,6 +432,23 @@ export async function deleteIssue(id: string) {
   await prisma.issue.delete({ where: { id } });
 }
 
+export async function bulkDeleteIssues(projectId: string, issueIds: string[]): Promise<{ deletedCount: number }> {
+  const issues = await prisma.issue.findMany({
+    where: { id: { in: issueIds }, projectId },
+    select: { id: true },
+  });
+
+  if (issues.length !== issueIds.length) {
+    throw new AppError(400, 'Some issues do not belong to this project');
+  }
+
+  const { count } = await prisma.issue.deleteMany({
+    where: { id: { in: issueIds }, projectId },
+  });
+
+  return { deletedCount: count };
+}
+
 export async function getHistory(id: string) {
   const issue = await prisma.issue.findUnique({ where: { id } });
   if (!issue) throw new AppError(404, 'Issue not found');

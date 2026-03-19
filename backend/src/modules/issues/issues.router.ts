@@ -231,6 +231,33 @@ router.post(
   }
 );
 
+// Bulk delete issues (ADMIN only)
+router.delete(
+  '/projects/:projectId/issues/bulk',
+  requireRole('ADMIN'),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const { issueIds } = req.body as { issueIds?: string[] };
+
+      if (!issueIds || !Array.isArray(issueIds) || issueIds.length === 0) {
+        res.status(400).json({ error: 'issueIds is required' });
+        return;
+      }
+
+      const result = await issuesService.bulkDeleteIssues(req.params.projectId as string, issueIds);
+
+      await logAudit(req, 'issues.bulk_deleted', 'project', req.params.projectId as string, {
+        issueIds,
+        deletedCount: result.deletedCount,
+      });
+
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // Delete issue
 router.delete('/issues/:id', requireRole('ADMIN'), async (req: AuthRequest, res, next) => {
   try {
