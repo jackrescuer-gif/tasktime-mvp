@@ -67,17 +67,22 @@ export default function IssueDetailPage() {
 
   const load = useCallback(async () => {
     if (!id) return;
-    const [iss, cmts, logs, hist] = await Promise.all([
-      issuesApi.getIssue(id),
-      commentsApi.listComments(id),
-      timeApi.getIssueLogs(id),
-      api.get<AuditEntry[]>(`/issues/${id}/history`).then(r => r.data),
-    ]);
-    setIssue(iss);
-    setComments(cmts);
-    setTimeLogs(logs);
-    setHistory(hist);
-  }, [id]);
+    try {
+      const [iss, cmts, logs, hist] = await Promise.all([
+        issuesApi.getIssue(id),
+        commentsApi.listComments(id),
+        timeApi.getIssueLogs(id),
+        api.get<AuditEntry[]>(`/issues/${id}/history`).then(r => r.data),
+      ]);
+      setIssue(iss);
+      setComments(cmts);
+      setTimeLogs(logs);
+      setHistory(hist);
+    } catch {
+      message.error('Failed to load issue');
+      navigate(-1);
+    }
+  }, [id, navigate]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { timeApi.getActiveTimer().then(setActiveTimer); }, []);
