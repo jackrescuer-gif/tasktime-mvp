@@ -15,6 +15,9 @@ import {
   CloseOutlined,
   SunFilled,
   MoonFilled,
+  MonitorOutlined,
+  TagsOutlined,
+  LinkOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
@@ -33,10 +36,20 @@ export default function AppLayout() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [animatingTheme, setAnimatingTheme] = useState(false);
+  const [openKeys, setOpenKeys] = useState<string[]>(() =>
+    location.pathname.startsWith('/admin') ? ['admin-submenu'] : []
+  );
 
   // Закрываем сайдбар при смене маршрута
   useEffect(() => {
     setMobileOpen(false);
+  }, [location.pathname]);
+
+  // Автоматически раскрываем admin-submenu при переходе на admin-страницы
+  useEffect(() => {
+    if (location.pathname.startsWith('/admin')) {
+      setOpenKeys((prev) => prev.includes('admin-submenu') ? prev : [...prev, 'admin-submenu']);
+    }
   }, [location.pathname]);
 
   // Блокируем скролл body пока мобильный сайдбар открыт
@@ -80,7 +93,18 @@ export default function AppLayout() {
     { key: '/time', icon: <ClockCircleOutlined />, label: 'My Time' },
     { key: '/teams', icon: <TeamOutlined />, label: 'Teams' },
     ...(hasRequiredRole(user?.role, 'ADMIN')
-      ? [{ key: '/admin', icon: <SettingOutlined />, label: 'Admin' } as const]
+      ? [{
+          key: 'admin-submenu',
+          icon: <SettingOutlined />,
+          label: 'Admin',
+          children: [
+            { key: '/admin/dashboard', icon: <DashboardOutlined />, label: 'Дашборд' },
+            { key: '/admin/monitoring', icon: <MonitorOutlined />, label: 'Мониторинг' },
+            { key: '/admin/projects', icon: <ProjectOutlined />, label: 'Проекты' },
+            { key: '/admin/categories', icon: <TagsOutlined />, label: 'Категории' },
+            { key: '/admin/link-types', icon: <LinkOutlined />, label: 'Виды связей' },
+          ],
+        }]
       : []),
     { key: '/settings', icon: <SettingOutlined />, label: 'Настройки' } as const,
   ];
@@ -143,6 +167,8 @@ export default function AppLayout() {
           theme={isLight ? 'light' : 'dark'}
           mode="inline"
           selectedKeys={[location.pathname]}
+          openKeys={openKeys}
+          onOpenChange={(keys) => setOpenKeys(keys as string[])}
           items={menuItems}
           className="tt-sidebar-menu"
           onClick={({ key }) => handleNav(key as string)}

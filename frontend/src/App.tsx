@@ -17,7 +17,11 @@ import GlobalSprintsPage from './pages/GlobalSprintsPage';
 import ReleasesPage from './pages/ReleasesPage';
 import TimePage from './pages/TimePage';
 import TeamsPage from './pages/TeamsPage';
-import AdminPage from './pages/AdminPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminMonitoringPage from './pages/admin/AdminMonitoringPage';
+import AdminProjectsPage from './pages/admin/AdminProjectsPage';
+import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
+import AdminLinkTypesPage from './pages/admin/AdminLinkTypesPage';
 import SettingsPage from './pages/SettingsPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import UatTestsPage from './pages/UatTestsPage';
@@ -142,7 +146,12 @@ export default function App() {
             <Route path="time" element={<TimePage />} />
             <Route path="teams" element={<TeamsPage />} />
             <Route path="uat" element={<UatTestsPage />} />
-            <Route path="admin" element={<AdminPage />} />
+            <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="admin/monitoring" element={<AdminMonitoringPage />} />
+            <Route path="admin/projects" element={<AdminProjectsPage />} />
+            <Route path="admin/categories" element={<AdminCategoriesPage />} />
+            <Route path="admin/link-types" element={<AdminLinkTypesPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
