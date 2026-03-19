@@ -274,7 +274,7 @@ export default function IssueDetailPage() {
             <div className="tt-issue-id-badge">
               <span>{issueKey}</span>
             </div>
-            <IssueTypeBadge type={issue.type} showLabel />
+            <IssueTypeBadge type={issue.type} typeConfig={issue.issueTypeConfig} showLabel />
           </div>
           <div className="tt-issue-header-meta">
             <span>
@@ -349,7 +349,7 @@ export default function IssueDetailPage() {
                 renderItem={(child) => (
                   <List.Item>
                     <Link to={`/issues/${child.id}`}>
-                      <IssueTypeBadge type={child.type} />{' '}
+                      <IssueTypeBadge type={child.type} typeConfig={child.issueTypeConfig} />{' '}
                       <IssueStatusTag status={child.status} size="small" />{' '}
                       {child.title}
                     </Link>

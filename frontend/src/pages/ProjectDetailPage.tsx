@@ -20,6 +20,7 @@ import type { Project, IssueType, IssuePriority, IssueStatus, User, IssueTypeCon
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { hasAnyRequiredRole, hasRequiredRole } from '../lib/roles';
 import { getProjectIssueTypes } from '../api/issue-type-configs';
+import { IssueTypeBadge } from '../lib/issue-kit';
 
 function buildTree(issues: Issue[]): Issue[] {
   const map = new Map(issues.map((i) => [i.id, { ...i, children: [] as Issue[] }]));
@@ -168,10 +169,9 @@ export default function ProjectDetailPage() {
     },
     {
       title: 'TYPE',
-      dataIndex: 'type',
-      width: 88,
-      render: (t: IssueType) => (
-        <span className={`tt-issue-tag tt-issue-tag-${t.toLowerCase()}`}>{t}</span>
+      width: 160,
+      render: (_: unknown, r: Issue) => (
+        <IssueTypeBadge type={r.type} typeConfig={r.issueTypeConfig} showLabel />
       ),
     },
     {

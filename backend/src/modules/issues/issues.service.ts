@@ -102,6 +102,7 @@ export async function listIssues(projectId: string, filters?: ListIssuesFilters)
     include: {
       assignee: { select: { id: true, name: true, email: true } },
       creator: { select: { id: true, name: true } },
+      issueTypeConfig: true,
       _count: { select: { children: true } },
     },
     orderBy: [{ orderIndex: 'asc' }, { createdAt: 'desc' }],
@@ -258,9 +259,14 @@ export async function getIssue(id: string) {
     include: {
       assignee: { select: { id: true, name: true, email: true } },
       creator: { select: { id: true, name: true } },
+      issueTypeConfig: true,
       parent: { select: { id: true, title: true, type: true, number: true, projectId: true } },
       children: {
-        select: { id: true, title: true, type: true, status: true, number: true, assignee: { select: { id: true, name: true } } },
+        select: {
+          id: true, title: true, type: true, status: true, number: true,
+          issueTypeConfig: true,
+          assignee: { select: { id: true, name: true } },
+        },
         orderBy: { orderIndex: 'asc' },
       },
       project: { select: { id: true, name: true, key: true } },
