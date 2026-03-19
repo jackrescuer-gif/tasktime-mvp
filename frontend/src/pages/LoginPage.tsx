@@ -120,13 +120,13 @@ export default function LoginPage() {
               <circle cx="8" cy="2" r="1.2" fill="rgba(255,255,255,0.7)" />
             </svg>
           </div>
-          <span className="moex-logo-text">MOEX Flow Universe</span>
+          <span className="moex-logo-text">Flow Universe</span>
         </div>
 
         {/* Форма */}
         <div className="moex-form-wrap">
           <h1 className="moex-heading">Войти в систему</h1>
-          <p className="moex-subheading">Добро пожаловать в MOEX Flow Universe</p>
+          <p className="moex-subheading">Добро пожаловать в Flow Universe</p>
 
           {/* Табы */}
           <div className="moex-tabs">
@@ -218,7 +218,7 @@ export default function LoginPage() {
         </div>
 
         {/* Футер */}
-        <div className="moex-footer">© 2025 MOEX Flow Universe</div>
+        <div className="moex-footer">© 2025 Flow Universe</div>
       </div>
 
       {/* ─── Правая панель (космос) ─── */}
@@ -242,7 +242,6 @@ export default function LoginPage() {
 
         {/* Hero-текст */}
         <div className="moex-hero">
-          <div className="moex-hero-label">MOEX</div>
           <div className="moex-hero-title">
             Flow<br />Universe
           </div>
