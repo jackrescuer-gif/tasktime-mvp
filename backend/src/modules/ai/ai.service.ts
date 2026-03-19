@@ -1,8 +1,19 @@
 import { prisma } from '../../prisma/client.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
+import { AI_DEVELOPER_EMAIL } from '../../prisma/bootstrap.js';
 import * as issuesService from '../issues/issues.service.js';
 import { getLlmProvider } from './providers/index.js';
 import type { AiEstimateDto, AiDecomposeDto } from './ai.dto.js';
+
+let _aiDeveloperId: string | null = null;
+
+async function getAiDeveloperId(): Promise<string> {
+  if (_aiDeveloperId) return _aiDeveloperId;
+  const user = await prisma.user.findUnique({ where: { email: AI_DEVELOPER_EMAIL }, select: { id: true } });
+  if (!user) throw new AppError(500, 'AI Developer system account not found. Run db:seed to create it.');
+  _aiDeveloperId = user.id;
+  return _aiDeveloperId;
+}
 
 async function resolveIssueId(dto: { issueId?: string; issueKey?: string }): Promise<string> {
   if (dto.issueId) return dto.issueId;
@@ -150,14 +161,16 @@ export async function decomposeIssue(dto: AiDecomposeDto, creatorId: string) {
       issue.type,
     );
 
+    const aiDeveloperId = await getAiDeveloperId();
     const created: Array<{ id: string; title: string; type: string; number: number }> = [];
     for (const title of subtaskTitles) {
-      const child = await issuesService.createIssue(issue.projectId, creatorId, {
+      const child = await issuesService.createIssue(issue.projectId, aiDeveloperId, {
         title: title.slice(0, 500),
         description: undefined,
         type: 'SUBTASK',
         priority: 'MEDIUM',
         parentId: issue.id,
+        assigneeId: aiDeveloperId,
       });
       created.push({ id: child.id, title: child.title, type: child.type, number: child.number });
     }
