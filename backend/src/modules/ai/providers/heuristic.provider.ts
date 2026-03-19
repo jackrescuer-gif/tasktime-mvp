@@ -20,11 +20,13 @@ export class HeuristicProvider implements LlmProvider {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async decomposeIssue(_title: string, description: string | null, _issueType: string): Promise<DecomposeResult> {
     if (!description?.trim()) return { subtasks: ['Уточнить требования'] };
-    const lines = description.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
     const subtasks: string[] = [];
-    for (const line of lines) {
-      const item = line.replace(/^[\s]*[-*•]\s*/, '').replace(/^[\s]*\d+[.)]\s*/, '');
-      if (item.length > 2) subtasks.push(item);
+    for (const raw of description.split(/\r?\n/)) {
+      const line = raw.trim();
+      // Only extract explicit bullet/numbered list items — never take every plain line
+      const m = line.match(/^[-*•]\s+(.+)/) ?? line.match(/^\d+[.)]\s+(.+)/);
+      if (m) subtasks.push(m[1].trim());
+      if (subtasks.length >= 10) break;
     }
     return { subtasks: subtasks.length > 0 ? subtasks : ['Уточнить требования'] };
   }

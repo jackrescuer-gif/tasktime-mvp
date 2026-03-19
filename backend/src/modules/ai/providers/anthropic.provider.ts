@@ -63,22 +63,26 @@ export class AnthropicProvider implements LlmProvider {
     description: string | null,
     type: string,
   ): Promise<DecomposeResult> {
+    const descSection = description?.trim() ? `\nОписание:\n${description.trim()}` : '';
     const prompt = [
-      `Decompose this ${type} into concrete subtasks (3-7 items).`,
-      `Title: ${title}`,
-      description ? `Description: ${description}` : '',
+      `Ты — опытный проджект-менеджер. Декомпозируй задачу типа ${type} на конкретные подзадачи.`,
       ``,
-      `Reply with valid JSON only: {"subtasks": ["<subtask 1>", "<subtask 2>", ...]}`,
-      `Each subtask should be a short actionable title (max 100 chars). Use Russian if the title is in Russian.`,
-    ]
-      .filter(Boolean)
-      .join('\n');
+      `Задача: ${title}${descSection}`,
+      ``,
+      `Требования:`,
+      `- Верни от 3 до 8 подзадач`,
+      `- Каждая подзадача — конкретный, самостоятельный блок работы`,
+      `- Группируй по смыслу: анализ → проектирование → реализация → тестирование`,
+      `- Не дроби текст механически — думай о сути работы`,
+      `- Заголовок каждой подзадачи до 120 символов`,
+      `- Ответ — ТОЛЬКО JSON: {"subtasks": ["...", "..."]}`,
+    ].join('\n');
 
     try {
       const msg = await this.client.messages.create({
         model: MODEL,
         max_tokens: MAX_TOKENS,
-        system: 'You are a senior software engineer decomposing tasks. Reply only with valid JSON.',
+        system: 'Ты — старший разработчик и PM. Отвечай только валидным JSON.',
         messages: [{ role: 'user', content: prompt }],
       });
 
