@@ -138,7 +138,7 @@ export async function suggestAssignee(dto: { issueId?: string; issueKey?: string
   };
 }
 
-export async function decomposeIssue(dto: AiDecomposeDto, creatorId: string) {
+export async function decomposeIssue(dto: AiDecomposeDto) {
   const issueId = await resolveIssueId(dto);
   await setAiStatus(issueId, 'IN_PROGRESS');
 

@@ -29,8 +29,7 @@ router.post(
   validate(aiDecomposeDto),
   async (req: AuthRequest, res, next) => {
     try {
-      const creatorId = req.user!.userId;
-      const result = await aiService.decomposeIssue(req.body, creatorId);
+      const result = await aiService.decomposeIssue(req.body);
       res.status(201).json(result);
     } catch (err) {
       next(err);
