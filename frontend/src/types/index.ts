@@ -120,8 +120,8 @@ export interface IssueLink {
   id: string;
   createdAt: string;
   linkType: Pick<IssueLinkType, 'id' | 'name' | 'outboundName' | 'inboundName'>;
-  sourceIssue: { id: string; number: number; title: string; type: IssueType; status: IssueStatus; project: { key: string } };
-  targetIssue: { id: string; number: number; title: string; type: IssueType; status: IssueStatus; project: { key: string } };
+  sourceIssue: { id: string; number: number; title: string; type: IssueType; status: IssueStatus; issueTypeConfig?: IssueTypeConfig | null; project: { key: string } };
+  targetIssue: { id: string; number: number; title: string; type: IssueType; status: IssueStatus; issueTypeConfig?: IssueTypeConfig | null; project: { key: string } };
   createdBy: { id: string; name: string };
 }
 
