@@ -3,8 +3,43 @@
  * Один источник правды для статусов, приоритетов, типов задач.
  * TTUI-4 — Компонентная библиотека
  */
+import React from 'react';
 import { Tag, Tooltip } from 'antd';
+import {
+  ThunderboltOutlined, BookOutlined, CheckSquareOutlined, BugOutlined,
+  MinusSquareOutlined, FlagOutlined, RocketOutlined, StarOutlined,
+  FireOutlined, HeartOutlined, ToolOutlined, AlertOutlined, CrownOutlined,
+  DatabaseOutlined, CloudOutlined, CodeOutlined, SafetyOutlined,
+  ExperimentOutlined, CompassOutlined, AimOutlined,
+} from '@ant-design/icons';
 import type { IssueStatus, IssuePriority, IssueType, IssueTypeConfig } from '../types';
+
+const ICON_MAP: Record<string, React.ReactNode> = {
+  ThunderboltOutlined:  <ThunderboltOutlined />,
+  BookOutlined:         <BookOutlined />,
+  CheckSquareOutlined:  <CheckSquareOutlined />,
+  BugOutlined:          <BugOutlined />,
+  MinusSquareOutlined:  <MinusSquareOutlined />,
+  FlagOutlined:         <FlagOutlined />,
+  RocketOutlined:       <RocketOutlined />,
+  StarOutlined:         <StarOutlined />,
+  FireOutlined:         <FireOutlined />,
+  HeartOutlined:        <HeartOutlined />,
+  ToolOutlined:         <ToolOutlined />,
+  AlertOutlined:        <AlertOutlined />,
+  CrownOutlined:        <CrownOutlined />,
+  DatabaseOutlined:     <DatabaseOutlined />,
+  CloudOutlined:        <CloudOutlined />,
+  CodeOutlined:         <CodeOutlined />,
+  SafetyOutlined:       <SafetyOutlined />,
+  ExperimentOutlined:   <ExperimentOutlined />,
+  CompassOutlined:      <CompassOutlined />,
+  AimOutlined:          <AimOutlined />,
+};
+
+function getIcon(name: string): React.ReactNode {
+  return ICON_MAP[name] ?? <CheckSquareOutlined />;
+}
 
 // ─── Статусы ─────────────────────────────────────────────────────────────────
 
@@ -76,13 +111,22 @@ export const TYPE_COLOR: Record<IssueType, string> = {
   BUG:     '#e5534b',
 };
 
-/** Буква-иконка типа задачи (Linear-style) */
+/** Буква-иконка типа задачи (fallback для системных типов без iconName) */
 export const TYPE_LETTER: Record<IssueType, string> = {
   EPIC:    'E',
   STORY:   'S',
   TASK:    'T',
   SUBTASK: '↳',
   BUG:     'B',
+};
+
+/** Иконка Ant Design для системных типов */
+const TYPE_ICON: Record<IssueType, React.ReactNode> = {
+  EPIC:    <ThunderboltOutlined />,
+  STORY:   <BookOutlined />,
+  TASK:    <CheckSquareOutlined />,
+  SUBTASK: <MinusSquareOutlined />,
+  BUG:     <BugOutlined />,
 };
 
 // ─── Компоненты ───────────────────────────────────────────────────────────────
@@ -130,25 +174,25 @@ interface TypeBadgeProps {
 function resolveTypeMeta(
   type: IssueType | null,
   typeConfig?: IssueTypeConfig | null,
-): { color: string; letter: string; label: string } {
+): { color: string; icon: React.ReactNode; label: string } {
   if (typeConfig) {
     return {
       color: typeConfig.iconColor,
-      letter: typeConfig.name.charAt(0).toUpperCase(),
+      icon: getIcon(typeConfig.iconName),
       label: typeConfig.name,
     };
   }
   if (type) {
     return {
       color: TYPE_COLOR[type],
-      letter: TYPE_LETTER[type],
+      icon: TYPE_ICON[type],
       label: TYPE_LABEL[type],
     };
   }
-  return { color: '#8C8C8C', letter: '?', label: 'Unknown' };
+  return { color: '#8C8C8C', icon: <CheckSquareOutlined />, label: 'Unknown' };
 }
 
-/** Бейдж типа задачи (цветной кружок с буквой + опциональный лейбл).
+/** Бейдж типа задачи (цветной квадрат с иконкой + опциональный лейбл).
  *  Приоритет: typeConfig > type (enum fallback) */
 export function IssueTypeBadge({ type, typeConfig, showLabel = false }: TypeBadgeProps) {
   const meta = resolveTypeMeta(type, typeConfig);
@@ -164,13 +208,12 @@ export function IssueTypeBadge({ type, typeConfig, showLabel = false }: TypeBadg
         borderRadius: 3,
         background: meta.color,
         color: '#fff',
-        fontSize: 10,
-        fontWeight: 700,
+        fontSize: 11,
         lineHeight: 1,
         flexShrink: 0,
       }}
     >
-      {meta.letter}
+      {meta.icon}
     </span>
   );
 
