@@ -1,7 +1,9 @@
 {
   "name": "tasktime-frontend",
-  "private": true,
   "version": "1.0.0",
+  "description": "TaskTime MVP frontend - Russian fintech task management system",
+  "license": "MIT",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,6 +1,8 @@
 {
   "name": "tasktime-backend",
   "version": "1.0.0",
+  "description": "TaskTime MVP backend - Russian fintech task management system",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {
