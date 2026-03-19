@@ -479,7 +479,11 @@ export default function ProjectDetailPage() {
         rowSelection={rowSelection}
         className="tt-issues-table tt-issues-table-v2"
         onRow={(record) => ({
-          onClick: () => navigate(`/issues/${record.id}`),
+          onClick: (e) => {
+            const target = e.target as HTMLElement;
+            if (target.closest('.ant-table-row-expand-icon') || target.closest('.ant-table-row-indent')) return;
+            navigate(`/issues/${record.id}`);
+          },
           style: { cursor: 'pointer' },
         })}
         indentSize={24}
