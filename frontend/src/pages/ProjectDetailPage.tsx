@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Table, Button, Space, Modal, Form, Input, Select, message, Progress } from 'antd';
+import { Table, Button, Space, Modal, Form, Input, Select, message, Progress, Popconfirm } from 'antd';
 import {
   PlusOutlined,
   AppstoreOutlined,
@@ -8,6 +8,7 @@ import {
   TagOutlined,
   ApartmentOutlined,
   SearchOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import type { Issue } from '../types';
 import { useIssuesStore } from '../store/issues.store';
@@ -126,6 +127,19 @@ export default function ProjectDetailPage() {
       fetchIssues(id);
     } catch {
       message.error('Failed to update issues');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!id || selectedIssueIds.length === 0) return;
+    try {
+      const result = await issuesApi.bulkDeleteIssues(id, selectedIssueIds);
+      message.success(`Удалено задач: ${result.deletedCount}`);
+      setSelectedIssueIds([]);
+      fetchIssues(id);
+      projectsApi.getProjectDashboard(id).then(setDashboard);
+    } catch {
+      message.error('Failed to delete issues');
     }
   };
 
@@ -435,6 +449,20 @@ export default function ProjectDetailPage() {
               >
                 Apply to {selectedIssueIds.length}
               </Button>
+              {user?.role === 'ADMIN' && (
+                <Popconfirm
+                  title={`Удалить ${selectedIssueIds.length} задач?`}
+                  description="Это действие нельзя отменить."
+                  okText="Удалить"
+                  okButtonProps={{ danger: true }}
+                  cancelText="Отмена"
+                  onConfirm={handleBulkDelete}
+                >
+                  <Button danger size="small" icon={<DeleteOutlined />}>
+                    Delete {selectedIssueIds.length}
+                  </Button>
+                </Popconfirm>
+              )}
             </Space>
           </>
         )}
