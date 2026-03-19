@@ -231,10 +231,10 @@ router.post(
   }
 );
 
-// Bulk delete issues (ADMIN only)
+// Bulk delete issues (ADMIN / SUPER_ADMIN only)
 router.delete(
   '/projects/:projectId/issues/bulk',
-  requireRole('ADMIN'),
+  requireRole('ADMIN', 'SUPER_ADMIN'),
   async (req: AuthRequest, res, next) => {
     try {
       const { issueIds } = req.body as { issueIds?: string[] };
@@ -259,7 +259,7 @@ router.delete(
 );
 
 // Delete issue
-router.delete('/issues/:id', requireRole('ADMIN'), async (req: AuthRequest, res, next) => {
+router.delete('/issues/:id', requireRole('ADMIN', 'SUPER_ADMIN'), async (req: AuthRequest, res, next) => {
   try {
     await issuesService.deleteIssue(req.params.id as string);
     await logAudit(req, 'issue.deleted', 'issue', req.params.id as string);

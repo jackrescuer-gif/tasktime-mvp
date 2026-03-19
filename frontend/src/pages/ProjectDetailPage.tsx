@@ -18,7 +18,7 @@ import * as issuesApi from '../api/issues';
 import * as authApi from '../api/auth';
 import type { Project, IssueType, IssuePriority, IssueStatus, User, IssueTypeConfig } from '../types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { hasAnyRequiredRole } from '../lib/roles';
+import { hasAnyRequiredRole, hasRequiredRole } from '../lib/roles';
 import { getProjectIssueTypes } from '../api/issue-type-configs';
 
 function buildTree(issues: Issue[]): Issue[] {
@@ -449,7 +449,7 @@ export default function ProjectDetailPage() {
               >
                 Apply to {selectedIssueIds.length}
               </Button>
-              {user?.role === 'ADMIN' && (
+              {hasRequiredRole(user?.role, 'ADMIN') && (
                 <Popconfirm
                   title={`Удалить ${selectedIssueIds.length} задач?`}
                   description="Это действие нельзя отменить."

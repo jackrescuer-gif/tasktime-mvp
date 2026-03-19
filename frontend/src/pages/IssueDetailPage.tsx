@@ -295,7 +295,7 @@ export default function IssueDetailPage() {
           <Button size="small" icon={<EditOutlined />} onClick={handleEditOpen}>
             Edit
           </Button>
-          {user?.role === 'ADMIN' && (
+          {hasRequiredRole(user?.role, 'ADMIN') && (
             <Popconfirm
               title={`Удалить задачу ${issueKey}?`}
               description="Это действие нельзя отменить."
