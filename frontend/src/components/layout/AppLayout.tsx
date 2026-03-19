@@ -18,6 +18,8 @@ import {
   MonitorOutlined,
   TagsOutlined,
   LinkOutlined,
+  AppstoreOutlined,
+  BlockOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
@@ -103,6 +105,8 @@ export default function AppLayout() {
             { key: '/admin/projects', icon: <ProjectOutlined />, label: 'Проекты' },
             { key: '/admin/categories', icon: <TagsOutlined />, label: 'Категории' },
             { key: '/admin/link-types', icon: <LinkOutlined />, label: 'Виды связей' },
+            { key: '/admin/issue-type-configs', icon: <AppstoreOutlined />, label: 'Типы задач' },
+            { key: '/admin/issue-type-schemes', icon: <BlockOutlined />, label: 'Схемы типов задач' },
           ],
         }]
       : []),

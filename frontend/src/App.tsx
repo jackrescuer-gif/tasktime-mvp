@@ -22,6 +22,8 @@ import AdminMonitoringPage from './pages/admin/AdminMonitoringPage';
 import AdminProjectsPage from './pages/admin/AdminProjectsPage';
 import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
 import AdminLinkTypesPage from './pages/admin/AdminLinkTypesPage';
+import AdminIssueTypeConfigsPage from './pages/admin/AdminIssueTypeConfigsPage';
+import AdminIssueTypeSchemesPage from './pages/admin/AdminIssueTypeSchemesPage';
 import SettingsPage from './pages/SettingsPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import UatTestsPage from './pages/UatTestsPage';
@@ -152,6 +154,8 @@ export default function App() {
             <Route path="admin/projects" element={<AdminProjectsPage />} />
             <Route path="admin/categories" element={<AdminCategoriesPage />} />
             <Route path="admin/link-types" element={<AdminLinkTypesPage />} />
+            <Route path="admin/issue-type-configs" element={<AdminIssueTypeConfigsPage />} />
+            <Route path="admin/issue-type-schemes" element={<AdminIssueTypeSchemesPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
