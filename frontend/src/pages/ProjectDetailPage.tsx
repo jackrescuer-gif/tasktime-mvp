@@ -451,6 +451,7 @@ export default function ProjectDetailPage() {
           onClick: () => navigate(`/issues/${record.id}`),
           style: { cursor: 'pointer' },
         })}
+        indentSize={24}
         expandable={treeMode ? { defaultExpandAllRows: false } : undefined}
       />
 
