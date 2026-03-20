@@ -37,9 +37,10 @@ router.get('/issues/search', async (req, res, next) => {
 // List issues for a project with filters
 router.get('/projects/:projectId/issues', async (req, res, next) => {
   try {
-    const { status, type, priority, assigneeId, sprintId, from, to, search } = req.query as {
+    const { status, type, issueTypeConfigId, priority, assigneeId, sprintId, from, to, search } = req.query as {
       status?: string | string[];
       type?: string | string[];
+      issueTypeConfigId?: string | string[];
       priority?: string | string[];
       assigneeId?: string;
       sprintId?: string;
@@ -54,6 +55,7 @@ router.get('/projects/:projectId/issues', async (req, res, next) => {
     const issues = await issuesService.listIssues(req.params.projectId as string, {
       status: toArray(status) as IssueStatus[] | undefined,
       type: toArray(type) as IssueType[] | undefined,
+      issueTypeConfigId: toArray(issueTypeConfigId),
       priority: toArray(priority) as IssuePriority[] | undefined,
       assigneeId,
       sprintId,
