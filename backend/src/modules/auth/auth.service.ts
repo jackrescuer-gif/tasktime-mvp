@@ -154,8 +154,32 @@ export async function logout(refreshToken: string) {
 export async function getMe(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
+    select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true, mustChangePassword: true },
   });
   if (!user) throw new AppError(404, 'User not found');
   return user;
+}
+
+export async function changePassword(userId: string, currentPassword: string, newPassword: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new AppError(404, 'User not found');
+
+  const valid = await comparePassword(currentPassword, user.passwordHash);
+  if (!valid) throw new AppError(400, 'Current password is incorrect');
+
+  const passwordHash = await hashPassword(newPassword);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash, mustChangePassword: false },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      action: 'user.password_changed',
+      entityType: 'user',
+      entityId: userId,
+      userId,
+      details: {},
+    },
+  });
 }
