@@ -2100,24 +2100,24 @@ body {
   }
 }
 
-/* === LOGIN PAGE (MOEX Flow Universe) === */
+/* === LOGIN PAGE (Flow Universe) === */
 
-@keyframes moex-drift {
+@keyframes auth-drift {
   from { transform: translate(0, 0) scale(1); }
   to   { transform: translate(30px, -20px) scale(1.1); }
 }
 
-@keyframes moex-rotate-cw {
+@keyframes auth-rotate-cw {
   from { transform: translate(-50%, -50%) rotate(0deg); }
   to   { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-@keyframes moex-rotate-ccw {
+@keyframes auth-rotate-ccw {
   from { transform: translate(-50%, -50%) rotate(0deg); }
   to   { transform: translate(-50%, -50%) rotate(-360deg); }
 }
 
-@keyframes moex-pulse-orb {
+@keyframes auth-pulse-orb {
   0%, 100% {
     transform: translate(-50%, -50%) scale(1);
     box-shadow: 0 0 20px rgba(107, 92, 246, 0.4), 0 0 60px rgba(107, 92, 246, 0.2);
@@ -2128,12 +2128,12 @@ body {
   }
 }
 
-@keyframes moex-pulse {
+@keyframes auth-pulse {
   0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(107, 92, 246, 0.4), 0 0 60px rgba(107, 92, 246, 0.2); }
   50%       { transform: scale(1.05); box-shadow: 0 0 40px rgba(107, 92, 246, 0.7), 0 0 100px rgba(107, 92, 246, 0.35); }
 }
 
-.moex-shell {
+.auth-shell {
   display: flex;
   width: 100%;
   min-height: 100vh;
@@ -2143,7 +2143,7 @@ body {
 
 /* ── Левая панель ── */
 
-.moex-left {
+.auth-left {
   width: 420px;
   flex-shrink: 0;
   background: #0f0f1a;
@@ -2155,14 +2155,14 @@ body {
   z-index: 1;
 }
 
-.moex-logo {
+.auth-logo {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: auto;
 }
 
-.moex-logo-icon {
+.auth-logo-icon {
   width: 28px;
   height: 28px;
   border-radius: 7px;
@@ -2173,7 +2173,7 @@ body {
   flex-shrink: 0;
 }
 
-.moex-logo-text {
+.auth-logo-text {
   font-family: 'Syne', sans-serif;
   font-weight: 700;
   font-size: 14px;
@@ -2181,7 +2181,7 @@ body {
   letter-spacing: 0;
 }
 
-.moex-form-wrap {
+.auth-form-wrap {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -2189,7 +2189,7 @@ body {
   padding: 40px 0;
 }
 
-.moex-heading {
+.auth-heading {
   font-family: 'Syne', sans-serif;
   font-weight: 700;
   font-size: 24px;
@@ -2198,7 +2198,7 @@ body {
   letter-spacing: -0.3px;
 }
 
-.moex-subheading {
+.auth-subheading {
   font-family: 'Inter', sans-serif;
   font-weight: 400;
   font-size: 13px;
@@ -2206,7 +2206,7 @@ body {
   margin: 0 0 24px;
 }
 
-.moex-tabs {
+.auth-tabs {
   display: flex;
   gap: 4px;
   background: rgba(255, 255, 255, 0.04);
@@ -2216,7 +2216,7 @@ body {
   margin-bottom: 28px;
 }
 
-.moex-tab {
+.auth-tab {
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 500;
@@ -2230,29 +2230,29 @@ body {
   outline: none;
 }
 
-.moex-tab:hover {
+.auth-tab:hover {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.moex-tab--active {
+.auth-tab--active {
   background: rgba(107, 92, 246, 0.2);
   color: #c4b8ff;
   border-color: rgba(107, 92, 246, 0.3);
 }
 
-.moex-form {
+.auth-form {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.moex-field {
+.auth-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.moex-label {
+.auth-label {
   font-family: 'Inter', sans-serif;
   font-size: 12px;
   font-weight: 500;
@@ -2261,7 +2261,7 @@ body {
   color: rgba(255, 255, 255, 0.35);
 }
 
-.moex-input {
+.auth-input {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -2274,16 +2274,16 @@ body {
   width: 100%;
 }
 
-.moex-input::placeholder {
+.auth-input::placeholder {
   color: rgba(255, 255, 255, 0.2);
 }
 
-.moex-input:focus {
+.auth-input:focus {
   border-color: #6b5cf6;
   box-shadow: 0 0 0 3px rgba(107, 92, 246, 0.25);
 }
 
-.moex-btn {
+.auth-btn {
   margin-top: 6px;
   width: 100%;
   padding: 11px 0;
@@ -2299,20 +2299,20 @@ body {
   outline: none;
 }
 
-.moex-btn:hover:not(:disabled) {
+.auth-btn:hover:not(:disabled) {
   background: #7c6ef7;
 }
 
-.moex-btn:active:not(:disabled) {
+.auth-btn:active:not(:disabled) {
   transform: translateY(0.5px);
 }
 
-.moex-btn:disabled {
+.auth-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-.moex-footer {
+.auth-footer {
   font-family: 'Inter', sans-serif;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.2);
@@ -2322,14 +2322,14 @@ body {
 
 /* ── Правая панель (космос) ── */
 
-.moex-right {
+.auth-right {
   flex: 1;
   background: #0a0a0f;
   position: relative;
   overflow: hidden;
 }
 
-.moex-stars-canvas {
+.auth-stars-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2338,16 +2338,16 @@ body {
 
 /* Туманности */
 
-.moex-nebula {
+.auth-nebula {
   position: absolute;
   border-radius: 50%;
   filter: blur(80px);
   opacity: 0.35;
-  animation: moex-drift 12s ease-in-out infinite alternate;
+  animation: auth-drift 12s ease-in-out infinite alternate;
   pointer-events: none;
 }
 
-.moex-nebula--1 {
+.auth-nebula--1 {
   width: 400px;
   height: 400px;
   background: #4f35b8;
@@ -2356,7 +2356,7 @@ body {
   animation-delay: 0s;
 }
 
-.moex-nebula--2 {
+.auth-nebula--2 {
   width: 350px;
   height: 350px;
   background: #1a3a6e;
@@ -2365,7 +2365,7 @@ body {
   animation-delay: -4s;
 }
 
-.moex-nebula--3 {
+.auth-nebula--3 {
   width: 300px;
   height: 300px;
   background: #6b2f7a;
@@ -2376,13 +2376,13 @@ body {
 
 /* Орбитальные кольца */
 
-.moex-orbits {
+.auth-orbits {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.moex-orbit {
+.auth-orbit {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -2390,36 +2390,36 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.moex-orbit--1 {
+.auth-orbit--1 {
   width: 240px;
   height: 240px;
   transform: translate(-50%, -50%) rotate(0deg);
-  animation: moex-rotate-cw 30s linear infinite;
+  animation: auth-rotate-cw 30s linear infinite;
 }
 
-.moex-orbit--2 {
+.auth-orbit--2 {
   width: 400px;
   height: 400px;
   transform: translate(-50%, -50%) rotate(0deg);
-  animation: moex-rotate-ccw 50s linear infinite;
+  animation: auth-rotate-ccw 50s linear infinite;
 }
 
-.moex-orbit--3 {
+.auth-orbit--3 {
   width: 580px;
   height: 580px;
   transform: translate(-50%, -50%) rotate(0deg);
-  animation: moex-rotate-cw 80s linear infinite;
+  animation: auth-rotate-cw 80s linear infinite;
 }
 
-.moex-orbit--4 {
+.auth-orbit--4 {
   width: 760px;
   height: 760px;
   transform: translate(-50%, -50%) rotate(0deg);
-  animation: moex-rotate-ccw 120s linear infinite;
+  animation: auth-rotate-ccw 120s linear infinite;
 }
 
-.moex-orbit::before,
-.moex-orbit::after {
+.auth-orbit::before,
+.auth-orbit::after {
   content: '';
   position: absolute;
   width: 5px;
@@ -2429,13 +2429,13 @@ body {
   box-shadow: 0 0 6px rgba(107, 92, 246, 0.6);
 }
 
-.moex-orbit::before {
+.auth-orbit::before {
   top: -2.5px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.moex-orbit::after {
+.auth-orbit::after {
   bottom: -2.5px;
   left: 50%;
   transform: translateX(-50%);
@@ -2443,7 +2443,7 @@ body {
 
 /* Центральный орб */
 
-.moex-orb {
+.auth-orb {
   position: absolute;
   width: 80px;
   height: 80px;
@@ -2453,12 +2453,12 @@ body {
   margin-top: -40px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #8b77f5, #3b25b3 60%, #1a0f5e);
-  animation: moex-pulse 4s ease-in-out infinite;
+  animation: auth-pulse 4s ease-in-out infinite;
 }
 
 /* Hero-текст */
 
-.moex-hero {
+.auth-hero {
   position: absolute;
   bottom: 60px;
   left: 60px;
@@ -2466,7 +2466,7 @@ body {
   pointer-events: none;
 }
 
-.moex-hero-label {
+.auth-hero-label {
   font-family: 'Syne', sans-serif;
   font-weight: 600;
   font-size: 13px;
@@ -2476,7 +2476,7 @@ body {
   margin-bottom: 8px;
 }
 
-.moex-hero-title {
+.auth-hero-title {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
   font-size: 52px;
@@ -2489,7 +2489,7 @@ body {
   margin-bottom: 16px;
 }
 
-.moex-hero-desc {
+.auth-hero-desc {
   font-family: 'Inter', sans-serif;
   font-weight: 300;
   font-size: 14px;
