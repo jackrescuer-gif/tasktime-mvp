@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
+import api from '../api/client';
 
 interface Star {
   x: number;
@@ -69,8 +70,18 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [registrationEnabled, setRegistrationEnabled] = useState(true);
   const { login, register } = useAuthStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get<{ registrationEnabled: boolean }>('/auth/registration-status')
+      .then(r => {
+        setRegistrationEnabled(r.data.registrationEnabled);
+        if (!r.data.registrationEnabled) setActiveTab('login');
+      })
+      .catch(() => { /* default: enabled */ });
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,14 +151,22 @@ export default function LoginPage() {
             >
               Войти
             </button>
-            <button
-              className={`auth-tab${activeTab === 'register' ? ' auth-tab--active' : ''}`}
-              onClick={() => setActiveTab('register')}
-              type="button"
-            >
-              Регистрация
-            </button>
+            {registrationEnabled && (
+              <button
+                className={`auth-tab${activeTab === 'register' ? ' auth-tab--active' : ''}`}
+                onClick={() => setActiveTab('register')}
+                type="button"
+              >
+                Регистрация
+              </button>
+            )}
           </div>
+
+          {!registrationEnabled && activeTab === 'register' && (
+            <p className="auth-subheading" style={{ color: '#f5a623', marginTop: 12 }}>
+              Регистрация временно недоступна. Обратитесь к администратору.
+            </p>
+          )}
 
           {activeTab === 'login' ? (
             <form className="auth-form" onSubmit={handleLogin}>

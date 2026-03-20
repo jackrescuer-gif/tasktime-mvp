@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import { adminApi, type AdminUser, type ProjectRole } from '../../api/admin';
 import api from '../../api/client';
+import { useAuthStore } from '../../store/auth.store';
 
 const { Text } = Typography;
 
@@ -103,6 +104,36 @@ export default function AdminUsersPage() {
   const [deactivateTarget, setDeactivateTarget] = useState<AdminUser | null>(null);
   const [deactivateDeps, setDeactivateDeps] = useState<Record<string, number>>({});
   const [deactivating, setDeactivating] = useState(false);
+
+  // Registration setting
+  const [registrationEnabled, setRegistrationEnabled] = useState<boolean | null>(null);
+  const [togglingReg, setTogglingReg] = useState(false);
+  const currentUser = useAuthStore(s => s.user);
+
+  const loadRegistrationSetting = useCallback(async () => {
+    try {
+      const res = await adminApi.getRegistrationSetting();
+      setRegistrationEnabled(res.registrationEnabled);
+    } catch {
+      // ignore — setting visible only to admin+
+    }
+  }, []);
+
+  useEffect(() => { void loadRegistrationSetting(); }, [loadRegistrationSetting]);
+
+  const handleToggleRegistration = async (enabled: boolean) => {
+    setTogglingReg(true);
+    try {
+      const res = await adminApi.setRegistrationSetting(enabled);
+      setRegistrationEnabled(res.registrationEnabled);
+      void message.success(enabled ? 'Публичная регистрация включена' : 'Публичная регистрация отключена');
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { error?: string } } };
+      void message.error(err?.response?.data?.error || 'Ошибка изменения настройки');
+    } finally {
+      setTogglingReg(false);
+    }
+  };
 
   const loadUsers = useCallback(async () => {
     setLoading(true);
@@ -331,6 +362,25 @@ export default function AdminUsersPage() {
       <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
         <Typography.Title level={4} style={{ margin: 0 }}>Пользователи</Typography.Title>
         <Space>
+          {registrationEnabled !== null && (
+            <Tooltip title={
+              currentUser?.role === 'SUPER_ADMIN'
+                ? 'Разрешить новым пользователям самостоятельно регистрироваться через форму входа'
+                : 'Только SUPER_ADMIN может изменить эту настройку'
+            }>
+              <Space>
+                <Typography.Text type="secondary" style={{ fontSize: 13 }}>Публичная регистрация:</Typography.Text>
+                <Switch
+                  checked={registrationEnabled}
+                  loading={togglingReg}
+                  disabled={currentUser?.role !== 'SUPER_ADMIN'}
+                  onChange={handleToggleRegistration}
+                  checkedChildren="Вкл"
+                  unCheckedChildren="Выкл"
+                />
+              </Space>
+            </Tooltip>
+          )}
           <Input
             placeholder="Поиск по имени / email"
             prefix={<SearchOutlined />}

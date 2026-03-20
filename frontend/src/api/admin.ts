@@ -57,6 +57,13 @@ export const adminApi = {
 
   removeRole: (userId: string, roleId: string) =>
     api.delete(`/admin/users/${userId}/roles/${roleId}`).then(r => r.data),
+
+  // Registration setting
+  getRegistrationSetting: () =>
+    api.get<{ registrationEnabled: boolean }>('/admin/settings/registration').then(r => r.data),
+
+  setRegistrationSetting: (enabled: boolean) =>
+    api.patch<{ registrationEnabled: boolean }>('/admin/settings/registration', { enabled }).then(r => r.data),
 };
 
 export interface AdminStats {

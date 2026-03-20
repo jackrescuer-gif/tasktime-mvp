@@ -3,12 +3,28 @@ import { validate } from '../../shared/middleware/validate.js';
 import { authenticate } from '../../shared/middleware/auth.js';
 import { registerDto, loginDto, refreshDto } from './auth.dto.js';
 import * as authService from './auth.service.js';
+import { getRegistrationSetting } from '../admin/admin.service.js';
+import { AppError } from '../../shared/middleware/error-handler.js';
 import type { AuthRequest } from '../../shared/types/index.js';
 
 const router = Router();
 
+// Public endpoint — no auth required, used by login page
+router.get('/registration-status', async (_req, res, next) => {
+  try {
+    const registrationEnabled = await getRegistrationSetting();
+    res.json({ registrationEnabled });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/register', validate(registerDto), async (req, res, next) => {
   try {
+    const registrationEnabled = await getRegistrationSetting();
+    if (!registrationEnabled) {
+      throw new AppError(403, 'Регистрация пользователей отключена');
+    }
     const result = await authService.register(req.body);
     res.status(201).json(result);
   } catch (err) {
