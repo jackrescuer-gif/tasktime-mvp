@@ -5,6 +5,7 @@ import * as issuesApi from '../api/issues';
 interface IssuesFilters {
   status: IssueStatus[];
   type: IssueType[];
+  issueTypeConfigId: string[];
   priority: IssuePriority[];
   assigneeId?: string;
   search?: string;
@@ -22,6 +23,7 @@ interface IssuesState {
 const initialFilters: IssuesFilters = {
   status: [],
   type: [],
+  issueTypeConfigId: [],
   priority: [],
 };
 
@@ -50,6 +52,7 @@ export const useIssuesStore = create<IssuesState>((set, get) => ({
       const issues = await issuesApi.listIssues(projectId, {
         status: filters.status,
         type: filters.type,
+        issueTypeConfigId: filters.issueTypeConfigId,
         priority: filters.priority,
         assigneeId: filters.assigneeId,
         search: filters.search,

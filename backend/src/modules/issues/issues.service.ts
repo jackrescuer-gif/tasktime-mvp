@@ -58,6 +58,7 @@ async function getNextNumber(projectId: string): Promise<number> {
 type ListIssuesFilters = {
   status?: IssueStatus[];
   type?: IssueType[];
+  issueTypeConfigId?: string[];
   priority?: IssuePriority[];
   assigneeId?: string;
   sprintId?: string;
@@ -74,6 +75,9 @@ export async function listIssues(projectId: string, filters?: ListIssuesFilters)
   }
   if (filters?.type && filters.type.length > 0) {
     where.type = { in: filters.type };
+  }
+  if (filters?.issueTypeConfigId && filters.issueTypeConfigId.length > 0) {
+    where.issueTypeConfigId = { in: filters.issueTypeConfigId };
   }
   if (filters?.priority && filters.priority.length > 0) {
     where.priority = { in: filters.priority };

@@ -11,6 +11,7 @@ import type {
 export interface IssueFilters {
   status?: IssueStatus[];
   type?: IssueType[];
+  issueTypeConfigId?: string[];
   priority?: IssuePriority[];
   assigneeId?: string;
   sprintId?: string;
@@ -24,6 +25,7 @@ export async function listIssues(projectId: string, filters?: IssueFilters): Pro
     params: {
       ...(filters?.status && { status: filters.status.join(',') }),
       ...(filters?.type && { type: filters.type.join(',') }),
+      ...(filters?.issueTypeConfigId && filters.issueTypeConfigId.length > 0 && { issueTypeConfigId: filters.issueTypeConfigId.join(',') }),
       ...(filters?.priority && { priority: filters.priority.join(',') }),
       ...(filters?.assigneeId && { assigneeId: filters.assigneeId }),
       ...(filters?.sprintId && { sprintId: filters.sprintId }),

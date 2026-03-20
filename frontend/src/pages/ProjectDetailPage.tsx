@@ -16,7 +16,7 @@ import { useAuthStore } from '../store/auth.store';
 import * as projectsApi from '../api/projects';
 import * as issuesApi from '../api/issues';
 import * as authApi from '../api/auth';
-import type { Project, IssueType, IssuePriority, IssueStatus, User, IssueTypeConfig } from '../types';
+import type { Project, IssuePriority, IssueStatus, User, IssueTypeConfig } from '../types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { hasAnyRequiredRole, hasRequiredRole } from '../lib/roles';
 import { getProjectIssueTypes } from '../api/issue-type-configs';
@@ -368,14 +368,14 @@ export default function ProjectDetailPage() {
             onPressEnter={handleApplyFilters}
           />
         </div>
-        <Select<IssueType[]>
+        <Select<string[]>
           mode="multiple"
           placeholder="Type"
           className="tt-toolbar-select"
-          value={filters.type}
+          value={filters.issueTypeConfigId}
           maxTagCount={1}
-          onChange={(value) => setFilters({ type: value })}
-          options={issueTypeConfigs.filter((c) => c.systemKey).map((c) => ({ value: c.systemKey as IssueType, label: c.name }))}
+          onChange={(value) => setFilters({ issueTypeConfigId: value })}
+          options={issueTypeConfigs.map((c) => ({ value: c.id, label: c.name }))}
         />
         <Select<IssueStatus[]>
           mode="multiple"
