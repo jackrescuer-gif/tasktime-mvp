@@ -10,15 +10,16 @@ datasource db {
 // ===== USERS & AUTH =====
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  name         String
-  role         UserRole @default(USER)
-  isActive     Boolean  @default(true) @map("is_active")
-  isSystem     Boolean  @default(false) @map("is_system")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  passwordHash       String   @map("password_hash")
+  name               String
+  role               UserRole @default(USER)
+  isActive           Boolean  @default(true) @map("is_active")
+  isSystem           Boolean  @default(false) @map("is_system")
+  mustChangePassword Boolean  @default(false) @map("must_change_password")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   assignedIssues Issue[]        @relation("assignee")
   createdIssues  Issue[]        @relation("creator")
@@ -30,6 +31,7 @@ model User {
   teamMemberships TeamMember[]
   createdLinks    IssueLink[]
   ownedProjects   Project[]      @relation("project_owner")
+  projectRoles    UserProjectRole[]
 
   @@map("users")
 }
@@ -52,6 +54,29 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("refresh_tokens")
+}
+
+enum ProjectRole {
+  ADMIN
+  MANAGER
+  USER
+  VIEWER
+}
+
+model UserProjectRole {
+  id        String      @id @default(uuid())
+  userId    String      @map("user_id")
+  projectId String      @map("project_id")
+  role      ProjectRole
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId, role])
+  @@index([userId])
+  @@index([projectId])
+  @@map("user_project_roles")
 }
 
 // ===== PROJECTS =====
@@ -84,6 +109,7 @@ model Project {
   sprints  Sprint[]
   releases Release[]
   issueTypeScheme IssueTypeSchemeProject?
+  userRoles       UserProjectRole[]
 
   @@map("projects")
 }
