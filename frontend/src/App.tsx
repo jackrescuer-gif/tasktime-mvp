@@ -24,6 +24,9 @@ import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
 import AdminLinkTypesPage from './pages/admin/AdminLinkTypesPage';
 import AdminIssueTypeConfigsPage from './pages/admin/AdminIssueTypeConfigsPage';
 import AdminIssueTypeSchemesPage from './pages/admin/AdminIssueTypeSchemesPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminRolesPage from './pages/admin/AdminRolesPage';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 import SettingsPage from './pages/SettingsPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import UatTestsPage from './pages/UatTestsPage';
@@ -31,7 +34,11 @@ import UatTestsPage from './pages/UatTestsPage';
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuthStore();
   if (loading) return <LoadingSpinner />;
-  return user ? <>{children}</> : <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" />;
+  if (user.mustChangePassword && window.location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" />;
+  }
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -127,6 +134,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route
             path="/"
             element={
@@ -156,6 +164,8 @@ export default function App() {
             <Route path="admin/link-types" element={<AdminLinkTypesPage />} />
             <Route path="admin/issue-type-configs" element={<AdminIssueTypeConfigsPage />} />
             <Route path="admin/issue-type-schemes" element={<AdminIssueTypeSchemesPage />} />
+            <Route path="admin/users" element={<AdminUsersPage />} />
+            <Route path="admin/roles" element={<AdminRolesPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
