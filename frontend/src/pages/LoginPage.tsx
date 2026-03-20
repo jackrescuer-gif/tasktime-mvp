@@ -1,3 +1,6 @@
+// Auth page with generic styling (auth-* classes, no brand-specific naming)
+// This prevents accidental re-introduction of brand-specific elements during refactoring
+
 import { useState, useRef, useEffect } from 'react';
 import { message } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -57,7 +60,7 @@ function StarCanvas() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="moex-stars-canvas" />;
+  return <canvas ref={canvasRef} className="auth-stars-canvas" />;
 }
 
 export default function LoginPage() {
@@ -100,49 +103,45 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="moex-shell">
+    <div className="auth-shell">
       {/* ─── Левая панель ─── */}
-      <div className="moex-left">
+      <div className="auth-left">
         {/* Логотип */}
-        <div className="moex-logo">
-          <div className="moex-logo-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Логотип Flow Universe - стилизованные волны и поток */}
-              <defs>
-                <linearGradient id="fuGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(255,255,255,1)" />
-                  <stop offset="100%" stopColor="rgba(255,255,255,0.8)" />
-                </linearGradient>
-              </defs>
-              {/* Верхняя волна */}
-              <path d="M 4 12 Q 8 8, 12 12 T 20 12" stroke="url(#fuGrad)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-              {/* Средняя волна */}
-              <path d="M 3 15 Q 8 11, 12 15 T 21 15" stroke="url(#fuGrad)" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.7" />
-              {/* Нижняя волна */}
-              <path d="M 4 18 Q 8 14, 12 18 T 20 18" stroke="url(#fuGrad)" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.5" />
-              {/* Центральная точка потока */}
-              <circle cx="12" cy="12" r="2.5" fill="white" opacity="0.9" />
+        <div className="auth-logo">
+          <div className="auth-logo-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <line x1="8" y1="8" x2="3" y2="3" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" />
+              <line x1="8" y1="8" x2="13" y2="4" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" />
+              <line x1="8" y1="8" x2="13" y2="12" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" />
+              <line x1="8" y1="8" x2="4" y2="13" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" />
+              <line x1="8" y1="8" x2="8" y2="2" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" />
+              <circle cx="8" cy="8" r="2.2" fill="white" />
+              <circle cx="3" cy="3" r="1.2" fill="rgba(255,255,255,0.7)" />
+              <circle cx="13" cy="4" r="1.2" fill="rgba(255,255,255,0.7)" />
+              <circle cx="13" cy="12" r="1.2" fill="rgba(255,255,255,0.7)" />
+              <circle cx="4" cy="13" r="1.2" fill="rgba(255,255,255,0.7)" />
+              <circle cx="8" cy="2" r="1.2" fill="rgba(255,255,255,0.7)" />
             </svg>
           </div>
-          <span className="moex-logo-text">Flow Universe</span>
+          <span className="auth-logo-text">Flow Universe</span>
         </div>
 
         {/* Форма */}
-        <div className="moex-form-wrap">
-          <h1 className="moex-heading">Войти в систему</h1>
-          <p className="moex-subheading">Добро пожаловать в Flow Universe</p>
+        <div className="auth-form-wrap">
+          <h1 className="auth-heading">Войти в систему</h1>
+          <p className="auth-subheading">Добро пожаловать в Flow Universe</p>
 
           {/* Табы */}
-          <div className="moex-tabs">
+          <div className="auth-tabs">
             <button
-              className={`moex-tab${activeTab === 'login' ? ' moex-tab--active' : ''}`}
+              className={`auth-tab${activeTab === 'login' ? ' auth-tab--active' : ''}`}
               onClick={() => setActiveTab('login')}
               type="button"
             >
               Войти
             </button>
             <button
-              className={`moex-tab${activeTab === 'register' ? ' moex-tab--active' : ''}`}
+              className={`auth-tab${activeTab === 'register' ? ' auth-tab--active' : ''}`}
               onClick={() => setActiveTab('register')}
               type="button"
             >
@@ -151,11 +150,11 @@ export default function LoginPage() {
           </div>
 
           {activeTab === 'login' ? (
-            <form className="moex-form" onSubmit={handleLogin}>
-              <div className="moex-field">
-                <label className="moex-label">Email</label>
+            <form className="auth-form" onSubmit={handleLogin}>
+              <div className="auth-field">
+                <label className="auth-label">Email</label>
                 <input
-                  className="moex-input"
+                  className="auth-input"
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -163,10 +162,10 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              <div className="moex-field">
-                <label className="moex-label">Пароль</label>
+              <div className="auth-field">
+                <label className="auth-label">Пароль</label>
                 <input
-                  className="moex-input"
+                  className="auth-input"
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
@@ -174,16 +173,16 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              <button className="moex-btn" type="submit" disabled={loading}>
+              <button className="auth-btn" type="submit" disabled={loading}>
                 {loading ? 'Вход...' : 'Войти'}
               </button>
             </form>
           ) : (
-            <form className="moex-form" onSubmit={handleRegister}>
-              <div className="moex-field">
-                <label className="moex-label">Имя</label>
+            <form className="auth-form" onSubmit={handleRegister}>
+              <div className="auth-field">
+                <label className="auth-label">Имя</label>
                 <input
-                  className="moex-input"
+                  className="auth-input"
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
@@ -191,10 +190,10 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              <div className="moex-field">
-                <label className="moex-label">Email</label>
+              <div className="auth-field">
+                <label className="auth-label">Email</label>
                 <input
-                  className="moex-input"
+                  className="auth-input"
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -202,10 +201,10 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              <div className="moex-field">
-                <label className="moex-label">Пароль</label>
+              <div className="auth-field">
+                <label className="auth-label">Пароль</label>
                 <input
-                  className="moex-input"
+                  className="auth-input"
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
@@ -214,7 +213,7 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              <button className="moex-btn" type="submit" disabled={loading}>
+              <button className="auth-btn" type="submit" disabled={loading}>
                 {loading ? 'Регистрация...' : 'Зарегистрироваться'}
               </button>
             </form>
@@ -222,35 +221,34 @@ export default function LoginPage() {
         </div>
 
         {/* Футер */}
-        <div className="moex-footer">© 2025 Flow Universe</div>
+        <div className="auth-footer">© 2025 Flow Universe</div>
       </div>
 
       {/* ─── Правая панель (космос) ─── */}
-      <div className="moex-right">
+      <div className="auth-right">
         <StarCanvas />
 
         {/* Туманности */}
-        <div className="moex-nebula moex-nebula--1" />
-        <div className="moex-nebula moex-nebula--2" />
-        <div className="moex-nebula moex-nebula--3" />
+        <div className="auth-nebula auth-nebula--1" />
+        <div className="auth-nebula auth-nebula--2" />
+        <div className="auth-nebula auth-nebula--3" />
 
         {/* Орбитальные кольца */}
-        <div className="moex-orbits">
-          <div className="moex-orbit moex-orbit--1" />
-          <div className="moex-orbit moex-orbit--2" />
-          <div className="moex-orbit moex-orbit--3" />
-          <div className="moex-orbit moex-orbit--4" />
+        <div className="auth-orbits">
+          <div className="auth-orbit auth-orbit--1" />
+          <div className="auth-orbit auth-orbit--2" />
+          <div className="auth-orbit auth-orbit--3" />
+          <div className="auth-orbit auth-orbit--4" />
           {/* Центральный орб */}
-          <div className="moex-orb" />
+          <div className="auth-orb" />
         </div>
 
         {/* Hero-текст */}
-        <div className="moex-hero">
-          <div className="moex-hero-label">MOEX</div>
-          <div className="moex-hero-title">
+        <div className="auth-hero">
+          <div className="auth-hero-title">
             Flow<br />Universe
           </div>
-          <div className="moex-hero-desc">
+          <div className="auth-hero-desc">
             Система управления проектами нового поколения
           </div>
         </div>
