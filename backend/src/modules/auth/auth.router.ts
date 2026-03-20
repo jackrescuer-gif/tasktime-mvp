@@ -55,4 +55,22 @@ router.get('/me', authenticate, async (req: AuthRequest, res, next) => {
   }
 });
 
+router.post('/change-password', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: 'currentPassword and newPassword are required' });
+      return;
+    }
+    if (newPassword.length < 8) {
+      res.status(400).json({ error: 'Password must be at least 8 characters' });
+      return;
+    }
+    await authService.changePassword(req.user!.userId, currentPassword, newPassword);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

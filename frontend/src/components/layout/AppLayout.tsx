@@ -20,6 +20,8 @@ import {
   LinkOutlined,
   AppstoreOutlined,
   BlockOutlined,
+  UserOutlined,
+  SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
@@ -102,6 +104,8 @@ export default function AppLayout() {
           children: [
             { key: '/admin/dashboard', icon: <DashboardOutlined />, label: 'Дашборд' },
             { key: '/admin/monitoring', icon: <MonitorOutlined />, label: 'Мониторинг' },
+            { key: '/admin/users', icon: <UserOutlined />, label: 'Пользователи' },
+            { key: '/admin/roles', icon: <SafetyCertificateOutlined />, label: 'Роли' },
             { key: '/admin/projects', icon: <ProjectOutlined />, label: 'Проекты' },
             { key: '/admin/categories', icon: <TagsOutlined />, label: 'Категории' },
             { key: '/admin/link-types', icon: <LinkOutlined />, label: 'Виды связей' },
