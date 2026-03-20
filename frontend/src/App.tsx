@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, theme as antdTheme } from 'antd';
 import { useAuthStore } from './store/auth.store';
+import { useThemeStore } from './store/theme.store';
 import AppLayout from './components/layout/AppLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
@@ -16,7 +17,12 @@ import GlobalSprintsPage from './pages/GlobalSprintsPage';
 import ReleasesPage from './pages/ReleasesPage';
 import TimePage from './pages/TimePage';
 import TeamsPage from './pages/TeamsPage';
-import AdminPage from './pages/AdminPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminMonitoringPage from './pages/admin/AdminMonitoringPage';
+import AdminProjectsPage from './pages/admin/AdminProjectsPage';
+import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
+import AdminLinkTypesPage from './pages/admin/AdminLinkTypesPage';
+import SettingsPage from './pages/SettingsPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import UatTestsPage from './pages/UatTestsPage';
 
@@ -28,26 +34,94 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { loadUser } = useAuthStore();
+  const { mode } = useThemeStore();
+  const isLight = mode === 'light';
 
   useEffect(() => {
     loadUser();
   }, [loadUser]);
 
-  const darkTheme = {
-    algorithm: antdTheme.darkAlgorithm,
+  const primary = isLight ? '#5e6ad2' : '#7b86ff';
+  const antTheme = {
+    algorithm: isLight ? antdTheme.defaultAlgorithm : antdTheme.darkAlgorithm,
     token: {
-      colorPrimary: 'var(--acc)',
-      colorBgBase: 'var(--bg)',
-      colorBgContainer: 'var(--bg)',
-      colorBorder: 'var(--b2)',
-      colorTextBase: 'var(--t1)',
-      borderRadius: 4,
+      // Передаём конкретные hex-значения — Ant Design разрешает токены в JS,
+      // CSS vars там не работают. colorBgElevated фиксирует тёмный фон
+      // для Select/Dropdown/Modal/Popover попапов
+      colorPrimary: isLight ? '#5e6ad2' : '#7b86ff',
+      colorPrimaryHover: isLight ? '#7b86ff' : '#9aa4ff',
+      colorInfo: primary,
+      colorBgBase: isLight ? '#f5f5f7' : '#111117',
+      colorBgContainer: isLight ? '#ffffff' : '#181821',
+      colorBgElevated: isLight ? '#ffffff' : '#1e1e2a',   // попапы, модалки, дропдауны
+      colorBgSpotlight: isLight ? '#f0f0f4' : '#252535',  // тултипы
+      colorBgLayout: isLight ? '#eaeaed' : '#08080b',
+      colorText: isLight ? '#1a1a2e' : '#e2e2e8',
+      colorTextBase: isLight ? '#1a1a2e' : '#e2e2e8',
+      colorTextSecondary: isLight ? '#5a5a72' : '#8c8c9e',
+      colorTextTertiary: isLight ? '#9a9aaa' : '#555566',
+      colorTextDisabled: isLight ? '#c0c0cc' : '#3a3a4a',
+      colorTextPlaceholder: isLight ? '#c0c0cc' : '#3a3a4a',
+      colorFill: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
+      colorFillSecondary: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
+      colorFillTertiary: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
+      colorSplit: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)',
+      colorBorder: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.10)',
+      colorBorderSecondary: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.07)',
+      colorSuccess: '#4caf7d',
+      colorWarning: '#e8b84a',
+      colorError: '#e5534b',
+      borderRadius: 6,
+      borderRadiusSM: 4,
+      borderRadiusLG: 10,
       fontFamily: 'Inter, -apple-system, system-ui, sans-serif',
+      fontSize: 13,
+      fontSizeSM: 12,
+      lineHeight: 1.5,
+      controlHeight: 32,
+      controlHeightSM: 26,
+      controlHeightLG: 38,
+      lineWidth: 1,
+      motionDurationMid: '0.12s',
+      motionDurationSlow: '0.18s',
+    },
+    components: {
+      Button: {
+        fontWeight: 500,
+        paddingInline: 14,
+      },
+      Tag: {
+        borderRadiusSM: 3,
+        fontSizeSM: 11,
+      },
+      Table: {
+        headerBg: isLight ? '#f0f0f4' : '#14141c',
+        headerColor: isLight ? '#5a5a72' : '#8c8c9e',
+        headerSplitColor: 'transparent',
+        rowHoverBg: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
+        cellPaddingBlock: 8,
+        cellPaddingInline: 12,
+      },
+      Modal: {
+        borderRadiusLG: 8,
+        paddingContentHorizontalLG: 24,
+      },
+      Drawer: {
+        paddingLG: 20,
+      },
+      Select: {
+        optionHeight: 32,
+      },
+      Menu: {
+        itemHeight: 34,
+        itemBorderRadius: 4,
+        subMenuItemBorderRadius: 4,
+      },
     },
   };
 
   return (
-    <ConfigProvider theme={darkTheme}>
+    <ConfigProvider theme={antTheme}>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -72,7 +146,13 @@ export default function App() {
             <Route path="time" element={<TimePage />} />
             <Route path="teams" element={<TeamsPage />} />
             <Route path="uat" element={<UatTestsPage />} />
-            <Route path="admin" element={<AdminPage />} />
+            <Route path="admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="admin/monitoring" element={<AdminMonitoringPage />} />
+            <Route path="admin/projects" element={<AdminProjectsPage />} />
+            <Route path="admin/categories" element={<AdminCategoriesPage />} />
+            <Route path="admin/link-types" element={<AdminLinkTypesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

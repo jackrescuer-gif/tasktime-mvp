@@ -19,6 +19,21 @@ const router = Router();
 
 router.use(authenticate);
 
+// Global issue search across all projects (for linking)
+router.get('/issues/search', async (req, res, next) => {
+  try {
+    const { q, excludeId } = req.query as { q?: string; excludeId?: string };
+    if (!q || !q.trim()) {
+      res.json([]);
+      return;
+    }
+    const issues = await issuesService.searchIssuesGlobal(q.trim(), excludeId);
+    res.json(issues);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // List issues for a project with filters
 router.get('/projects/:projectId/issues', async (req, res, next) => {
   try {

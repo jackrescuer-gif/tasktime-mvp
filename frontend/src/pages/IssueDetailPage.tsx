@@ -36,13 +36,13 @@ import * as issuesApi from '../api/issues';
 import * as commentsApi from '../api/comments';
 import * as timeApi from '../api/time';
 import * as aiApi from '../api/ai';
+import * as authApi from '../api/auth';
+import IssueLinksSection from '../components/issues/IssueLinksSection';
 import { useAuthStore } from '../store/auth.store';
-import type { Issue, Comment, TimeLog, AuditEntry, IssueStatus, IssuePriority } from '../types';
+import type { Issue, Comment, TimeLog, AuditEntry, IssueStatus, IssuePriority, IssueType, User } from '../types';
 import api from '../api/client';
 import { hasAnyRequiredRole, hasRequiredRole } from '../lib/roles';
-
-const PRIORITY_COLORS: Record<IssuePriority, string> = { CRITICAL: 'red', HIGH: 'orange', MEDIUM: 'blue', LOW: 'default' };
-const STATUS_COLORS: Record<IssueStatus, string> = { OPEN: 'default', IN_PROGRESS: 'processing', REVIEW: 'warning', DONE: 'success', CANCELLED: 'error' };
+import { IssueStatusTag, IssuePriorityTag, IssueTypeBadge } from '../lib/issue-kit';
 
 export default function IssueDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -59,7 +59,11 @@ export default function IssueDetailPage() {
   const [timeForm] = Form.useForm();
   const [aiEstimateLoading, setAiEstimateLoading] = useState(false);
   const [aiDecomposeLoading, setAiDecomposeLoading] = useState(false);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editForm] = Form.useForm();
   const canEditAi = hasAnyRequiredRole(user?.role, ['ADMIN', 'MANAGER']);
+  const canAssign = hasAnyRequiredRole(user?.role, ['ADMIN', 'MANAGER']);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -77,6 +81,7 @@ export default function IssueDetailPage() {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { timeApi.getActiveTimer().then(setActiveTimer); }, []);
+  useEffect(() => { authApi.listUsers().then(setAllUsers).catch(() => {}); }, []);
 
   const handleStatusChange = async (status: IssueStatus) => {
     if (!id) return;
@@ -124,6 +129,17 @@ export default function IssueDetailPage() {
     load();
   };
 
+  const handleAssigneeChange = async (assigneeId: string | null) => {
+    if (!id) return;
+    try {
+      await issuesApi.assignIssue(id, assigneeId);
+      load();
+      message.success('Assignee updated');
+    } catch {
+      message.error('Could not update assignee');
+    }
+  };
+
   const handleToggleAiEligible = async (checked: boolean) => {
     if (!id || !issue) return;
     try {
@@ -153,6 +169,45 @@ export default function IssueDetailPage() {
       message.error(msg || 'Не удалось оценить трудоёмкость');
     } finally {
       setAiEstimateLoading(false);
+    }
+  };
+
+  const handleEditOpen = () => {
+    if (!issue) return;
+    editForm.setFieldsValue({
+      title: issue.title,
+      type: issue.type,
+      priority: issue.priority,
+      assigneeId: issue.assigneeId ?? undefined,
+      description: issue.description ?? '',
+      acceptanceCriteria: issue.acceptanceCriteria ?? '',
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleEditSave = async (vals: {
+    title: string;
+    type: IssueType;
+    priority: IssuePriority;
+    assigneeId?: string;
+    description?: string;
+    acceptanceCriteria?: string;
+  }) => {
+    if (!id) return;
+    try {
+      await issuesApi.updateIssue(id, {
+        title: vals.title,
+        type: vals.type,
+        priority: vals.priority,
+        assigneeId: vals.assigneeId,
+        description: vals.description || undefined,
+        acceptanceCriteria: vals.acceptanceCriteria || undefined,
+      });
+      setEditModalOpen(false);
+      await load();
+      message.success('Issue updated');
+    } catch {
+      message.error('Could not save changes');
     }
   };
 
@@ -203,7 +258,7 @@ export default function IssueDetailPage() {
             <div className="tt-issue-id-badge">
               <span>{issueKey}</span>
             </div>
-            <Tag>{issue.type}</Tag>
+            <IssueTypeBadge type={issue.type} showLabel />
           </div>
           <div className="tt-issue-header-meta">
             <span>
@@ -221,7 +276,7 @@ export default function IssueDetailPage() {
           </div>
         </div>
         <div className="tt-issue-header-actions">
-          <Button size="small" icon={<EditOutlined />}>
+          <Button size="small" icon={<EditOutlined />} onClick={handleEditOpen}>
             Edit
           </Button>
           <Button size="small" icon={<MoreOutlined />} />
@@ -241,6 +296,17 @@ export default function IssueDetailPage() {
             </section>
           )}
 
+          {issue.acceptanceCriteria && (
+            <section>
+              <h3 className="tt-issue-section-title">Acceptance Criteria</h3>
+              <div className="tt-issue-description">
+                <div className="markdown-body">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{issue.acceptanceCriteria}</ReactMarkdown>
+                </div>
+              </div>
+            </section>
+          )}
+
           {issue.children && issue.children.length > 0 && (
             <section>
               <h3 className="tt-issue-section-title">
@@ -253,8 +319,8 @@ export default function IssueDetailPage() {
                 renderItem={(child) => (
                   <List.Item>
                     <Link to={`/issues/${child.id}`}>
-                      <Tag>{child.type}</Tag>{' '}
-                      <Tag color={STATUS_COLORS[child.status]}>{child.status}</Tag>{' '}
+                      <IssueTypeBadge type={child.type} />{' '}
+                      <IssueStatusTag status={child.status} size="small" />{' '}
                       {child.title}
                     </Link>
                   </List.Item>
@@ -262,6 +328,8 @@ export default function IssueDetailPage() {
               />
             </section>
           )}
+
+          <IssueLinksSection issueId={issue.id} />
 
           <section className="tt-issue-activity">
             <h3 className="tt-issue-section-title">
@@ -379,11 +447,23 @@ export default function IssueDetailPage() {
               </div>
               <div className="tt-panel-row">
                 <span>Priority</span>
-                <Tag color={PRIORITY_COLORS[issue.priority]}>{issue.priority}</Tag>
+                <IssuePriorityTag priority={issue.priority} size="small" />
               </div>
               <div className="tt-panel-row">
                 <span>Assignee</span>
-                <span>{issue.assignee?.name || 'Unassigned'}</span>
+                {canAssign ? (
+                  <Select
+                    allowClear
+                    size="small"
+                    style={{ width: 160 }}
+                    placeholder="Unassigned"
+                    value={issue.assigneeId ?? undefined}
+                    onChange={(val) => handleAssigneeChange(val ?? null)}
+                    options={allUsers.map((u) => ({ value: u.id, label: u.name }))}
+                  />
+                ) : (
+                  <span>{issue.assignee?.name || 'Unassigned'}</span>
+                )}
               </div>
               <div className="tt-panel-row">
                 <span>Key</span>
@@ -559,6 +639,52 @@ export default function IssueDetailPage() {
           </div>
         </aside>
       </div>
+
+      <Modal
+        title="Edit Issue"
+        open={editModalOpen}
+        onCancel={() => setEditModalOpen(false)}
+        onOk={() => editForm.submit()}
+        okText="Save"
+        cancelText="Cancel"
+        width={600}
+        destroyOnClose
+      >
+        <Form form={editForm} layout="vertical" onFinish={handleEditSave}>
+          <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Title is required' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="type" label="Type" rules={[{ required: true }]}>
+            <Select
+              options={(['EPIC', 'STORY', 'TASK', 'SUBTASK', 'BUG'] as IssueType[]).map((v) => ({
+                value: v,
+                label: v,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item name="priority" label="Priority" rules={[{ required: true }]}>
+            <Select
+              options={(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as IssuePriority[]).map((v) => ({
+                value: v,
+                label: v,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item name="assigneeId" label="Assignee">
+            <Select
+              allowClear
+              placeholder="Unassigned"
+              options={allUsers.map((u) => ({ value: u.id, label: u.name }))}
+            />
+          </Form.Item>
+          <Form.Item name="description" label="Description">
+            <Input.TextArea rows={4} />
+          </Form.Item>
+          <Form.Item name="acceptanceCriteria" label="Acceptance Criteria">
+            <Input.TextArea rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
 
       <Modal
         title="Log Time"

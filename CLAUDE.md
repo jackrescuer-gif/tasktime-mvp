@@ -1,15 +1,63 @@
-# TaskTime MVP — Контекст проекта
+# Flow Universe MVP — Контекст проекта
+
+## Участники и совместная работа
+
+### Команда
+
+| GitHub | Роль | Инструменты | Префикс веток |
+|--------|------|-------------|---------------|
+| jackrescuer-gif | PO / Lead | Claude Code + Cursor | `claude/jack-*`, `cursor/jack-*` |
+| St1tcher86 | Contributor | Claude Code + Cursor | `claude/alex-*`, `cursor/alex-*` |
+
+### Флоу работы
+
+```
+main (защищена: CI + 1 аппрув)
+  ↑
+  ├── claude/jack-<описание>   ← jackrescuer-gif через Claude Code
+  ├── cursor/jack-<описание>   ← jackrescuer-gif через Cursor
+  ├── claude/alex-<описание>   ← St1tcher86 через Claude Code
+  └── cursor/alex-<описание>   ← St1tcher86 через Cursor
+```
+
+**Жизненный цикл ветки:**
+1. `git fetch origin && git rebase origin/main` — синхронизация перед началом
+2. Создать ветку от `main` с нужным префиксом
+3. Коммиты по логическим единицам (feat/fix/chore/docs/refactor/test)
+4. `git push -u origin <ветка>`
+5. `gh pr create` → CI зелёный → аппрув второго участника → `gh pr merge --squash`
+
+### Правила мёрджа
+
+- Стратегия: **squash merge** (один коммит в main на PR)
+- Ветку после мёрджа удалять (`--delete-branch`)
+- Rebase перед PR если main ушёл вперёд: `git rebase origin/main`
+- Прямой push в `main` — **запрещён**
+
+### Координация (предотвращение конфликтов)
+
+- Перед началом работы над модулем — сообщить в командный чат: «беру backend/issues»
+- Не держать ветку открытой > 2 дней
+- Короткие PR (< 400 строк diff) — легче ревьюить
+
+### Code review
+
+- Автор PR **не мёрджит сам** без аппрува
+- Ревьюер проверяет: логику, типы, тесты, CI
+- Если аппрув некому дать (оба заняты одновременно) — допустим self-merge после явного согласования в чате
+
+---
 
 ## Что это
 
-TaskTime — импортозамещение Jira для российского финансового сектора.
+Flow Universe — импортозамещение Jira для российского финансового сектора.
 Конкуренты: Т1 Сфера, EVA, Diasoft.
 
 ## Текущее состояние (2026-03-11)
 
 **Фаза:** Пересборка с нуля (v2). Старый прототип удалён.
 **План:** утверждён в `docs/RU/REBUILD_PLAN_V2.md`
-**Статус:** Sprints 1–3 ЗАВЕРШЕНЫ. В работе Sprint 4.
+**Статус:** Sprints 1–4 ЗАВЕРШЕНЫ. Sprint 5 в работе (claude/agitated-hugle).
 
 ### Sprint 1 — DONE (2026-03-10)
 
@@ -32,6 +80,7 @@ TaskTime — импортозамещение Jira для российского
 - Makefile: setup, dev, backend, frontend
 
 **Запуск:** `make setup && make dev` → http://localhost:5173
+**Прод:** http://5.129.242.171:8080/
 **Аккаунты:** admin/manager/dev/viewer @tasktime.ru, пароль: password123
 
 ### Sprint 2 — DONE (2026-03-10)
@@ -235,7 +284,31 @@ PO выбрал:
 - Sprints 1–3 ЗАВЕРШЕНЫ и работают.
 - Ветка: `claude/mvp-project-management-hdAvd`
 - Старый прототип полностью удалён
-- **Следующий шаг:** Sprint 4 (AI + интеграции + polish)
+- **Следующий шаг:** Sprint 5 (AI Dev Loop) — в работе
+
+## MCP-прокси для Claude Desktop (Sprint 5)
+
+**Запуск MCP:**
+```bash
+MCP_SERVICE_TOKEN=<jwt> docker compose --profile mcp up -d mcp-tasktime
+```
+
+**Подключить Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "tasktime": {
+      "url": "http://localhost:3002/mcp",
+      "transport": "http"
+    }
+  }
+}
+```
+
+После подключения Claude Desktop видит инструменты Flow Universe и может управлять задачами через natural language.
+
+**Swagger UI:** `GET /api/docs` — интерактивная документация API.
+**OpenAPI JSON:** `GET /api/docs/json` — для openapi-to-mcp и других клиентов.
 
 ## Экономия токенов (Token Economy)
 
@@ -274,6 +347,13 @@ PO выбрал:
 - `corporate-architect`, `infosec` → **Opus**
 - `deploy-tasktime`, `docs-tasktime`, `tasktime-inbox` → **Haiku**
 
+## Battle (боевой сервер)
+
+- **URL:** http://5.129.242.171
+- **Логин:** admin@tasktime.ru / password123
+- **Sync-скрипт:** `backend/scripts/sync-issue-with-battle.mjs`
+- **Пример pull:** `TASKTIME_BASE_URL=http://5.129.242.171 TASKTIME_ACCESS_TOKEN=<token> node scripts/sync-issue-with-battle.mjs pull TTMP-82 TTMP-83 TTMP-84 --set-in-progress`
+
 ## CI/CD Pipeline (2026-03-13)
 
 ### Архитектура
@@ -306,3 +386,62 @@ CI (push/PR) → Build & Publish (workflow_run, main only) → Deploy Staging (a
 2. Health-check возвращал 200 на пустую БД (проверял `SELECT 1` вместо наличия таблиц) — фикс `20970f0`
 3. Bootstrap-скрипт не вызывался при деплое — фикс `20970f0`
 4. Секреты production environment не были настроены при первом деплое — фикс вручную в GitHub Settings
+5. Дрейф schema/migrations: `schema.prisma` редактировался без создания migration-файла → `prisma migrate deploy` не применял изменения → seed/runtime падал на несуществующих колонках — фикс: добавлен `prisma migrate diff --exit-code` в CI (шаг после `db:migrate:deploy`)
+
+## Правила работы с Prisma (обязательно)
+
+> **Нарушение любого из этих правил = падение деплоя.**
+
+### Изменения схемы БД
+
+**ЗАПРЕЩЕНО** редактировать `schema.prisma` без создания migration-файла:
+
+```bash
+# НЕВЕРНО — изменяет только локальную БД, migration-файл не создаётся:
+npx prisma db push
+
+# ВЕРНО — создаёт migration-файл, который применится в CI и на проде:
+npx prisma migrate dev --name <описание-изменения>
+```
+
+**Обязательный порядок при изменении схемы:**
+1. Отредактировать `schema.prisma`
+2. `cd backend && npx prisma migrate dev --name <описание>` — создаёт файл в `src/prisma/migrations/`
+3. Закоммитить `schema.prisma` + новый migration-файл вместе
+4. `npm run db:generate` — регенерировать Prisma-клиент
+5. Убедиться, что TypeScript компилируется: `npm run typecheck`
+
+### Проверка дрейфа перед коммитом
+
+Если есть сомнения, что миграция создана — проверить вручную:
+
+```bash
+cd backend && npx prisma migrate diff \
+  --from-schema-datasource src/prisma/schema.prisma \
+  --to-schema-datamodel src/prisma/schema.prisma \
+  --exit-code
+# exit 0 = OK, exit 1 = в schema.prisma есть изменения без migration-файла
+```
+
+CI автоматически выполняет эту проверку после `db:migrate:deploy` и падает если есть дрейф.
+
+### TTMP_ONLY seed
+
+`npm run db:seed:ttmp` работает только на БД с уже существующими bootstrap-пользователями. На чистой БД сначала выполнить:
+
+```bash
+# В backend.*.env: BOOTSTRAP_ENABLED=true, BOOTSTRAP_DEFAULT_PASSWORD=...
+npm run db:bootstrap
+# Затем:
+npm run db:seed:ttmp
+```
+
+### ALTER TYPE в миграциях
+
+При добавлении значения в PostgreSQL enum использовать `IF NOT EXISTS`:
+
+```sql
+ALTER TYPE "MyEnum" ADD VALUE IF NOT EXISTS 'NEW_VALUE';
+```
+
+На PostgreSQL 16 это допустимо внутри транзакции. На PG < 12 нужно добавить `-- no transaction` первой строкой файла.
