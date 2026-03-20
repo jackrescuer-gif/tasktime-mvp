@@ -123,6 +123,29 @@ router.get('/admin/activity', requireRole('ADMIN', 'MANAGER', 'VIEWER'), async (
   }
 });
 
+router.get('/admin/settings/registration', requireRole('ADMIN', 'MANAGER', 'USER', 'VIEWER', 'SUPER_ADMIN'), async (_req, res, next) => {
+  try {
+    const registrationEnabled = await adminService.getRegistrationSetting();
+    res.json({ registrationEnabled });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/admin/settings/registration', requireSuperAdmin(), async (req: AuthRequest, res, next) => {
+  try {
+    const { enabled } = req.body as { enabled?: boolean };
+    if (typeof enabled !== 'boolean') {
+      res.status(400).json({ error: 'enabled (boolean) is required' });
+      return;
+    }
+    const registrationEnabled = await adminService.setRegistrationSetting(req.user!.userId, enabled);
+    res.json({ registrationEnabled });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/admin/uat-tests', requireRole('ADMIN', 'MANAGER', 'USER', 'VIEWER'), async (req, res, next) => {
   try {
     const { role } = req.query as { role?: UatRole };

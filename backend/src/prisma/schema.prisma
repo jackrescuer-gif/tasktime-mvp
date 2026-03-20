@@ -473,6 +473,16 @@ model IssueLink {
   @@map("issue_links")
 }
 
+// ===== SYSTEM SETTINGS =====
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
 // ===== TEAMS =====
 
 model Team {

@@ -464,4 +464,34 @@ export async function listUatTests(params: { role?: UatRole }): Promise<UatTest[
   return UAT_TESTS.filter((test) => test.role === role);
 }
 
+// ===== SYSTEM SETTINGS =====
+
+const REGISTRATION_KEY = 'registration_enabled';
+
+export async function getRegistrationSetting(): Promise<boolean> {
+  const setting = await prisma.systemSetting.findUnique({ where: { key: REGISTRATION_KEY } });
+  if (!setting) return true; // default: enabled
+  return setting.value !== 'false';
+}
+
+export async function setRegistrationSetting(actorId: string, enabled: boolean): Promise<boolean> {
+  await prisma.systemSetting.upsert({
+    where: { key: REGISTRATION_KEY },
+    create: { key: REGISTRATION_KEY, value: String(enabled) },
+    update: { value: String(enabled) },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      action: 'system.registration_toggled',
+      entityType: 'system',
+      entityId: REGISTRATION_KEY,
+      userId: actorId,
+      details: { enabled },
+    },
+  });
+
+  return enabled;
+}
+
 
