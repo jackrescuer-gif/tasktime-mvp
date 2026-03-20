@@ -8,6 +8,7 @@ type BootstrapUser = {
   email: string;
   name: string;
   role: UserRole;
+  isSystem?: boolean;
 };
 
 type BootstrapEnv = Partial<Record<
@@ -15,16 +16,20 @@ type BootstrapEnv = Partial<Record<
   string | undefined
 >>;
 
+export const AI_DEVELOPER_EMAIL = 'ai-developer@tasktime.ru';
+
 export const BOOTSTRAP_USERS: ReadonlyArray<{
   email: string;
   name: string;
   role: UserRole;
+  isSystem?: boolean;
 }> = [
   { email: 'admin@tasktime.ru', name: 'Admin User', role: 'ADMIN' },
   { email: 'manager@tasktime.ru', name: 'Project Manager', role: 'MANAGER' },
   { email: 'dev@tasktime.ru', name: 'Developer', role: 'USER' },
   { email: 'viewer@tasktime.ru', name: 'CIO Viewer', role: 'VIEWER' },
   { email: 'georgi.dubovik@tasktime.ru', name: 'Георгий Дубовик', role: 'SUPER_ADMIN' },
+  { email: AI_DEVELOPER_EMAIL, name: 'AI Developer', role: 'USER', isSystem: true },
 ];
 
 type BootstrapPrismaClient = Pick<PrismaClient, 'user'>;
@@ -84,6 +89,7 @@ export async function bootstrapDefaultUsers(
         name: user.name,
         role: user.role,
         passwordHash,
+        isSystem: user.isSystem ?? false,
       },
     });
   }
