@@ -2,7 +2,24 @@
 
 Все значимые изменения в проекте. Для каждого изменения указана ссылка на задачу (если есть).
 
-**Last version: 0.3**
+**Last version: 0.4**
+
+---
+
+## [0.4] [2026-03-21] feat(field-schemas): TTADM-38 — проверка конфликтов при публикации схемы
+
+**Задача:** [TTADM-38](http://5.129.242.171)
+**PR:** TBD
+**Ветка:** `claude/jack-ttadm-38`
+
+### Что изменилось
+
+**Backend:**
+- Новый файл `field-schemas.conflicts.ts` — вся логика детектирования конфликтов
+- Три типа конфликтов: `FIELD_DUPLICATE_SAME_SCOPE` (ERROR), `REQUIRED_MISMATCH` (ERROR), `KANBAN_OVERFLOW` (WARNING)
+- `POST /api/admin/field-schemas/:id/publish` — теперь проверяет конфликты перед активацией; при наличии ERROR возвращает 422 со списком конфликтов; WARNING не блокирует публикацию
+- `GET /api/admin/field-schemas/:id/conflicts` — предварительная проверка без публикации; возвращает `{ hasErrors, hasWarnings, conflicts[] }`
+- Алгоритм: сравнение биндингов кандидата с биндингами всех ACTIVE схем на одном уровне scope; дедупликация конфликтов
 
 ---
 

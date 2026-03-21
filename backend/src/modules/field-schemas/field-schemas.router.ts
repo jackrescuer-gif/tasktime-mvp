@@ -79,12 +79,35 @@ adminRouter.post('/:id/copy', validate(copyFieldSchemaDto), async (req: AuthRequ
   }
 });
 
+adminRouter.get('/:id/conflicts', async (req, res, next) => {
+  try {
+    const result = await service.checkConflicts(req.params.id as string);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 adminRouter.post('/:id/publish', async (req: AuthRequest, res, next) => {
   try {
-    const schema = await service.publishFieldSchema(req.params.id as string);
+    const result = await service.publishFieldSchema(req.params.id as string);
     await logAudit(req, 'field_schema.published', 'field_schema', req.params.id as string);
-    res.json(schema);
-  } catch (err) {
+    res.json(result);
+  } catch (err: unknown) {
+    // If publish was blocked by conflicts, include them in the 422 response
+    if (
+      typeof err === 'object' &&
+      err !== null &&
+      'statusCode' in err &&
+      (err as { statusCode: number }).statusCode === 422 &&
+      'conflicts' in err
+    ) {
+      res.status(422).json({
+        error: (err as unknown as { message: string }).message,
+        conflicts: (err as { conflicts: unknown }).conflicts,
+      });
+      return;
+    }
     next(err);
   }
 });

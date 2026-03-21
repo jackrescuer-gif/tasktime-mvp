@@ -1,5 +1,6 @@
 import { prisma } from '../../prisma/client.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
+import { detectConflicts } from './field-schemas.conflicts.js';
 import type {
   CreateFieldSchemaDto,
   UpdateFieldSchemaDto,
@@ -116,6 +117,12 @@ export async function copyFieldSchema(id: string, dto: CopyFieldSchemaDto) {
   });
 }
 
+export async function checkConflicts(id: string) {
+  const schema = await prisma.fieldSchema.findUnique({ where: { id } });
+  if (!schema) throw new AppError(404, 'Field schema not found');
+  return detectConflicts(id);
+}
+
 export async function publishFieldSchema(id: string) {
   const schema = await prisma.fieldSchema.findUnique({ where: { id }, include: schemaInclude });
   if (!schema) throw new AppError(404, 'Field schema not found');
@@ -125,12 +132,22 @@ export async function publishFieldSchema(id: string) {
     throw new AppError(422, 'Cannot publish a schema with no fields');
   }
 
-  // Activate the schema
-  return prisma.fieldSchema.update({
+  const result = await detectConflicts(id);
+  if (result.hasErrors) {
+    // Return 422 with conflict details so the UI can display them
+    const err = new AppError(422, 'Schema has conflicts that must be resolved before publishing');
+    (err as AppError & { conflicts: typeof result.conflicts }).conflicts = result.conflicts;
+    throw err;
+  }
+
+  // Warnings don't block publish
+  const published = await prisma.fieldSchema.update({
     where: { id },
     data: { status: 'ACTIVE' },
     include: schemaInclude,
   });
+
+  return { schema: published, warnings: result.conflicts };
 }
 
 export async function unpublishFieldSchema(id: string) {
