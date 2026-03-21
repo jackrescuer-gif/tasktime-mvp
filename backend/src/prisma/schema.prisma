@@ -524,7 +524,7 @@ model IssueCustomFieldValue {
 
   issue       Issue       @relation(fields: [issueId], references: [id], onDelete: Cascade)
   customField CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
-  updatedBy   User        @relation(fields: [updatedById], references: [id])
+  updatedBy   User        @relation(fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: Cascade)
 
   @@unique([issueId, customFieldId])
   @@index([issueId])
