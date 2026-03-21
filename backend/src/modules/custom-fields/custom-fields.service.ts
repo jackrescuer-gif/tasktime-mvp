@@ -8,6 +8,7 @@ const SELECT_TYPES = ['SELECT', 'MULTI_SELECT'] as const;
 export async function listCustomFields() {
   return prisma.customField.findMany({
     orderBy: [{ orderIndex: 'asc' }, { createdAt: 'asc' }],
+    include: { _count: { select: { schemaItems: true, values: true } } },
   });
 }
 
