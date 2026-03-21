@@ -317,7 +317,7 @@ export async function removeFieldSchemaBinding(schemaId: string, bindingId: stri
 
 // ===== PUBLIC: schemas applicable to a project =====
 
-export async function listProjectFieldSchemas(projectId: string) {
+export async function listProjectFieldSchemas(projectId: string, issueTypeConfigId?: string) {
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) throw new AppError(404, 'Project not found');
 
@@ -329,8 +329,15 @@ export async function listProjectFieldSchemas(projectId: string) {
           OR: [
             { scopeType: 'GLOBAL' },
             { scopeType: 'PROJECT', projectId },
-            { scopeType: 'ISSUE_TYPE' },
-            { scopeType: 'PROJECT_ISSUE_TYPE', projectId },
+            ...(issueTypeConfigId
+              ? [
+                  { scopeType: 'ISSUE_TYPE' as const, issueTypeConfigId },
+                  { scopeType: 'PROJECT_ISSUE_TYPE' as const, projectId, issueTypeConfigId },
+                ]
+              : [
+                  { scopeType: 'ISSUE_TYPE' as const },
+                  { scopeType: 'PROJECT_ISSUE_TYPE' as const, projectId },
+                ]),
           ],
         },
       },

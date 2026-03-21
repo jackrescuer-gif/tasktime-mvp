@@ -76,6 +76,14 @@ export interface Project {
   _count?: { issues: number };
 }
 
+export interface KanbanField {
+  customFieldId: string;
+  name: string;
+  fieldType: string;
+  value: unknown;
+  showOnKanban: boolean;
+}
+
 export interface Issue {
   id: string;
   projectId: string;
@@ -101,6 +109,7 @@ export interface Issue {
   project?: { id: string; name: string; key: string };
   releaseId?: string | null;
   estimatedHours?: number | null;
+  kanbanFields?: KanbanField[];
   _count?: { children: number };
   createdAt: string;
   updatedAt: string;

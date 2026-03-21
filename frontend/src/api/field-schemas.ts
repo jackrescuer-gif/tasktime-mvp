@@ -100,6 +100,12 @@ export const fieldSchemasApi = {
   reorderItems: (id: string, updates: { id: string; orderIndex: number }[]) =>
     api.patch(`/admin/field-schemas/${id}/items/reorder`, { updates }).then(r => r.data),
 
+  // Public project schemas (for create form)
+  listProjectSchemas: (projectId: string, issueTypeConfigId?: string) =>
+    api.get<FieldSchema[]>(`/projects/${projectId}/field-schemas`, {
+      params: issueTypeConfigId ? { issueTypeConfigId } : {},
+    }).then(r => r.data),
+
   // Bindings
   listBindings: (id: string) =>
     api.get<SchemaBinding[]>(`/admin/field-schemas/${id}/bindings`).then(r => r.data),

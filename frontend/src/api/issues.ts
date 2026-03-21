@@ -37,6 +37,16 @@ export async function listIssues(projectId: string, filters?: IssueFilters): Pro
   return data;
 }
 
+export async function listIssuesWithKanbanFields(
+  projectId: string,
+  sprintId?: string,
+): Promise<Issue[]> {
+  const { data } = await api.get<Issue[]>(`/projects/${projectId}/issues`, {
+    params: { includeKanbanFields: 'true', ...(sprintId ? { sprintId } : {}) },
+  });
+  return data;
+}
+
 export async function getIssue(id: string): Promise<Issue> {
   const { data } = await api.get<Issue>(`/issues/${id}`);
   return data;
