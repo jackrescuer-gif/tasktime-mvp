@@ -2,7 +2,41 @@
 
 Все значимые изменения в проекте. Для каждого изменения указана ссылка на задачу (если есть).
 
-**Last version: 0.4**
+**Last version: 0.6**
+
+---
+
+## [0.6] [2026-03-21] feat(issues): TTADM-40 — блокировка перехода в DONE при незаполненных обязательных полях
+
+**Задача:** [TTADM-40](http://5.129.242.171)
+**PR:** TBD
+**Ветка:** `claude/jack-ttadm-40`
+
+### Что изменилось
+
+**Backend:**
+- `PATCH /api/issues/:id/status` — при переходе в `DONE` вызывает `validateRequiredFieldsForDone(issueId)` перед обновлением
+- Логика валидации: находит все обязательные (`isRequired`) кастомные поля для задачи через `getApplicableFields`, проверяет наличие непустых значений в `IssueCustomFieldValue`
+- При незаполненных полях возвращает `422` с телом `{ error: "REQUIRED_FIELDS_MISSING", fields: [{ customFieldId, name, fieldType }] }`
+- Проверка пустоты учитывает: `null`, пустую строку, пустой массив, а также JSONB-обёртку `{ v: ... }`
+
+---
+
+## [0.5] [2026-03-21] feat(issue-custom-fields): TTADM-39 — API кастомных полей задачи
+
+**Задача:** [TTADM-39](http://5.129.242.171)
+**PR:** TBD
+**Ветка:** `claude/jack-ttadm-39`
+
+### Что изменилось
+
+**Backend:**
+- Новая модель `IssueCustomFieldValue` (issueId+customFieldId unique, value: JSONB) + миграция `20260321150000_add_issue_custom_field_values`
+- Связи: `Issue.customFieldValues`, `CustomField.values`, `User.customFieldUpdates`
+- Новый модуль `backend/src/modules/issue-custom-fields/`
+- `GET /api/issues/:id/custom-fields` — применимые поля с текущими значениями; разрешение схем по приоритету scope (PROJECT_ISSUE_TYPE > PROJECT > ISSUE_TYPE > GLOBAL)
+- `PUT /api/issues/:id/custom-fields` — batch upsert значений; проверка применимости полей к задаче
+- `GET /api/projects/:projectId/issues?includeKanbanFields=true` — расширение существующего эндпоинта: добавляет `kanbanFields[]` (top-3 showOnKanban полей с текущими значениями) к каждой задаче
 
 ---
 
