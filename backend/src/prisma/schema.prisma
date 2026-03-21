@@ -473,6 +473,38 @@ model IssueLink {
   @@map("issue_links")
 }
 
+// ===== CUSTOM FIELDS =====
+
+enum CustomFieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  DECIMAL
+  DATE
+  DATETIME
+  URL
+  CHECKBOX
+  SELECT
+  MULTI_SELECT
+  USER
+  LABEL
+}
+
+model CustomField {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  fieldType   CustomFieldType @map("field_type")
+  options     Json?
+  isSystem    Boolean         @default(false) @map("is_system")
+  isEnabled   Boolean         @default(true)  @map("is_enabled")
+  orderIndex  Int             @default(0)      @map("order_index")
+  createdAt   DateTime        @default(now())  @map("created_at")
+  updatedAt   DateTime        @updatedAt       @map("updated_at")
+
+  @@map("custom_fields")
+}
+
 // ===== SYSTEM SETTINGS =====
 
 model SystemSetting {
