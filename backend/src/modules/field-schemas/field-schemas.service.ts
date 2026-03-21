@@ -5,7 +5,6 @@ import type {
   UpdateFieldSchemaDto,
   CopyFieldSchemaDto,
   AddFieldSchemaItemDto,
-  UpdateFieldSchemaItemDto,
   ReorderFieldSchemaItemsDto,
   ReplaceFieldSchemaItemsDto,
   CreateFieldSchemaBindingDto,
