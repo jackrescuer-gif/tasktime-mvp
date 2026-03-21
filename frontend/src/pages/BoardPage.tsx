@@ -1,17 +1,22 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Select, Space, Button, Modal, Form, Input, message } from 'antd';
+import { Select, Space, Button, Modal, Form, Input, message, Divider, Typography } from 'antd';
 import { AppstoreOutlined, ThunderboltOutlined, PlusOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import * as boardApi from '../api/board';
 import * as sprintsApi from '../api/sprints';
 import * as projectsApi from '../api/projects';
 import * as issuesApi from '../api/issues';
+import { listIssuesWithKanbanFields } from '../api/issues';
 import { getProjectIssueTypes } from '../api/issue-type-configs';
+import { fieldSchemasApi } from '../api/field-schemas';
+import { issueCustomFieldsApi, type IssueCustomFieldValue } from '../api/issue-custom-fields';
 import type { Issue, IssueStatus, Sprint, Project, IssuePriority, IssueTypeConfig } from '../types';
 import { useAuthStore } from '../store/auth.store';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { IssueTypeBadge } from '../lib/issue-kit';
+import KanbanCardCustomFields from '../components/issues/KanbanCardCustomFields';
+import CustomFieldInput from '../components/issues/CustomFieldInput';
 
 const STATUS_ORDER: IssueStatus[] = ['OPEN', 'IN_PROGRESS', 'REVIEW', 'DONE', 'CANCELLED'];
 const COLUMN_LABELS: Record<IssueStatus, string> = {
@@ -37,6 +42,10 @@ export default function BoardPage() {
   const [createLoading, setCreateLoading] = useState(false);
   const [form] = Form.useForm<issuesApi.CreateIssueBody>();
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
+  const [kanbanFieldsMap, setKanbanFieldsMap] = useState<Map<string, Issue['kanbanFields']>>(new Map());
+  const [createCustomFields, setCreateCustomFields] = useState<IssueCustomFieldValue[]>([]);
+  const [createCustomFieldValues, setCreateCustomFieldValues] = useState<Record<string, unknown>>({});
+  const watchIssueTypeConfigId = Form.useWatch('issueTypeConfigId', form);
 
   const canCreate = user?.role !== 'VIEWER';
 
@@ -44,12 +53,18 @@ export default function BoardPage() {
     if (!projectId) return;
     setLoading(true);
     try {
-      const [board, proj] = await Promise.all([
+      const [board, proj, issuesWithFields] = await Promise.all([
         boardApi.getBoard(projectId, selectedSprint),
         projectsApi.getProject(projectId),
+        listIssuesWithKanbanFields(projectId, selectedSprint),
       ]);
       setColumns(board.columns);
       setProject(proj);
+      const kMap = new Map<string, Issue['kanbanFields']>();
+      for (const issue of issuesWithFields) {
+        if (issue.kanbanFields) kMap.set(issue.id, issue.kanbanFields);
+      }
+      setKanbanFieldsMap(kMap);
     } finally {
       setLoading(false);
     }
@@ -62,6 +77,41 @@ export default function BoardPage() {
   }, [projectId]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Load custom fields for create form when issue type changes
+  useEffect(() => {
+    if (!projectId || !watchIssueTypeConfigId) {
+      setCreateCustomFields([]);
+      return;
+    }
+    fieldSchemasApi.listProjectSchemas(projectId, watchIssueTypeConfigId)
+      .then(schemas => {
+        const fieldMap = new Map<string, IssueCustomFieldValue>();
+        for (const schema of schemas) {
+          for (const item of schema.items) {
+            if (!fieldMap.has(item.customFieldId)) {
+              fieldMap.set(item.customFieldId, {
+                customFieldId: item.customFieldId,
+                name: item.customField.name,
+                description: item.customField.description ?? null,
+                fieldType: item.customField.fieldType as IssueCustomFieldValue['fieldType'],
+                options: item.customField.options as IssueCustomFieldValue['options'],
+                isRequired: item.isRequired,
+                showOnKanban: item.showOnKanban,
+                orderIndex: item.orderIndex,
+                currentValue: null,
+                updatedAt: null,
+              });
+            }
+          }
+        }
+        setCreateCustomFields(
+          Array.from(fieldMap.values()).sort((a, b) => a.orderIndex - b.orderIndex)
+        );
+        setCreateCustomFieldValues({});
+      })
+      .catch(() => setCreateCustomFields([]));
+  }, [projectId, watchIssueTypeConfigId]);
 
   const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
@@ -97,10 +147,18 @@ export default function BoardPage() {
     if (!projectId) return;
     try {
       setCreateLoading(true);
-      await issuesApi.createIssue(projectId, values);
+      const issue = await issuesApi.createIssue(projectId, values);
+      const valuesToSave = Object.entries(createCustomFieldValues)
+        .filter(([, v]) => v !== null && v !== undefined)
+        .map(([customFieldId, value]) => ({ customFieldId, value }));
+      if (valuesToSave.length > 0) {
+        await issueCustomFieldsApi.updateFields(issue.id, valuesToSave);
+      }
       message.success('Issue created');
       setCreateOpen(false);
       form.resetFields();
+      setCreateCustomFields([]);
+      setCreateCustomFieldValues({});
       load();
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
@@ -223,6 +281,9 @@ export default function BoardPage() {
                           <Link to={`/issues/${issue.id}`} className="tt-board-card-title">
                             {issue.title}
                           </Link>
+                          {(kanbanFieldsMap.get(issue.id)?.length ?? 0) > 0 && (
+                            <KanbanCardCustomFields kanbanFields={kanbanFieldsMap.get(issue.id)!} />
+                          )}
                           <div className="tt-board-card-meta">
                             <span className={`tt-board-status-pill tt-board-status-pill--${issue.status.toLowerCase()}`}>
                               {COLUMN_LABELS[issue.status]}
@@ -309,6 +370,33 @@ export default function BoardPage() {
           <Form.Item name="description" label="Description">
             <Input.TextArea rows={3} />
           </Form.Item>
+          {createCustomFields.length > 0 && (
+            <>
+              <Divider orientation="left" orientationMargin={0} style={{ margin: '12px 0 8px' }}>
+                <Typography.Text style={{ fontSize: 12, color: 'inherit' }}>Дополнительные поля</Typography.Text>
+              </Divider>
+              {createCustomFields.map(field => (
+                <Form.Item
+                  key={field.customFieldId}
+                  label={
+                    <span>
+                      {field.isRequired && <span style={{ color: '#e5534b' }}>* </span>}
+                      {field.name}
+                    </span>
+                  }
+                  style={{ marginBottom: 8 }}
+                >
+                  <CustomFieldInput
+                    field={{ ...field, currentValue: createCustomFieldValues[field.customFieldId] ?? null }}
+                    inlineEdit={false}
+                    onSave={async (val) => {
+                      setCreateCustomFieldValues(prev => ({ ...prev, [field.customFieldId]: val }));
+                    }}
+                  />
+                </Form.Item>
+              ))}
+            </>
+          )}
         </Form>
       </Modal>
     </div>

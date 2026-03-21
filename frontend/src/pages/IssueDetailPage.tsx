@@ -39,6 +39,7 @@ import * as aiApi from '../api/ai';
 import * as authApi from '../api/auth';
 import { getProjectIssueTypes } from '../api/issue-type-configs';
 import IssueLinksSection from '../components/issues/IssueLinksSection';
+import IssueCustomFieldsSection from '../components/issues/IssueCustomFieldsSection';
 import { useAuthStore } from '../store/auth.store';
 import type { Issue, Comment, TimeLog, AuditEntry, IssueStatus, IssuePriority, IssueTypeConfig, User } from '../types';
 import api from '../api/client';
@@ -520,6 +521,8 @@ export default function IssueDetailPage() {
               </div>
             </div>
           </div>
+
+          <IssueCustomFieldsSection issueId={issue.id} />
 
           <div className="tt-panel">
             <div className="tt-panel-header">AI Execution</div>

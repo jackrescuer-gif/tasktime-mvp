@@ -210,7 +210,8 @@ projectFieldSchemasRouter.use(authenticate);
 projectFieldSchemasRouter.get('/', async (req: AuthRequest, res, next) => {
   try {
     const projectId = (req.params as Record<string, string>)['projectId'] as string;
-    res.json(await service.listProjectFieldSchemas(projectId));
+    const { issueTypeConfigId } = req.query as { issueTypeConfigId?: string };
+    res.json(await service.listProjectFieldSchemas(projectId, issueTypeConfigId));
   } catch (err) {
     next(err);
   }
