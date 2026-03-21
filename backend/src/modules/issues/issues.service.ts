@@ -7,6 +7,7 @@ import type {
 } from '@prisma/client';
 import { prisma } from '../../prisma/client.js';
 import { AppError } from '../../shared/middleware/error-handler.js';
+import { getApplicableFields } from '../issue-custom-fields/issue-custom-fields.service.js';
 import type {
   CreateIssueDto,
   UpdateIssueDto,
@@ -376,9 +377,52 @@ export async function updateIssue(id: string, dto: UpdateIssueDto) {
   });
 }
 
+async function validateRequiredFieldsForDone(issueId: string): Promise<void> {
+  const fields = await getApplicableFields(issueId);
+  const required = fields.filter((f) => f.isRequired);
+  if (required.length === 0) return;
+
+  const values = await prisma.issueCustomFieldValue.findMany({
+    where: { issueId, customFieldId: { in: required.map((f) => f.customFieldId) } },
+    select: { customFieldId: true, value: true },
+  });
+
+  const valueMap = new Map(values.map((v) => [v.customFieldId, v.value]));
+
+  const missing = required.filter((f) => {
+    const val = valueMap.get(f.customFieldId);
+    if (val === undefined || val === null) return true;
+    // Empty string / empty array also counts as unfilled
+    if (typeof val === 'string' && val.trim() === '') return true;
+    if (Array.isArray(val) && val.length === 0) return true;
+    // Unwrap { v: ... } JSONB wrapper if present
+    if (typeof val === 'object' && !Array.isArray(val) && 'v' in (val as object)) {
+      const inner = (val as { v: unknown }).v;
+      if (inner === null || inner === undefined) return true;
+      if (typeof inner === 'string' && inner.trim() === '') return true;
+      if (Array.isArray(inner) && inner.length === 0) return true;
+    }
+    return false;
+  });
+
+  if (missing.length > 0) {
+    throw new AppError(422, 'REQUIRED_FIELDS_MISSING', {
+      fields: missing.map((f) => ({
+        customFieldId: f.customFieldId,
+        name: f.name,
+        fieldType: f.fieldType,
+      })),
+    });
+  }
+}
+
 export async function updateStatus(id: string, dto: UpdateStatusDto) {
   const issue = await prisma.issue.findUnique({ where: { id } });
   if (!issue) throw new AppError(404, 'Issue not found');
+
+  if (dto.status === 'DONE') {
+    await validateRequiredFieldsForDone(id);
+  }
 
   return prisma.issue.update({
     where: { id },
