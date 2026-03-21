@@ -2,7 +2,42 @@
 
 Все значимые изменения в проекте. Для каждого изменения указана ссылка на задачу (если есть).
 
-**Last version: 0.3**
+**Last version: 0.5**
+
+---
+
+## [0.5] [2026-03-21] feat(issue-custom-fields): TTADM-39 — API кастомных полей задачи
+
+**Задача:** [TTADM-39](http://5.129.242.171)
+**PR:** TBD
+**Ветка:** `claude/jack-ttadm-39`
+
+### Что изменилось
+
+**Backend:**
+- Новая модель `IssueCustomFieldValue` (issueId+customFieldId unique, value: JSONB) + миграция `20260321150000_add_issue_custom_field_values`
+- Связи: `Issue.customFieldValues`, `CustomField.values`, `User.customFieldUpdates`
+- Новый модуль `backend/src/modules/issue-custom-fields/`
+- `GET /api/issues/:id/custom-fields` — применимые поля с текущими значениями; разрешение схем по приоритету scope (PROJECT_ISSUE_TYPE > PROJECT > ISSUE_TYPE > GLOBAL)
+- `PUT /api/issues/:id/custom-fields` — batch upsert значений; проверка применимости полей к задаче
+- `GET /api/projects/:projectId/issues?includeKanbanFields=true` — расширение существующего эндпоинта: добавляет `kanbanFields[]` (top-3 showOnKanban полей с текущими значениями) к каждой задаче
+
+---
+
+## [0.4] [2026-03-21] feat(field-schemas): TTADM-38 — проверка конфликтов при публикации схемы
+
+**Задача:** [TTADM-38](http://5.129.242.171)
+**PR:** TBD
+**Ветка:** `claude/jack-ttadm-38`
+
+### Что изменилось
+
+**Backend:**
+- Новый файл `field-schemas.conflicts.ts` — вся логика детектирования конфликтов
+- Три типа конфликтов: `FIELD_DUPLICATE_SAME_SCOPE` (ERROR), `REQUIRED_MISMATCH` (ERROR), `KANBAN_OVERFLOW` (WARNING)
+- `POST /api/admin/field-schemas/:id/publish` — теперь проверяет конфликты перед активацией; при наличии ERROR возвращает 422 со списком конфликтов; WARNING не блокирует публикацию
+- `GET /api/admin/field-schemas/:id/conflicts` — предварительная проверка без публикации; возвращает `{ hasErrors, hasWarnings, conflicts[] }`
+- Алгоритм: сравнение биндингов кандидата с биндингами всех ACTIVE схем на одном уровне scope; дедупликация конфликтов
 
 ---
 
