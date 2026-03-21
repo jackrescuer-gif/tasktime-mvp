@@ -569,7 +569,7 @@ model FieldSchemaBinding {
   project         Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   issueTypeConfig IssueTypeConfig? @relation(fields: [issueTypeConfigId], references: [id], onDelete: Cascade)
 
-  @@unique([schemaId, scopeType, projectId, issueTypeConfigId])
+  @@unique([schemaId, scopeType, projectId, issueTypeConfigId], map: "field_schema_bindings_schema_id_scope_type_project_id_issue_typ")
   @@index([schemaId])
   @@index([projectId])
   @@index([issueTypeConfigId])
