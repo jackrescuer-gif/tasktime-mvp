@@ -28,6 +28,7 @@ import projectCategoriesRouter from './modules/project-categories/project-catego
 import monitoringRouter from './modules/monitoring/monitoring.router.js';
 import issueTypeConfigsRouter from './modules/issue-type-configs/issue-type-configs.router.js';
 import issueTypeSchemesRouter from './modules/issue-type-schemes/issue-type-schemes.router.js';
+import customFieldsRouter from './modules/custom-fields/custom-fields.router.js';
 
 export function createApp() {
   const app = express();
@@ -90,6 +91,7 @@ export function createApp() {
   app.use('/api', linksRouter);
   app.use('/api', issueTypeConfigsRouter);
   app.use('/api', issueTypeSchemesRouter);
+  app.use('/api/admin/custom-fields', customFieldsRouter);
   app.use('/api/monitoring', monitoringRouter);
 
   // Error handler (must be last)

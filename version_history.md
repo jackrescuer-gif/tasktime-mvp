@@ -2,7 +2,30 @@
 
 Все значимые изменения в проекте. Для каждого изменения указана ссылка на задачу (если есть).
 
-**Last version: 0.1**
+**Last version: 0.2**
+
+---
+
+## [0.2] [2026-03-21] feat(custom-fields): backend модуль кастомных полей — CRUD и валидация
+
+**Задача:** [TTADM-35](http://5.129.242.171)
+**PR:** TBD
+**Ветка:** `claude/jack-ttadm-35`
+
+### Что изменилось
+
+**Backend:**
+- Новый enum `CustomFieldType` (12 значений: TEXT, TEXTAREA, NUMBER, DECIMAL, DATE, DATETIME, URL, CHECKBOX, SELECT, MULTI_SELECT, USER, LABEL) в `schema.prisma`
+- Новая модель `CustomField` + миграция `20260321130000_add_custom_fields`
+- Новый модуль `backend/src/modules/custom-fields/`
+- `GET /api/admin/custom-fields` — список всех кастомных полей (ADMIN+)
+- `POST /api/admin/custom-fields` — создать поле (ADMIN+)
+- `GET /api/admin/custom-fields/:id` — получить поле (ADMIN+)
+- `PATCH /api/admin/custom-fields/:id` — редактировать поле (ADMIN+)
+- `DELETE /api/admin/custom-fields/:id` — удалить поле (ADMIN+, системные поля удалить нельзя)
+- `PATCH /api/admin/custom-fields/:id/toggle` — включить/выключить поле (ADMIN+)
+- `PATCH /api/admin/custom-fields/reorder` — изменить порядок (ADMIN+)
+- Бизнес-правила: options обязательны для SELECT/MULTI_SELECT; fieldType нельзя изменить; isSystem поля нельзя удалить
 
 ---
 
