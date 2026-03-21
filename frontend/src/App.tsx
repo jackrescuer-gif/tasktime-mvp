@@ -26,6 +26,9 @@ import AdminIssueTypeConfigsPage from './pages/admin/AdminIssueTypeConfigsPage';
 import AdminIssueTypeSchemesPage from './pages/admin/AdminIssueTypeSchemesPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminRolesPage from './pages/admin/AdminRolesPage';
+import AdminCustomFieldsPage from './pages/admin/AdminCustomFieldsPage';
+import AdminFieldSchemasPage from './pages/admin/AdminFieldSchemasPage';
+import AdminFieldSchemaDetailPage from './pages/admin/AdminFieldSchemaDetailPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import SettingsPage from './pages/SettingsPage';
 import LoadingSpinner from './components/common/LoadingSpinner';
@@ -166,6 +169,9 @@ export default function App() {
             <Route path="admin/issue-type-schemes" element={<AdminIssueTypeSchemesPage />} />
             <Route path="admin/users" element={<AdminUsersPage />} />
             <Route path="admin/roles" element={<AdminRolesPage />} />
+            <Route path="admin/custom-fields" element={<AdminCustomFieldsPage />} />
+            <Route path="admin/field-schemas" element={<AdminFieldSchemasPage />} />
+            <Route path="admin/field-schemas/:id" element={<AdminFieldSchemaDetailPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>

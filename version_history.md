@@ -2,7 +2,27 @@
 
 Все значимые изменения в проекте. Для каждого изменения указана ссылка на задачу (если есть).
 
-**Last version: 0.6**
+**Last version: 0.7**
+
+---
+
+## [0.7] [2026-03-21] feat(admin-ui): TTADM-49+41 — роутинг и страница кастомных полей
+
+**Задача:** [TTADM-49](http://5.129.242.171), [TTADM-41](http://5.129.242.171)
+**PR:** TBD
+**Ветка:** `claude/jack-ttadm-41-49`
+
+### Что изменилось
+
+**Backend:**
+- `GET /api/admin/custom-fields` — теперь возвращает `_count: { schemaItems, values }` для каждого поля
+
+**Frontend:**
+- `frontend/src/api/custom-fields.ts` — новый API-модуль (list, create, get, update, delete, toggle, reorder)
+- `AdminCustomFieldsPage` (`/admin/custom-fields`) — таблица всех полей (имя, тип с иконкой, статус, кол-во схем); форма создания/редактирования с вариантами ответа для SELECT/MULTI_SELECT; isSystem-поля без кнопки удаления
+- Стаб-страницы `AdminFieldSchemasPage` и `AdminFieldSchemaDetailPage` (реализуются в следующем PR)
+- Роуты: `/admin/custom-fields`, `/admin/field-schemas`, `/admin/field-schemas/:id`
+- Меню Admin-панели: пункты «Кастомные поля» и «Схемы полей» в группе Admin
 
 ---
 
