@@ -24,6 +24,8 @@ import {
   SafetyCertificateOutlined,
   ControlOutlined,
   ProfileOutlined,
+  TagOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
@@ -42,9 +44,12 @@ export default function AppLayout() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [animatingTheme, setAnimatingTheme] = useState(false);
-  const [openKeys, setOpenKeys] = useState<string[]>(() =>
-    location.pathname.startsWith('/admin') ? ['admin-submenu'] : []
-  );
+  const [openKeys, setOpenKeys] = useState<string[]>(() => {
+    const keys: string[] = [];
+    if (location.pathname.startsWith('/admin')) keys.push('admin-submenu');
+    if (location.pathname === '/sprints' || location.pathname === '/releases') keys.push('planning-submenu');
+    return keys;
+  });
 
   // Закрываем сайдбар при смене маршрута
   useEffect(() => {
@@ -55,6 +60,9 @@ export default function AppLayout() {
   useEffect(() => {
     if (location.pathname.startsWith('/admin')) {
       setOpenKeys((prev) => prev.includes('admin-submenu') ? prev : [...prev, 'admin-submenu']);
+    }
+    if (location.pathname === '/sprints' || location.pathname === '/releases') {
+      setOpenKeys((prev) => prev.includes('planning-submenu') ? prev : [...prev, 'planning-submenu']);
     }
   }, [location.pathname]);
 
@@ -95,7 +103,15 @@ export default function AppLayout() {
       icon: <DeploymentUnitOutlined />,
       label: 'Потоковые команды',
     },
-    { key: '/sprints', icon: <CalendarOutlined />, label: 'Sprints' },
+    {
+      key: 'planning-submenu',
+      icon: <ThunderboltOutlined />,
+      label: 'Planning',
+      children: [
+        { key: '/sprints', icon: <CalendarOutlined />, label: 'Спринты' },
+        { key: '/releases', icon: <TagOutlined />, label: 'Релизы' },
+      ],
+    },
     { key: '/time', icon: <ClockCircleOutlined />, label: 'My Time' },
     { key: '/teams', icon: <TeamOutlined />, label: 'Teams' },
     ...(hasRequiredRole(user?.role, 'ADMIN')
