@@ -7,39 +7,11 @@ import * as projectsApi from '../api/projects';
 import type { Project } from '../types';
 import type { ProjectDashboard } from '../api/projects';
 import { hasAnyRequiredRole } from '../lib/roles';
+import { ProjectCard } from '../components/ui';
+import type { ProjectCardData, ProjectStatus } from '../components/ui';
 
-type FilterType = 'all' | 'active' | 'onhold';
+type FilterType = 'all' | 'active' | 'onhold' | 'archived';
 
-const PROJECT_GRADIENTS = [
-  'linear-gradient(135deg,#4F6EF7,#7C3AED)',
-  'linear-gradient(135deg,#7C3AED,#EC4899)',
-  'linear-gradient(135deg,#F59E0B,#EF4444)',
-  'linear-gradient(135deg,#06B6D4,#4F6EF7)',
-  'linear-gradient(135deg,#10B981,#06B6D4)',
-  'linear-gradient(135deg,#EF4444,#F59E0B)',
-  'linear-gradient(135deg,#8B5CF6,#3B82F6)',
-  'linear-gradient(135deg,#F97316,#FBBF24)',
-];
-
-function getGradient(key: string): string {
-  let h = 0;
-  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) & 0xffff;
-  return PROJECT_GRADIENTS[h % PROJECT_GRADIENTS.length];
-}
-
-function getInitials(key: string): string {
-  return key.slice(0, 2).toUpperCase();
-}
-
-function formatRelativeTime(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const d = Math.floor(diff / 86400000);
-  if (d === 0) return 'сегодня';
-  if (d === 1) return 'вчера';
-  if (d < 7) return `${d} дн. назад`;
-  if (d < 30) return `${Math.floor(d / 7)} нед. назад`;
-  return `${Math.floor(d / 30)} мес. назад`;
-}
 
 interface CardData {
   project: Project;
@@ -93,10 +65,10 @@ export default function ProjectsPage() {
     }
   };
 
-  const getStatus = (d: ProjectDashboard | null): 'active' | 'onhold' | 'empty' => {
+  const getStatus = (d: ProjectDashboard | null): ProjectStatus => {
     if (!d) return 'active';
     if (d.activeSprint) return 'active';
-    if (d.totals.totalIssues === 0) return 'empty';
+    if (d.totals.totalIssues === 0) return 'archived';
     return 'onhold';
   };
 
@@ -104,7 +76,8 @@ export default function ProjectsPage() {
     if (filter === 'all') return true;
     const s = getStatus(dashboard);
     if (filter === 'active') return s === 'active';
-    if (filter === 'onhold') return s === 'onhold' || s === 'empty';
+    if (filter === 'onhold') return s === 'onhold';
+    if (filter === 'archived') return s === 'archived';
     return true;
   });
 
@@ -140,21 +113,19 @@ export default function ProjectsPage() {
       <div className="tt-projects-filters">
         {(
           [
-            ['all', 'All'],
-            ['active', 'Active'],
-            ['onhold', 'On Hold'],
-          ] as [FilterType, string][]
-        ).map(([key, label]) => (
+            ['all', 'All', null],
+            ['active', 'Active', '#22C55E'],
+            ['onhold', 'On Hold', '#F59E0B'],
+            ['archived', 'Archived', '#6b7280'],
+          ] as [FilterType, string, string | null][]
+        ).map(([key, label, dotColor]) => (
           <button
             key={key}
             className={`tt-projects-filter-tab${filter === key ? ' active' : ''}`}
             onClick={() => setFilter(key)}
           >
-            {key !== 'all' && (
-              <span
-                className="tt-projects-filter-dot"
-                style={{ background: key === 'active' ? '#22C55E' : '#F59E0B' }}
-              />
+            {dotColor && (
+              <span className="tt-projects-filter-dot" style={{ background: dotColor }} />
             )}
             {label}
           </button>
@@ -167,94 +138,33 @@ export default function ProjectsPage() {
           ? Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="tt-project-card tt-project-card--skeleton" />
             ))
-          : filteredCards.map(({ project, dashboard, loading: cardLoading }) => {
+          : filteredCards.map(({ project, dashboard }) => {
               const total = dashboard?.totals.totalIssues ?? project._count?.issues ?? 0;
               const done = dashboard?.totals.doneIssues ?? 0;
               const pct = total > 0 ? Math.round((done / total) * 100) : 0;
               const sprint = dashboard?.activeSprint;
               const status = getStatus(dashboard);
-              const gradient = getGradient(project.key);
+
+              const cardData: ProjectCardData = {
+                id: project.id,
+                name: project.name,
+                key: project.key,
+                description: project.description,
+                status,
+                openIssues: total - done,
+                currentSprint: sprint?.name ?? null,
+                completionPct: pct,
+                updatedAt: project.updatedAt,
+              };
 
               return (
-                <div
+                <ProjectCard
                   key={project.id}
-                  className={`tt-project-card${status === 'empty' ? ' tt-project-card--dim' : ''}`}
+                  project={cardData}
                   onClick={() => navigate(`/projects/${project.id}`)}
-                >
-                  <div className="tt-project-card-glow" style={{ background: gradient }} />
-
-                  <div className="tt-project-card-head">
-                    <div className="tt-project-card-id">
-                      <div className="tt-project-avatar" style={{ background: gradient }}>
-                        {getInitials(project.key)}
-                      </div>
-                      <div>
-                        <div className="tt-project-card-name">{project.name}</div>
-                        <div className="tt-project-card-key">{project.key}</div>
-                      </div>
-                    </div>
-                    {!cardLoading && (
-                      <span className={`tt-project-status-badge tt-project-status-badge--${status}`}>
-                        <span className="tt-project-status-dot" />
-                        {status === 'active' ? 'Active' : status === 'onhold' ? 'On Hold' : 'Empty'}
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="tt-project-card-desc">
-                    {project.description || 'No description yet.'}
-                  </p>
-
-                  <div className="tt-project-metrics">
-                    <div className="tt-project-metric">
-                      <span className="tt-project-metric-value">{total}</span>
-                      <span className="tt-project-metric-label">issues</span>
-                    </div>
-                    <div className="tt-project-metric-sep" />
-                    <div className="tt-project-metric">
-                      <span className="tt-project-metric-value tt-project-metric-value--muted">
-                        {sprint ? sprint.name : 'Backlog'}
-                      </span>
-                      <span className="tt-project-metric-label">
-                        {sprint ? 'active sprint' : 'no sprint'}
-                      </span>
-                    </div>
-                    <div className="tt-project-metric-sep" />
-                    <div className="tt-project-metric">
-                      <span
-                        className="tt-project-metric-value"
-                        style={{
-                          background: gradient,
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                        }}
-                      >
-                        {pct}%
-                      </span>
-                      <span className="tt-project-metric-label">done</span>
-                    </div>
-                  </div>
-
-                  <div className="tt-project-progress-track">
-                    <div
-                      className="tt-project-progress-fill"
-                      style={{ width: `${pct}%`, background: gradient }}
-                    />
-                  </div>
-
-                  <div className="tt-project-card-footer">
-                    <div
-                      className="tt-project-avatar tt-project-avatar--sm"
-                      style={{ background: gradient }}
-                    >
-                      {getInitials(project.key)}
-                    </div>
-                    <span className="tt-project-card-time">
-                      {formatRelativeTime(project.createdAt)}
-                    </span>
-                  </div>
-                </div>
+                />
               );
+
             })}
 
         {canCreate && !loading && (
