@@ -155,6 +155,7 @@ export default function App() {
             <Route path="projects/:id/sprints" element={<SprintsPage />} />
             <Route path="projects/:id/releases" element={<ReleasesPage />} />
             <Route path="sprints" element={<GlobalSprintsPage />} />
+            <Route path="releases" element={<ReleasesPage />} />
             <Route path="issues/:id" element={<IssueDetailPage />} />
             <Route path="time" element={<TimePage />} />
             <Route path="teams" element={<TeamsPage />} />
