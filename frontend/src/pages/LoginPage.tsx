@@ -240,7 +240,7 @@ export default function LoginPage() {
         </div>
 
         {/* Футер */}
-        <div className="auth-footer">© 2025 Flow Universe</div>
+        <div className="auth-footer">Flow Universe · © 2026</div>
       </div>
 
       {/* ─── Правая панель (космос) ─── */}
