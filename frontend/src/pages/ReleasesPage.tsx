@@ -512,7 +512,7 @@ export default function ReleasesPage() {
 
                   {/* Readiness block */}
                   {readiness && selectedRelease.state !== 'RELEASED' && (
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+                    <div style={{ borderTop: '1px solid var(--b)', paddingTop: 10 }}>
                       <div style={{ fontSize: 11, color: 'var(--t2)', marginBottom: 6, fontWeight: 500 }}>
                         Готовность к выпуску
                       </div>
@@ -575,7 +575,7 @@ export default function ReleasesPage() {
                     </div>
                   )}
 
-                  <div style={{ fontSize: 12, color: 'var(--t2)', borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+                  <div style={{ fontSize: 12, color: 'var(--t2)', borderTop: '1px solid var(--b)', paddingTop: 8 }}>
                     Спринтов: {sprintsInRelease.length} · Задач: {issuesInRelease.length}
                     {selectedRelease.releaseDate && (
                       <> · Выпущен: {formatDate(selectedRelease.releaseDate)}</>
