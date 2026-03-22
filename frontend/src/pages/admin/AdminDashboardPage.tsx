@@ -108,6 +108,7 @@ export default function AdminDashboardPage() {
       if (!selectedSprintId && data.length > 0) setSelectedSprintId(data[0].id);
     };
     void loadSprints();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProjectId]);
 
   if (loading) return <LoadingSpinner />;

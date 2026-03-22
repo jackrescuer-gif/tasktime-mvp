@@ -139,6 +139,7 @@ export default function AdminPage() {
       }
     };
     void loadSprints();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProjectId]);
 
   const loadLinkTypes = async () => {
