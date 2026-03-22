@@ -51,6 +51,7 @@ export default function UatTestsPage() {
       }
     };
     void load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role]);
 
   useEffect(() => {

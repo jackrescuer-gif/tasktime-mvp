@@ -42,7 +42,7 @@ import { getProjectIssueTypes } from '../api/issue-type-configs';
 import IssueLinksSection from '../components/issues/IssueLinksSection';
 import IssueCustomFieldsSection from '../components/issues/IssueCustomFieldsSection';
 import { useAuthStore } from '../store/auth.store';
-import type { Issue, Comment, TimeLog, AuditEntry, IssueStatus, IssuePriority, IssueTypeConfig, User } from '../types';
+import type { Issue, Comment, TimeLog, AuditEntry, IssueStatus, IssuePriority, IssueTypeConfig, User, AiExecutionStatus } from '../types';
 import api from '../api/client';
 import { hasAnyRequiredRole, hasRequiredRole } from '../lib/roles';
 import { IssueStatusTag, IssuePriorityTag, IssueTypeBadge } from '../lib/issue-kit';
@@ -570,7 +570,7 @@ export default function IssueDetailPage() {
                     onChange={async (val) => {
                       if (!id) return;
                       try {
-                        await issuesApi.updateAiStatus(id, val as any);
+                        await issuesApi.updateAiStatus(id, val as AiExecutionStatus);
                         const updated = await issuesApi.getIssue(id);
                         setIssue(updated);
                         message.success('Agent status updated');
